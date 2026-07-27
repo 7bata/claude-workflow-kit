@@ -1,0 +1,13 @@
+# Decision Log — {{PROJECT_NAME}}
+
+> Maintained automatically. For key decisions (technology choices, trade-offs, plan reversals, workarounds), Claude appends a structured record at commit time, newest first.
+> Entry format: `## Date - type(scope): title` + **What / Why / Changes**, with optional **Known limitation / Out of scope / Deferred**.
+> Type reference: arch (architecture) / decision (product or technical trade-off) / feat / fix. Numbering cross-references `REQUIREMENTS.md`'s "Confirmed Decisions" in both directions.
+
+## {{DATE}} - arch(stack): Adopted the team's Go baseline stack
+
+**What**: Backend Go 1.25 (net/http + chi + pgx + golang-migrate), database {{DATABASE}}; full baseline in `docs/ARCHITECTURE.md` section 1.
+
+**Why**: The team's backend baseline is fixed to Go (native concurrency, single static binary, stateless horizontal scaling) — no per-project stack selection; switching stacks requires first amending the /scaffold baseline table.
+
+**Changes**: Written to disk by /scaffold initialization; the ARCHITECTURE.md tech stack table is pre-filled per the baseline.

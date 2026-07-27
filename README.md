@@ -1,185 +1,205 @@
 # claude-workflow-kit
 
-一套文档驱动的 Claude Code 多代理开发工作流:**指挥 / 执行 / 评审三层分工** + **brainstorming → spec → ultracode 直通实现** + **docs 七件套项目文档体系**。
+English | [中文](README.zh-CN.md)
 
-包含两部分:
+A documentation-driven multi-agent development workflow for Claude Code: **Conductor / Executor / Reviewer three-tier division of labor** + **brainstorming → spec → ultracode straight-through implementation** + **the seven-doc set project documentation system**.
 
-1. **一段工作流 prompt**(本 README 下方)——放进你的 `~/.claude/CLAUDE.md`,定义模型分工、档位表和主流程
-2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供两个可执行命令:
-   - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 七件套 + `.gitignore` + `README.md`)
-   - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
+Contains two parts:
 
-## 安装
+1. **A workflow prompt** (below in this README) — drop it into your `~/.claude/CLAUDE.md` to define the model division of labor, the tier table, and the main workflow
+2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides two executable commands:
+   - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the seven-doc set + `.gitignore` + `README.md`)
+   - `/whats-next`: read the docs to figure out where the project stands and what to do next
+
+## Install
 
 ```
 /plugin marketplace add 7bata/claude-workflow-kit
-/plugin install workflow@claude-workflow-kit
+/plugin install workflow-en@claude-workflow-kit
 ```
 
-然后把下方「工作流 prompt」整段复制进 `~/.claude/CLAUDE.md`(全局生效)或项目的 `.claude/CLAUDE.md`(单项目生效)。
+This repo ships two plugin variants — install **one** of them:
+- `workflow-en@claude-workflow-kit` — English output (this README)
+- `workflow@claude-workflow-kit` — Chinese output
 
-### 依赖
+Their skills share the same `/scaffold` and `/whats-next` command names, so installing both at once would collide — pick the one that matches your output language.
 
-| 依赖 | 用途 | 说明 |
+Then copy the entire "Workflow prompt" section below into `~/.claude/CLAUDE.md` (global effect) or your project's `.claude/CLAUDE.md` (project-only effect).
+
+### Dependencies
+
+| Dependency | Purpose | Notes |
 |---|---|---|
-| Claude Code(带 Workflow 编排工具,即 ultracode) | 多代理编排、逐 stage 指定 `model`/`effort` | 工作流的执行底座 |
-| [superpowers 插件](https://github.com/obra/superpowers) | brainstorming / TDD / code review / worktree 等流程 skill | 主流程的骨架,安装方式见其 README |
+| Claude Code (with the Workflow orchestration tool, i.e. ultracode) | Multi-agent orchestration, specifying `model`/`effort` per stage | The execution substrate for the workflow |
+| [superpowers plugin](https://github.com/obra/superpowers) | brainstorming / TDD / code review / worktree and other process skills | The skeleton of the main workflow; see its README for install instructions |
 
-主对话建议使用当前可用的最强模型(如 Fable/Opus),作为"指挥"。
+The main conversation should use the strongest model currently available (e.g. Fable/Opus) as the "Conductor".
 
-## 使用方式(项目生命周期)
+## Usage (project lifecycle)
 
 ```
-开新项目          回到项目
-   │                 │
-/scaffold        /whats-next ──→ 告诉你下一步
-   │                 │
-   ▼                 ▼
-brainstorming ──→ design spec(docs/superpowers/specs/)
+New project          Returning to a project
+    │                     │
+/scaffold            /whats-next ──→ tells you the next step
+    │                     │
+    ▼                     ▼
+brainstorming ──→ design spec (docs/superpowers/specs/)
    │
    ▼
-ultracode(Workflow 多代理编排)直接从 spec 实现
-   │  sonnet 并行实现(TDD)+ opus 逐单元评审 + 主对话汇总
+ultracode (Workflow multi-agent orchestration) implements directly from the spec
+   │  sonnet implements in parallel (TDD) + opus reviews each unit + main conversation summarizes
    ▼
-code review → 验证 → 收尾,回写 docs/Progress.md 与 docs/PLAN.md
+code review → verification → wrap-up, write back to docs/Progress.md and docs/PLAN.md
 ```
 
-docs 七件套各自的职责:
+Responsibilities of each file in the seven-doc set:
 
-| 文件 | 职责 |
+| File | Responsibility |
 |---|---|
-| `docs/REQUIREMENTS.md` | 产品需求,**唯一真相源**,需求变化先改这里 |
-| `docs/PLAN.md` | 分阶段路线图 + Phase 状态(✅)+ Spec 索引,只装索引不装正文 |
-| `docs/Progress.md` | 模块状态总览表 + 变更日志(最新在上) |
-| `docs/DECISIONS.md` | 关键决策记录,每条 What/Why/Changes,最新在上 |
-| `docs/ARCHITECTURE.md` | 技术栈、架构图、数据模型、API、目录结构 |
-| `docs/DEPLOYMENT.md` | 部署形态、环境变量、启动命令 |
-| `docs/MEETINGS.md` | 会议纪要原始归档 + 待办,结论提炼进上面各文档 |
+| `docs/REQUIREMENTS.md` | Product requirements, **single source of truth** — change requirements here first |
+| `docs/PLAN.md` | Phased roadmap + Phase status (✅) + Spec Index; holds only the index, not the full text |
+| `docs/Progress.md` | Module status overview table + changelog (newest first) |
+| `docs/DECISIONS.md` | Key decision records, each with What/Why/Changes, newest first |
+| `docs/ARCHITECTURE.md` | Tech stack, architecture diagrams, data model, API, directory structure |
+| `docs/DEPLOYMENT.md` | Deployment shape, environment variables, startup commands |
+| `docs/MEETINGS.md` | Raw archive of meeting notes + action items; conclusions get distilled into the docs above |
 
-## 自定义技术栈基线
+## Customizing the tech-stack baseline
 
-`/scaffold` 自带一张**固定的 Go 技术栈基线表**(Go + chi + pgx + golang-migrate,前端 React + TS + Vite)。"基线固定、逐项目不再重复选型"是方法论的一部分;具体选哪个栈是个人偏好——想换成你自己的栈,改 `plugins/workflow/skills/scaffold/SKILL.md` 里的基线表和 `templates/` 对应内容即可,方法论不变。
+`/scaffold` ships with a **fixed Go tech-stack baseline table** (Go + chi + pgx + golang-migrate, frontend React + TS + Vite). "Fix the baseline once, stop re-choosing per project" is part of the methodology; which specific stack you pick is a matter of personal preference — to swap in your own stack, edit the baseline table and corresponding `templates/` content in `plugins/workflow-en/skills/scaffold/SKILL.md`; the methodology itself doesn't change.
 
-## 工作流 prompt
+## Workflow prompt
 
-> 复制下面整段到 `~/.claude/CLAUDE.md`。装了本插件后,第五节由 `/scaffold`、第八节由 `/whats-next` 代为执行,这两节保留作为命令背后的方法论说明;没装插件也可以照描述手动执行。
+> Copy the entire block below into `~/.claude/CLAUDE.md`. With this plugin installed, Section 5 is carried out by `/scaffold` and Section 8 by `/whats-next` — these two sections remain as the methodology write-up behind those commands. Without the plugin, you can still follow the description manually.
 
 ```markdown
-# 多代理开发工作流(指挥 / 执行 / 评审 三层 + 文档驱动项目生命周期)
+# Multi-agent development workflow (Conductor / Executor / Reviewer three tiers + documentation-driven project lifecycle)
 
-> 使用前提:Claude Code,带 Workflow 多代理编排工具(ultracode),已安装 superpowers 插件。
-> 主对话使用当前可用的最强模型(如 Fable/Opus),作为"指挥"。
-> 本规则覆盖所有 skill(含 superpowers 各 skill)中关于模型与思考档位选择的默认建议。
+> Prerequisites: Claude Code, with the Workflow multi-agent orchestration tool (ultracode), and the superpowers plugin installed.
+> The main conversation uses the strongest model currently available (e.g. Fable/Opus) as the "Conductor".
+> This rule overrides the default model- and reasoning-effort-selection guidance in all skills (including every superpowers skill).
 
-## 一、三层分工(固定不变)
+## 1. Three-tier division of labor (fixed)
 
-| 角色 | 谁来做 | 干什么 |
+| Role | Who does it | What it does |
 |---|---|---|
-| **指挥** | 主对话(最强模型) | 拆任务、定方案、写 Workflow 脚本、决定派谁、最终汇总与冲突裁决;计划与架构设计一律留在主对话,不派发 |
-| **执行** | `sonnet` 子代理 | 实现/改代码/迁移/批量杂活;只读探索/调研 |
-| **前端美术** | `opus` 子代理 | 前端视觉/演出/UI 打磨:动画姿势、布局观感、气泡/浮层位置、配色间距这类"看起来对不对"的活(实测 opus 中档比 sonnet 好) |
-| **评审** | `opus` 子代理 | 代码评审、结果验证、验收裁决 |
+| **Conductor** | Main conversation (strongest model) | Breaks down tasks, sets the approach, writes Workflow scripts, decides who to dispatch, does final synthesis and conflict adjudication; planning and architecture design always stay in the main conversation, never dispatched |
+| **Executor** | `sonnet` subagent | Implementation/code changes/migrations/batch chores; read-only exploration/research |
+| **Frontend artist** | `opus` subagent | Frontend visual/motion/UI polish: animation feel, layout look, bubble/overlay positioning, color and spacing — the "does it look right" kind of work (empirically, opus at medium tier beats sonnet here) |
+| **Reviewer** | `opus` subagent | Code review, result verification, acceptance verdicts |
 
-## 二、档位表(`model` 与 `effort` 都必须显式写,不许省略)
+## 2. Tier table (both `model` and `effort` must be written explicitly — never omit either)
 
-省略 `model` 继承主会话模型;省略 `effort` 继承主会话思考档位——主会话若挂着高档位,机械活就会按高档深度跑,比选错模型还烧钱、还慢。
+Omitting `model` inherits the main session's model; omitting `effort` inherits the main session's reasoning effort — if the main session is running at a high tier, mechanical work would run at that same depth, burning more money and time than picking the wrong model would.
 
-| Stage 类型 | model | effort |
+| Stage type | model | effort |
 |---|---|---|
-| 定位文件 / 列清单 / 盘点 | `haiku` 或 `sonnet` | `low` |
-| 批量机械执行:迁移、重命名、模板化改码 | `sonnet` | `low` |
-| 常规实现(TDD 单元) | `sonnet` | `medium` |
-| 难点实现:算法、并发、棘手 bug | `sonnet` | `high` |
-| 前端视觉 / UI 打磨 | `opus` | `medium` |
-| 评审面板里的单票快速验证 / 反驳票 | `opus` | `medium` |
-| 终审、验收裁决、安全类评审 | `opus` | `high` |
-| 计划与架构设计 | 不派发,留主对话 | — |
+| Locating files / listing / inventory | `haiku` or `sonnet` | `low` |
+| Batch mechanical work: migration, renaming, templated code changes | `sonnet` | `low` |
+| Regular implementation (TDD units) | `sonnet` | `medium` |
+| Hard implementation: algorithms, concurrency, tricky bugs | `sonnet` | `high` |
+| Frontend visual / UI polish | `opus` | `medium` |
+| Single vote / refutation vote for quick verification in a review panel | `opus` | `medium` |
+| Final review, acceptance verdict, security-related review | `opus` | `high` |
+| Planning and architecture design | Not dispatched, stays in the main conversation | — |
 
-## 三、升降档两原则
+## 3. Two principles for escalating/de-escalating tiers
 
-1. **失败才升档,不预付**。实现 stage 一律从 `medium` 起跑;测试不过或被评审打回的单元,重跑时才升 `high`。批量任务里难的通常是少数,全员 high 是拿 90% 的简单题给 10% 的难题买单,而且付的不只是 token,是时延。
-2. **`xhigh` / `max` 不进批量 stage**。只留给极少数单点:最难的一次性裁决、安全审计这类"错一次代价很大"的判断。评审想更稳就凑票数(3 票 `opus` + `medium`)而不是单票升 xhigh——这也是 Workflow 对抗验证模式的本意。
+1. **Escalate on failure — don't pay up front.** Implementation stages always start at `medium`; only escalate to `high` on a re-run when tests fail or the reviewer rejects a unit. In a batch of tasks, the hard ones are usually the minority — running everything at high makes the easy 90% subsidize the hard 10%, and the cost isn't just tokens, it's latency.
+2. **`xhigh` / `max` never enter batch stages.** Reserve them for the rare single-point decision: the hardest one-shot verdict, a security audit — judgment calls where a mistake is expensive. If a review wants more confidence, add votes (3 votes of `opus` + `medium`) rather than escalating a single vote to xhigh — that's the whole point of the Workflow adversarial-verification pattern.
 
-## 四、批量活走 Workflow,不走裸 Agent
+## 4. Batch work goes through Workflow, not bare Agent
 
-`effort` 只有 Workflow 脚本的 `agent()` 支持;裸 Agent 工具没有这个参数,派出去的子代理只能继承主会话档位、降不下来。所以批量/并行任务一律优先 Workflow 编排,别用裸 Agent 分叉。Workflow 脚本里每个 `agent()` 按档位表逐 stage 显式写 `model` + `effort`;编排逻辑与最终汇总不进 workflow,由主对话亲自做。
+`effort` is only supported by the Workflow script's `agent()`; the bare Agent tool has no such parameter — subagents dispatched that way can only inherit the main session's tier and can't be lowered. So batch/parallel tasks should always go through Workflow orchestration first — don't fork off with a bare Agent. Every `agent()` in a Workflow script writes `model` + `effort` explicitly per stage according to the tier table; orchestration logic and final synthesis never go inside the workflow — they're done by the main conversation itself.
 
-## 五、开新项目:先铺文档脚手架(对应 /scaffold)
+## 5. Starting a new project: lay down doc scaffolding first (corresponds to /scaffold)
 
-用户说"开新项目 / 初始化项目 / 搭脚手架"时,在**已存在的**项目目录里就地铺设(项目名取目录名),流程:
+When the user says "new project / initialize project / set up scaffolding", lay it down in place inside an **existing** project directory (the project name is taken from the directory name). Process:
 
-1. **Intake**:让用户讲项目想法,或指给一个文件(如会议纪要);纪要原文归档进 `docs/MEETINGS.md` 第一节。信息不够就针对性追问。
-2. **决策并确认**(每项给出判断理由,用户拍板后才落盘):
-   - **技术栈:固定基线,不做重复选型**。示例基线:Go(标准库 `net/http` + chi,无重框架)+ pgx 手写 repository(不用 ORM)+ golang-migrate 纯 SQL 迁移;前端如需要则 React + TypeScript + Vite;Docker 多阶段构建出单静态二进制,带 `/health`;后端无状态,状态全在数据库。(把这张表换成你自己的基线也行——关键是"基线固定、逐项目不再选型";想换栈就改基线表,不做单次临时偏离。)
-   - **数据库**:默认 PostgreSQL;仅小型低并发/单机一体机用 SQLite。判断依据:并发量、部署形态、数据规模。
-   - **是否需要 Web 前端**。
-   - **核心不变量**:本项目"绝不破坏"的架构约束,0~N 条,想不出留占位。
-   - **模块划分**:顶层模块名 + 一句话职责,想不清留占位。
-3. **落盘 10 个文件**(先逐个检查是否已存在,已存在的列出来问用户跳过/备份/合并,**绝不静默覆盖**):
-   - `.claude/CLAUDE.md`(项目硬规则)、`.gitignore`、`README.md`
-   - **docs 七件套**:
-     - `PLAN.md` — 总体路线、各 Phase 状态(标题带 ✅ = 完成)、Spec 索引
-     - `Progress.md` — 上半部模块状态总览表(pending/doing/done),下半部变更日志(**最新在上**)
-     - `REQUIREMENTS.md` — 产品定位、目标用户、分期路线图、已确认决策(用 intake 内容能填实就填实)
-     - `ARCHITECTURE.md` — 架构设计;`DEPLOYMENT.md` — 部署方案
-     - `DECISIONS.md` — 决策记录,每条 What/Why/Changes,**最新在上**(技术栈基线是首条)
-     - `MEETINGS.md` — 会议纪要归档 + 每节的待办清单
-4. **收尾**:`git init`(如尚未)+ 首次 commit;自检无未替换占位、无乱码;向用户汇报生成了什么、做了哪些决策,建议下一步走第六节的 brainstorming。
+1. **Intake**: have the user describe the project idea, or point to a file (e.g. meeting notes); archive the raw notes into the first section of `docs/MEETINGS.md`. Ask targeted follow-up questions if information is insufficient.
+2. **Decide and confirm** (give a rationale for each decision; write to disk only after the user signs off):
+   - **Tech stack: fixed baseline, no re-choosing.** Example baseline: Go (standard library `net/http` + chi, no heavy framework) + hand-written pgx repositories (no ORM) + golang-migrate plain-SQL migrations; frontend React + TypeScript + Vite if needed; Docker multi-stage build into a single static binary with `/health`; the backend is stateless, all state lives in the database. (Feel free to swap this table for your own baseline — the key point is "fix the baseline once, stop re-choosing per project"; if you want a different stack, change the baseline table, don't make a one-off exception.)
+   - **Database**: PostgreSQL by default; SQLite only for small, low-concurrency, single-machine setups. Base the call on concurrency, deployment shape, and data scale.
+   - **Whether a web frontend is needed.**
+   - **Core invariants**: the architectural constraints this project must "never break", 0 to N of them; leave a placeholder if none come to mind.
+   - **Module breakdown**: top-level module names + a one-line responsibility each; leave a placeholder if unclear.
+3. **Write 10 files to disk** (check each one for existing presence first; for any that already exist, list them and ask the user to skip/back up/merge — **never overwrite silently**):
+   - `.claude/CLAUDE.md` (project hard rules), `.gitignore`, `README.md`
+   - **The seven-doc set**:
+     - `PLAN.md` — Overall Roadmap, each Phase's status (title carries ✅ = done), Spec Index
+     - `Progress.md` — top half: module status overview table (pending/doing/done); bottom half: changelog (**newest first**)
+     - `REQUIREMENTS.md` — Product Positioning, Target Users, Phased Roadmap, Confirmed Decisions (fill in with real content from intake wherever possible)
+     - `ARCHITECTURE.md` — architecture design; `DEPLOYMENT.md` — deployment plan
+     - `DECISIONS.md` — decision records, each with What/Why/Changes, **newest first** (the tech-stack baseline is the first entry)
+     - `MEETINGS.md` — meeting-notes archive + an action-item list per section
+4. **Wrap-up**: `git init` (if not already) + initial commit; self-check for unreplaced placeholders and mangled text; report to the user what was generated and what decisions were made, and suggest moving on to the brainstorming flow in Section 6.
 
-## 六、主流程:Brainstorming → Spec → Ultracode 直通
+## 6. Main workflow: Brainstorming → Spec → Ultracode straight-through
 
-1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。
-2. spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权:**不等待批准、不问"是否开始实现"、不 invoke superpowers:writing-plans、不产出实现计划文档**,自动立即进入实现(用户中途主动喊停则照常停下)。
-3. 需要隔离时先建 worktree(superpowers:using-git-worktrees,或 Workflow agent 的 `isolation: 'worktree'`)。
-4. Workflow 编排实现:按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则)→ 每单元完成即派评审 agent(`opus`)验证裁决 → 主对话汇总修复。
-5. 实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅)。
-6. 本流程覆盖 brainstorming SKILL.md 中「结束后唯一可 invoke 的是 writing-plans」的规定;subagent-driven-development / executing-plans 因不再有 plan 文档而失去入口,属预期,不必绕路满足。
-7. 用户明确点名要 writing-plans / subagent-driven / inline / 并行分派时,按点名的方式执行。
+1. All creative work starts with superpowers:brainstorming, writing the design spec to `docs/superpowers/specs/<date>-<topic>-design.md` and registering it in the Spec Index of `docs/PLAN.md`.
+2. Writing the spec constitutes a standing authorization for this round of Workflow multi-agent implementation (ultracode): **don't wait for approval, don't ask "should I start implementing", don't invoke superpowers:writing-plans, don't produce an implementation plan document** — move straight into implementation automatically (if the user explicitly asks to stop mid-flow, stop as usual).
+3. If isolation is needed, create a worktree first (superpowers:using-git-worktrees, or the Workflow agent's `isolation: 'worktree'`).
+4. Workflow-orchestrated implementation: break the spec into independent units → parallel implementation agents (`sonnet`, each following TDD, with a self-contained prompt: attach the relevant spec section + the project's CLAUDE.md hard rules) → dispatch a review agent (`opus`) to verify and rule on each unit as it completes → main conversation synthesizes and fixes.
+5. After implementation, proceed as usual through superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch; wherever these skills have a "plan" placeholder (e.g. PLAN_OR_REQUIREMENTS), fill it with the spec path. Once done, update `docs/Progress.md` (status table + changelog) and `docs/PLAN.md` (mark the Phase ✅).
+6. This workflow overrides the brainstorming SKILL.md rule that "the only skill you invoke after brainstorming is writing-plans"; subagent-driven-development / executing-plans lose their entry point since there's no longer a plan document — that's expected, no need to work around it to satisfy them.
+7. When the user explicitly names writing-plans / subagent-driven / inline / parallel dispatch, execute in the way named.
 
-## 七、新产品/大功能先做 GitHub 调研
+## 7. Do GitHub research first for new products / major features
 
-- **新产品/新项目:一律调研**,没有"要不要调研"的判断步骤。
-- **较大功能:由 Claude 判断**(信号:需要新子系统或独立模块、该领域明显有成熟开源轮子、预计工作量大;拿不准问用户)。
-- **时机**:brainstorming 意图明确后、提出候选方案之前。
-- **做法**:调研 GitHub 上的成熟开源实现(有专门调研 skill 就用;没有则用 web/GitHub 搜索完成同等调研)。
-- **产出**:调研结论(直接采用/自部署、fork 二开、自研+可复用组件)必须作为正式候选方案之一呈现,并沉淀进 spec 的「Prior art」一节。
-- 小修小补不触发;用户明说"不用调研"可跳过。
+- **New product/new project: research is mandatory**, no "should we research" decision step.
+- **Larger features: Claude's judgment call** (signals: needs a new subsystem or standalone module, the domain clearly has mature open-source options, expected effort is large; ask the user if unsure).
+- **Timing**: after brainstorming intent is clear, before proposing candidate solutions.
+- **Method**: research mature open-source implementations on GitHub (use a dedicated research skill if one exists; otherwise use web/GitHub search to achieve equivalent research).
+- **Output**: the research conclusion (adopt/self-host directly, fork and customize, build in-house + reusable components) must be presented as one of the formal candidate solutions, and captured in the spec's "Prior art" section.
+- Small tweaks don't trigger this; skip if the user explicitly says "no need to research".
 
-## 八、续航:回到项目先问"下一步"(对应 /whats-next)
+## 8. Continuity: ask "what's next" when returning to a project (corresponds to /whats-next)
 
-用户说"下一步干什么 / 我到哪了",且项目根目录有 `docs/PLAN.md` 时:
+When the user says "what's next / where am I", and the project root has a `docs/PLAN.md`:
 
-1. **文档是唯一依据**,不为回答这个问题遍历代码库;只在文档间矛盾需核对时才抽查代码。
-2. 读:`PLAN.md`(路线 + Phase 状态 + Spec 索引)→ `Progress.md`(状态表 + 最近 2~3 条日志)→ 最新 spec(对照 Progress 判断是否已实现)→ `DECISIONS.md` 最近 2~3 条 → `MEETINGS.md` 最新一节的待办。
-3. **按序判断,命中即停**:
-   | 状态 | 下一步 |
+1. **The docs are the sole source of truth** — don't traverse the codebase just to answer this question; only spot-check code when the docs contradict each other and need cross-checking.
+2. Read, in order: `PLAN.md` (roadmap + Phase status + Spec Index) → `Progress.md` (status table + the last 2-3 log entries) → the latest spec (check against Progress to determine whether it's already implemented) → the last 2-3 entries of `DECISIONS.md` → the action items in the latest section of `MEETINGS.md`.
+3. **Judge in order, stop at the first match**:
+   | State | Next step |
    |---|---|
-   | 最新 spec 尚未实现 | 用 ultracode 直接从该 spec 实现;spec 是否已获批准拿不准时先问一句 |
-   | spec 全部已实现,PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 走 brainstorming 出新 spec → ultracode(不走 writing-plans),spec 登记进 Spec 索引 |
-   | PLAN.md 路线还是待补 | 先读 REQUIREMENTS.md 的分期路线图作输入,用 brainstorming 定分阶段路线 |
-   | 所有 Phase 都 ✅ | 项目按计划完成;建议复盘或开新 Phase |
-4. **输出四部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略);④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略)。结尾问:现在开始吗?
-5. 文档之间矛盾(Progress 说完成但 spec 无实现记录之类)→ 明确指出矛盾及双方出处,建议先核对再动工,**不默默择一**;缺 `PLAN.md`/`Progress.md` 说明不是本工作流的项目,建议先走第五节铺脚手架。
+   | The latest spec isn't implemented yet | Implement directly from that spec with ultracode; if unsure whether the spec has been approved, ask first |
+   | All specs implemented, but PLAN.md still has un-✅ Phases | Run brainstorming for the next Phase to produce a new spec → ultracode (skip writing-plans), register the spec in the Spec Index |
+   | PLAN.md's roadmap is still TBD | Read the Phased Roadmap in REQUIREMENTS.md as input first, use brainstorming to define the phased roadmap |
+   | All Phases are ✅ | The project is complete as planned; suggest a retrospective or starting a new Phase |
+4. **Output four parts**: ① Where you are (what was most recently completed, citing the date of the latest Progress entry); ② Next step (task name + the first action down to the file/command level + its source); ③ Watch-outs (decisions and pitfalls from DECISIONS/Progress in the same domain as the next step, with sources cited; omit if none); ④ Meeting action items not yet in any plan (unchecked items in the latest MEETINGS section that haven't entered any plan yet, prompting the user to decide where they go; omit if none). End by asking: start now?
+5. If the docs contradict each other (e.g. Progress says done but the spec has no implementation record) → clearly point out the contradiction and both sides' sources, and suggest reconciling before proceeding — **never silently pick one**; if `PLAN.md`/`Progress.md` are missing, that means this isn't a project under this workflow — suggest running Section 5's scaffolding first.
 ```
 
-## 仓库结构
+## Repo structure
 
 ```
 claude-workflow-kit/
-├── README.md                        # 本文件:方法论 + 安装 + 工作流 prompt
+├── README.md                        # English README (default front page)
+├── README.zh-CN.md                  # Chinese README: methodology + install + workflow prompt
 ├── LICENSE                          # MIT
 ├── .claude-plugin/
-│   └── marketplace.json             # 插件市场清单
-└── plugins/workflow/
-    ├── .claude-plugin/plugin.json
-    └── skills/
-        ├── scaffold/                # /scaffold:SKILL.md + templates/(10 个模板)
-        │   ├── SKILL.md
-        │   └── templates/
-        │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
-        │       └── docs/            # 七件套模板
-        └── whats-next/              # /whats-next:SKILL.md
-            └── SKILL.md
+│   └── marketplace.json             # Plugin marketplace manifest
+└── plugins/
+    ├── workflow/                     # Chinese-output plugin
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/
+    │       ├── scaffold/             # /scaffold: SKILL.md + templates/ (10 templates)
+    │       │   ├── SKILL.md
+    │       │   └── templates/
+    │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
+    │       │       └── docs/         # the seven-doc set templates
+    │       └── whats-next/           # /whats-next: SKILL.md
+    │           └── SKILL.md
+    └── workflow-en/                  # English-output plugin
+        ├── .claude-plugin/plugin.json
+        └── skills/
+            ├── scaffold/              # /scaffold: SKILL.md + templates/ (10 templates)
+            │   ├── SKILL.md
+            │   └── templates/
+            │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
+            │       └── docs/         # the seven-doc set templates
+            └── whats-next/           # /whats-next: SKILL.md
+                └── SKILL.md
 ```
 
 ## License

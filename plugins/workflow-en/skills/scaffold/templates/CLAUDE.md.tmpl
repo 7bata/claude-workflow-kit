@@ -1,0 +1,106 @@
+# {{PROJECT_NAME}} — Development Rules
+
+{{ONE_LINER}}
+
+The root of this git repo is `{{PROJECT_NAME}}/`.
+
+**Directory conventions**:
+- Source code and config, `docs/`, `.claude/CLAUDE.md` — **in git**
+- `data/` — runtime-generated data (may contain private info), `.env` — **not in git**
+
+## 0. Core Invariants (never break)
+
+> Architectural constraints this project must "never break." Changes that violate these are rejected outright.
+
+{{INVARIANTS_BLOCK}}
+
+## 1. Core Workflow
+
+**After completing each operation, do these three things in order**:
+
+1. **Commit the code** — atomic commit, with a message that makes clear what changed and why
+2. **Update `docs/Progress.md`** — append an entry under "## Changelog" (symptom / root cause / decision / verification result); sync the "## Progress Overview" table when a module's status changes; for key decisions (tech choice, tradeoff, plan reversal) also append a What/Why/Changes entry to `docs/DECISIONS.md`
+3. **Check `docs/PLAN.md`** — if a Phase advanced or the plan changed, sync the phase status
+
+The granularity of "one operation" ≈ the change covered by one atomic commit. Don't lump multiple independent changes into one big commit.
+
+## 2. Doc Sync Rules
+
+| Change type | Files that must be updated |
+|---|---|
+| New/modified source code | `docs/Progress.md` (implementation record) + `docs/PLAN.md` (phase progress) if needed |
+| Bug fix / gotcha encountered | `docs/Progress.md` (symptom, root cause, fix) |
+| Phase progresses | `docs/PLAN.md` + `docs/Progress.md` |
+| `.env.example` / deploy script changes | `docs/Progress.md` + `docs/DEPLOYMENT.md` |
+| Inter-module interface changes (HTTP API / WS payload) | `docs/Progress.md` + `docs/ARCHITECTURE.md` (interface table) |
+| Dependency changes (go.mod / package.json, etc.) | `docs/Progress.md` (what was added, why) |
+| Requirement changes / reversals | `docs/REQUIREMENTS.md` (single source of truth, edit here first) + `docs/Progress.md` |
+| Key decisions (tech choice / tradeoff / plan reversal / workaround) | `docs/DECISIONS.md` (What/Why/Changes) + `docs/Progress.md` |
+| Meeting notes | `docs/MEETINGS.md` (raw archive) + `docs/REQUIREMENTS.md` (distilled requirements) |
+
+**Principle**: docs are the single source of truth. When code and docs disagree, decide which one is correct, then bring the other into line.
+
+## 3. Post-Change Quality Checks
+
+1. Read through the changed file once to confirm the logic is correct
+2. Grep related docs for stale info (old function names, field names, paths) and update them
+3. Make sure code snippets / config examples in the docs match the actual code
+4. UTF-8 mojibake scan: `LC_ALL=C grep -l $'\xef\xbf\xbd' docs/*.md .claude/*.md`
+5. When a change affects `.env.example`, confirm the local `.env` (not in git) is synced too
+
+## 4. Code Conventions
+
+{{CODE_CONVENTIONS_BLOCK}}
+
+**General**:
+- UTF-8; comments may be written in the team's working language
+- With multiple modules: modules **must not import each other** — communicate only via HTTP / WS (preserve module boundaries)
+
+## 5. Git Commit Conventions
+
+- Commit message first line ≤ 72 characters, prefixed with `feat:` / `fix:` / `docs:` / `refactor:` / `test:` / `chore:`
+- Any language is fine; keep the language consistent across commits
+- Split large changes into atomic commits
+- Always review `git diff --staged` before committing
+- **Never commit**: `.env`, real credentials, `node_modules/`, `data/` (private), `*.db`
+- **A conversation session must never end in a "wrote code but didn't write docs" state**
+
+## 6. Secrets Handling
+
+**Real values that must never be written into md files or code** (API keys, tokens, passwords, encryption keys, etc.) are all read from `.env` (not in git). `.env.example` uses placeholder values.
+
+## 7. Planning & Doc Conventions (tied to brainstorming / ultracode)
+
+- Design specs produced by brainstorming go to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- **Once a spec is approved by the user, implement it directly from the spec via ultracode (Workflow multi-agent orchestration) — skip writing-plans / an implementation-plan document**
+- Once a spec is approved, add a line under "## Spec Index" in `docs/PLAN.md`: `- [<topic>](superpowers/specs/<date>-<topic>-design.md) — <one-liner>`; PLAN.md stays a roadmap index and doesn't carry body content
+- When writing-plans / subagent-driven / inline execution is explicitly named, follow the named approach
+- **Multi-agent division of labor (applies to ultracode and any other parallel dispatch)**: the main conversation (strongest model, e.g. Fable/Opus) acts as Conductor — breaks down tasks, sets the approach, writes the Workflow script, does the final rollup and conflict adjudication; everything else is dispatched to subagents to execute. **Every stage's `model` and `effort` must be written explicitly** — omitting `model` inherits the main session's model, and omitting `effort` inherits the main session's tier (the main session often runs at xhigh, so omitting it means mechanical work runs at xhigh depth too):
+
+  | Stage type | model | effort |
+  |---|---|---|
+  | Locating files / listing / inventory | `'haiku'` or `'sonnet'` | `'low'` |
+  | Batch mechanical work: migration, renaming, templated code changes | `'sonnet'` | `'low'` |
+  | Regular implementation (TDD units) | `'sonnet'` | `'medium'` |
+  | Hard implementation: algorithms, concurrency, tricky bugs | `'sonnet'` | `'high'` |
+  | Frontend visuals / UI polish ("does it look right" work; pure-logic frontend doesn't count) | `'opus'` | `'medium'` |
+  | Single vote / refutation vote for quick verification in a review panel | `'opus'` | `'medium'` |
+  | Final review, acceptance verdict, security-related review | `'opus'` | `'high'` |
+  | Architectural judgment, tradeoff decisions, final rollup | not dispatched, stays with the main conversation | — |
+
+  - **Escalate on failure — don't pay up front**: implementation stages always start at `'medium'`; only escalate to `'high'` when a unit is bounced back by tests or review and rerun
+  - **`'xhigh'` / `'max'` never go into batch stages** — reserve them for single-point judgments where "getting it wrong once is expensive"; if a review needs more confidence, add votes (3 × `'opus'` at `'medium'`) rather than escalating a single vote
+  - Attach an opus review stage after every unit that writes code (stream them one by one via `pipeline`, don't fence-wait to line them all up); the review agent must actually read the changed files to verify — it must not just trust the implementer's report
+  - `effort` is only supported by Workflow's `agent()` — the bare Agent tool has no such parameter → prefer Workflow orchestration for batch mechanical work
+
+## Never Do
+
+- Change code without updating docs / committing
+- Write real credentials into md files
+- Commit `data/` into git
+- Break the Core Invariants in Section 0
+- `git push` to a remote without confirmation
+
+---
+
+> **Note**: this file holds stable rules. High-churn content like Phase progress, dependency lists, and current status belongs in `docs/PLAN.md` / `docs/Progress.md`.

@@ -1,0 +1,92 @@
+# Architecture — {{PROJECT_NAME}}
+
+> {{ONE_LINER}}
+> The tech stack baseline is fixed to Go (see Section 1); versions and choices follow the team baseline uniformly — do not re-decide the stack.
+
+## 1. Tech Stack
+
+| Layer | Choice | Notes |
+|----|------|------|
+| Backend | Go 1.25 (standard library net/http + chi router) | REST API; native goroutine concurrency, single static binary, stateless and horizontally scalable |
+| DB driver / queries | pgx (hand-written repository) | No heavyweight ORM, no sqlc either; internal/repo writes typed SQL directly |
+| Migrations | golang-migrate (plain SQL migrations) | Versioned schema migrations (NNNN_*.up.sql / down.sql) |
+| Validation / serialization | encoding/json + go-playground/validator | Request/response schema validation |
+| Database | {{DATABASE}} | <!-- TBD: what core data it holds --> |
+| Frontend | React + TypeScript (Vite) | <!-- Delete this line if there is no frontend project; Node 20 is used only at build time --> |
+
+**Components not needed**: <!-- TBD: state clearly what is NOT introduced and why (e.g., no ORM, no offline/sync layer, no auth component, no vector store) -->
+
+## 2. Overall Architecture Diagram
+
+<!-- TBD: ASCII art (preferred) or mermaid flowchart: client → API layer (handlers) → Service layer → Repo layer → DB; note statelessness/scaling approach and capabilities explicitly not supported (e.g., offline) -->
+
+## 3. Data Model / ERD
+
+<!-- TBD: ERD (ASCII art preferred, or mermaid erDiagram) + notes on key modeling decisions (e.g., rationale for entity splits, cycle-prevention constraints) -->
+
+### Table Design
+
+Convention: every table has `id BIGSERIAL PK`, `created_at TIMESTAMPTZ DEFAULT now()`, `updated_at TIMESTAMPTZ`.
+<!-- TBD: one subsection per table, using a "Field | Type | Constraints / Notes" three-column table; note which tables need concurrency protection (optimistic locking via version) and which are pure append-only tables (no lock needed) -->
+
+## 4. Core Business Design
+
+{{MODULES_BLOCK}}
+
+<!-- TBD: one subsection per core domain (e.g., state machine transitions, aggregate calculations, caching strategy, concurrency control), explaining the design rationale and edge cases -->
+
+## 5. API Sketch (REST, phased)
+
+> Convention: JSON, `/api/v1` prefix; write operations carry a `version` for optimistic locking (if adopted); naming follows state machine actions.
+
+| Method | Path | Purpose |
+|------|------|------|
+| | | <!-- TBD: list by MVP phase --> |
+
+## 6. Directory Layout
+
+Follows Go community conventions (`cmd/` entry point + `internal/` private packages):
+
+```
+{{PROJECT_NAME}}/
+├── Dockerfile                      # Multi-stage: Go compile + frontend build (see Section 7)
+├── backend/
+│   ├── go.mod  go.sum
+│   ├── cmd/
+│   │   └── server/
+│   │       └── main.go             # Entry point: wires up routing, pgx connection pool, static frontend, /health
+│   ├── internal/
+│   │   ├── config/                 # Config (reads env vars)
+│   │   ├── db/                     # pgxpool connection pool
+│   │   ├── repo/                   # Hand-written pgx repositories (one file per entity, typed queries)
+│   │   ├── handlers/               # REST handlers (corresponding to Section 5), one file per resource
+│   │   ├── service/                # Business logic
+│   │   ├── model/                  # Domain structs
+│   │   └── middleware/             # Optimistic-lock conflict -> 409, JSON errors, request logging
+│   ├── migrations/                 # golang-migrate plain SQL
+│   └── scripts/                    # Test scripts etc.
+└── frontend/                       # If needed: React + TS + Vite
+    ├── src/
+    │   ├── pages/
+    │   ├── components/
+    │   ├── api/                    # REST client
+    │   └── App.tsx
+    ├── package.json
+    └── vite.config.ts
+```
+
+## 7. Deployment
+
+- Shape: single container (port 8080, `/health` returns `ok`); frontend build output is served statically by the Go process (`embed.FS` or a static directory)
+- Build: Docker multi-stage — `node:20-alpine` builds the frontend → `golang:1.25-alpine` compiles (`CGO_ENABLED=0`, embeds the frontend dist) → `alpine:3.20` minimal runtime image
+- Horizontal scaling: Go instances are stateless and can run multiple replicas sharing the same database
+
+<!-- TBD: domain / registry / CI pipeline / environment variable list -->
+
+## 8. Key Non-Functional Constraints (Core Invariants)
+
+{{INVARIANTS_BLOCK}}
+
+| Constraint | Notes | Where enforced |
+|------|------|--------|
+| | | <!-- TBD: one row per constraint, pointing to the specific file/module where it's enforced --> |

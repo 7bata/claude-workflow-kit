@@ -5,7 +5,12 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "指挥/执行/评审三层多代理工作流：/scaffold 文档脚手架 + /whats-next 进度导航"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航"
+    },
+    {
+      "name": "workflow-en",
+      "source": "./plugins/workflow-en",
+      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation"
     }
   ]
 }
