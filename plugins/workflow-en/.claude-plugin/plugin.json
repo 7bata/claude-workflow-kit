@@ -1,6 +1,6 @@
 {
   "name": "workflow-en",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Doc-driven multi-agent development workflow (Conductor/Executor/Reviewer three tiers): /scaffold lays down CLAUDE.md + a seven-doc set in place; /whats-next reads the docs and tells you what to do next",
   "author": { "name": "Tony Jiang" },
   "homepage": "https://github.com/7bata/claude-workflow-kit",

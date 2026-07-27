@@ -89,9 +89,12 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
   | Architectural judgment, tradeoff decisions, final rollup | not dispatched, stays with the main conversation | — |
 
   - **Escalate on failure — don't pay up front**: implementation stages always start at `'medium'`; only escalate to `'high'` when a unit is bounced back by tests or review and rerun
-  - **`'xhigh'` / `'max'` never go into batch stages** — reserve them for single-point judgments where "getting it wrong once is expensive"; if a review needs more confidence, add votes (3 × `'opus'` at `'medium'`) rather than escalating a single vote
-  - Attach an opus review stage after every unit that writes code (stream them one by one via `pipeline`, don't fence-wait to line them all up); the review agent must actually read the changed files to verify — it must not just trust the implementer's report
+  - **`'xhigh'` / `'max'` never go into batch stages** — reserve them for single-point judgments where "getting it wrong once is expensive"; if a review needs more confidence, add votes (3 × `'opus'` at `'medium'`) rather than escalating a single vote, and each vote must use a different lens (correctness / security / boundary and malformed data) — never reread the same prompt; homogeneous votes share blind spots
+  - **Consequence overrides difficulty**: units touching data migrations, deleting/overwriting data, auth and permissions, payments, or public releases get an `'opus'` + `'high'` review no matter how low their implementation tier is, and the checklist must include "a rollback path exists and is executable"
+  - Before entering ultracode, first output a 3-5 line kickoff summary (unit count, each unit's tier, estimated scale) — don't wait for confirmation, start right away; it just gives the user a visible interrupt window
+  - Attach an opus review stage after every unit that writes code (stream them one by one via `pipeline`, don't fence-wait to line them all up); the review agent must actually read the changed files to verify — it must not just trust the implementer's report — and must also examine the tests themselves (do they cover the acceptance criteria; do they only test the happy path); weak tests count as a rejection, and a rejected unit's re-run splits tests and implementation across two agents
   - `effort` is only supported by Workflow's `agent()` — the bare Agent tool has no such parameter → prefer Workflow orchestration for batch mechanical work
+  - The tier table is a dated empirical calibration — after each major model generation, revisit it against your session usage data; change the table based on data, not vibes
 
 ## Never Do
 

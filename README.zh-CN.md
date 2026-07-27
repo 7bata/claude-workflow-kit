@@ -104,10 +104,12 @@ docs 七件套各自的职责:
 | 终审、验收裁决、安全类评审 | `opus` | `high` |
 | 计划与架构设计 | 不派发,留主对话 | — |
 
-## 三、升降档两原则
+## 三、升降档四原则
 
 1. **失败才升档,不预付**。实现 stage 一律从 `medium` 起跑;测试不过或被评审打回的单元,重跑时才升 `high`。批量任务里难的通常是少数,全员 high 是拿 90% 的简单题给 10% 的难题买单,而且付的不只是 token,是时延。
-2. **`xhigh` / `max` 不进批量 stage**。只留给极少数单点:最难的一次性裁决、安全审计这类"错一次代价很大"的判断。评审想更稳就凑票数(3 票 `opus` + `medium`)而不是单票升 xhigh——这也是 Workflow 对抗验证模式的本意。
+2. **`xhigh` / `max` 不进批量 stage**。只留给极少数单点:最难的一次性裁决、安全审计这类"错一次代价很大"的判断。评审想更稳就凑票数(3 票 `opus` + `medium`)而不是单票升 xhigh,**且各票必须用不同镜头:正确性 / 安全 / 边界与异常数据,不许三票复读同一个 prompt——同质票共享盲区,票数不等于置信度**。这也是 Workflow 对抗验证模式的本意。
+3. **后果覆盖难度**。凡触及不可逆操作或高爆炸半径的单元——数据迁移、删除/覆写数据、鉴权与权限、支付、对外发布——无论实现档位多低,评审一律 `opus` + `high`,评审检查项必须包含"回滚路径存在且可执行"。实现档位照旧按难度走,贵的只是验证。
+4. **经验校准有保质期**。档位表里的经验性结论(opus 前端、medium 起跑等)均视为有日期的校准,主力模型换代后失效待验:用会话用量数据复盘——medium 起跑的打回率 <5% 考虑下探 `low`,>30% 说明起跑档太低。凭数据改表,不凭手感。
 
 ## 四、批量活走 Workflow,不走裸 Agent
 
@@ -140,7 +142,7 @@ docs 七件套各自的职责:
 1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。
 2. spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权:**不等待批准、不问"是否开始实现"、不 invoke superpowers:writing-plans、不产出实现计划文档**,自动立即进入实现(用户中途主动喊停则照常停下)。
 3. 需要隔离时先建 worktree(superpowers:using-git-worktrees,或 Workflow agent 的 `isolation: 'worktree'`)。
-4. Workflow 编排实现:按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则)→ 每单元完成即派评审 agent(`opus`)验证裁决 → 主对话汇总修复。
+4. Workflow 编排实现:先输出 3~5 行**开工摘要**(拆了几个单元、各自 model/effort 档位、预估规模),**不等待确认直接开跑**——摘要只是给用户一个看得见的打断窗口。随后按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则)→ 每单元完成即派评审 agent(`opus`)验证裁决,评审除核对实现外必须核对**测试本身**(是否覆盖 spec 对应验收条款、是否只测 happy path),测试弱视同打回,被打回的单元重跑时测试与实现分开派两个 agent → 主对话汇总修复。
 5. 实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅)。
 6. 本流程覆盖 brainstorming SKILL.md 中「结束后唯一可 invoke 的是 writing-plans」的规定;subagent-driven-development / executing-plans 因不再有 plan 文档而失去入口,属预期,不必绕路满足。
 7. 用户明确点名要 writing-plans / subagent-driven / inline / 并行分派时,按点名的方式执行。
