@@ -1,0 +1,13 @@
+# Decision Log — {{PROJECT_NAME}}
+
+> 自动维护。关键决策（选型、取舍、方案反转、绕行方案）在 commit 时由 Claude 追加结构化记录，最新在上。
+> 条目格式：`## 日期 - 类型(域): 标题` + **What / Why / Changes**，可选 **Known limitation / Out of scope / Deferred**。
+> 类型参考：arch（架构）/ decision（产品或技术取舍）/ feat / fix。与 `REQUIREMENTS.md`「已确认决策」的编号互相回指。
+
+## {{DATE}} - arch(stack): 采用团队 Go 基线技术栈
+
+**What**: 后端 Go 1.25（net/http + chi + pgx + golang-migrate），数据库 {{DATABASE}}；完整基线见 `docs/ARCHITECTURE.md` 第 1 节。
+
+**Why**: 团队后端基线固定为 Go（原生并发、单静态二进制、无状态可横向扩展），不做逐项目选型；换栈须先修改 /scaffold 基线表。
+
+**Changes**: /scaffold 初始化落盘，ARCHITECTURE.md 技术栈表按基线预填。

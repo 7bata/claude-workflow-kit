@@ -1,0 +1,8 @@
+{
+  "name": "workflow",
+  "version": "0.1.0",
+  "description": "文档驱动的多代理开发工作流（指挥/执行/评审三层）：/scaffold 在项目里铺设 CLAUDE.md + docs 七件套脚手架，/whats-next 读文档判断下一步该干什么",
+  "author": { "name": "Tony Jiang" },
+  "homepage": "https://github.com/7bata/claude-workflow-kit",
+  "keywords": ["claude-code", "workflow", "scaffold", "multi-agent", "skills"]
+}

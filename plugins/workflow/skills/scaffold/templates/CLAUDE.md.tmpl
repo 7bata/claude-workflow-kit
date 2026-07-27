@@ -1,0 +1,106 @@
+# {{PROJECT_NAME}} — 开发规则
+
+{{ONE_LINER}}
+
+本 git 仓库根目录是 `{{PROJECT_NAME}}/`。
+
+**目录约定**：
+- 源码与配置、`docs/`、`.claude/CLAUDE.md` — **入 git**
+- `data/` — 运行时生成的数据（含隐私）、`.env` — **不入 git**
+
+## 0. 核心不变量（绝不破坏）
+
+> 本项目「绝不破坏」的架构约束。违反的改动直接拒。
+
+{{INVARIANTS_BLOCK}}
+
+## 1. 核心工作流
+
+**每完成一个操作，按这个顺序做三件事**：
+
+1. **Commit 代码** — 原子 commit，message 要能看懂改了什么、为什么改
+2. **更新 `docs/Progress.md`** — 「变更日志」追加记录（现象 / 根因 / 决策 / 验证结果）；模块状态有变化时同步「进度总览」表；涉及关键决策（选型、取舍、方案反转）另在 `docs/DECISIONS.md` 追加 What/Why/Changes 条目
+3. **检查 `docs/PLAN.md`** — 推进了某个 Phase / 改变了方案，同步更新阶段状态
+
+「一个操作」的粒度 ≈ 一个原子 commit 能覆盖的改动。不要把多个独立改动攒成一个大 commit。
+
+## 2. 文档同步规则
+
+| 改动类型 | 必改文件 |
+|---|---|
+| 新增/修改源码 | `docs/Progress.md`（实现记录）+ 必要时 `docs/PLAN.md`（阶段进度）|
+| 修 bug / 踩坑 | `docs/Progress.md`（现象、根因、修复）|
+| Phase 推进 | `docs/PLAN.md` + `docs/Progress.md` |
+| `.env.example` / 部署脚本变化 | `docs/Progress.md` + `docs/DEPLOYMENT.md` |
+| 模块间接口变化（HTTP API / WS payload）| `docs/Progress.md` + `docs/ARCHITECTURE.md`（接口表）|
+| 依赖变化（go.mod / package.json 等）| `docs/Progress.md`（加了什么、为什么）|
+| 需求变化 / 需求反转 | `docs/REQUIREMENTS.md`（唯一真相源，先改这里）+ `docs/Progress.md` |
+| 关键决策（选型 / 取舍 / 方案反转 / 绕行）| `docs/DECISIONS.md`（What/Why/Changes）+ `docs/Progress.md` |
+| 会议纪要 | `docs/MEETINGS.md`（原始归档）+ `docs/REQUIREMENTS.md`（需求提炼）|
+
+**原则**：文档是单一事实源。代码和文档不一致时，先判断哪个对，再把另一个改齐。
+
+## 3. 修改后质量检查
+
+1. 读一遍被改的文件，确认逻辑正确
+2. 用 Grep 扫相关文档里的过时信息（旧函数名、字段名、路径），一并更新
+3. 确保文档里的代码片段 / 配置示例与实际代码一致
+4. UTF-8 乱码扫描：`LC_ALL=C grep -l $'\xef\xbf\xbd' docs/*.md .claude/*.md`
+5. 改动影响到 `.env.example` 时，确认本地 `.env`（不入 git）也同步过
+
+## 4. 代码约定
+
+{{CODE_CONVENTIONS_BLOCK}}
+
+**通用**：
+- UTF-8，中文注释允许、鼓励
+- 多模块时：各模块**禁止互相 import**，只通过 HTTP / WS 通信（保模块边界）
+
+## 5. Git 提交规范
+
+- Commit message 首行 ≤ 72 字符，`feat:` / `fix:` / `docs:` / `refactor:` / `test:` / `chore:` 前缀
+- 中英文均可，语言一致性优先
+- 大改动拆原子 commit
+- commit 前必看 `git diff --staged`
+- **从不提交**：`.env`、真实凭据、`node_modules/`、`data/`（隐私）、`*.db`
+- **同一对话会话里不允许「写了代码不写文档」的结尾状态**
+
+## 6. 密钥处理
+
+**绝不能写进 md 或代码的真实值**（API key、token、密码、加密 key 等）全部从 `.env` 读取（不入 git）。`.env.example` 用占位值。
+
+## 7. 计划与文档约定（联动 brainstorming / ultracode）
+
+- brainstorming 产出的 design spec 落 `docs/superpowers/specs/YYYY-MM-DD-<主题>-design.md`
+- **spec 经用户批准后直接用 ultracode（Workflow 多代理编排）从 spec 实现，不经过 writing-plans / 实现计划文档环节**
+- spec 获批后在 `docs/PLAN.md` 的「## Spec 索引」区追一行：`- [<主题>](superpowers/specs/<日期>-<主题>-design.md) — <一句话>`，PLAN.md 保持路线图索引、不装正文
+- 明确点名 writing-plans / subagent-driven / inline 执行方式时，按点名方式执行
+- **多代理分工（ultracode 及其他并行分派一律照此）**：主对话（最强模型，如 Fable/Opus）指挥——拆任务、定方案、写 Workflow 脚本、最终汇总与冲突裁决；其余派 subagent 执行。**每个 stage 的 `model` 和 `effort` 都必须显式写**，省略 `model` 继承主会话模型、省略 `effort` 继承主会话档位（主会话常挂 xhigh，一省略就是让机械活按 xhigh 跑）：
+
+  | Stage 类型 | model | effort |
+  |---|---|---|
+  | 定位文件 / 列清单 / 盘点 | `'haiku'` 或 `'sonnet'` | `'low'` |
+  | 批量机械执行：迁移、重命名、模板化改码 | `'sonnet'` | `'low'` |
+  | 常规实现（TDD 单元） | `'sonnet'` | `'medium'` |
+  | 难点实现：算法、并发、棘手 bug | `'sonnet'` | `'high'` |
+  | 前端视觉 / UI 打磨（"看起来对不对"的活；纯逻辑前端不算） | `'opus'` | `'medium'` |
+  | 评审面板里的单票快速验证 / 反驳票 | `'opus'` | `'medium'` |
+  | 终审、验收裁决、安全类评审 | `'opus'` | `'high'` |
+  | 架构判断、方案取舍、最终汇总 | 不派发，留主对话 | — |
+
+  - **失败才升档，不预付**：实现 stage 一律 `'medium'` 起跑，被测试或评审打回的单元重跑时才升 `'high'`
+  - **`'xhigh'` / `'max'` 不进批量 stage**，只留给"错一次代价很大"的单点判断；评审想更稳靠凑票数（3 票 `'opus'` + `'medium'`）而不是单票升档
+  - 每个写入单元后面挂一个 opus 评审 stage（用 `pipeline` 逐条目流过，别用栅栏等齐）；评审 agent 必须亲自读被改的文件核对，不许只信实现方汇报
+  - `effort` 只有 Workflow 的 `agent()` 支持，裸 Agent 工具没这个参数 → 批量机械活优先走 Workflow 编排
+
+## 禁止事项
+
+- 改代码不更新文档 / commit
+- 在 md 文件里写真实凭据
+- 把 `data/` 进 git
+- 破坏第 0 节核心不变量
+- 在没确认的情况下 `git push` 到远端
+
+---
+
+> **注**：本文件是稳定规则。Phase 进度、依赖清单、当前状态等高频变动内容请放 `docs/PLAN.md` / `docs/Progress.md`。
