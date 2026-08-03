@@ -2,13 +2,13 @@
 
 English | [中文](README.zh-CN.md)
 
-A documentation-driven multi-agent development workflow for Claude Code: **Conductor / Executor / Reviewer three-tier division of labor** + **brainstorming → spec → ultracode straight-through implementation** + **the seven-doc set project documentation system**.
+A documentation-driven multi-agent development workflow for Claude Code: **Conductor / Executor / Reviewer three-tier division of labor** + **brainstorming → spec → ultracode straight-through implementation** + **the eight-doc set project documentation system**.
 
 Contains two parts:
 
 1. **A workflow prompt** (below in this README) — drop it into your `~/.claude/CLAUDE.md` to define the model division of labor, the tier table, and the main workflow
 2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides two executable commands:
-   - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the seven-doc set + `.gitignore` + `README.md`)
+   - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the eight-doc set + `.gitignore` + `README.md`)
    - `/whats-next`: read the docs to figure out where the project stands and what to do next
 
 ## Install
@@ -52,11 +52,12 @@ ultracode (Workflow multi-agent orchestration) implements directly from the spec
 code review → verification → wrap-up, write back to docs/Progress.md and docs/PLAN.md
 ```
 
-Responsibilities of each file in the seven-doc set:
+Responsibilities of each file in the eight-doc set:
 
 | File | Responsibility |
 |---|---|
 | `docs/REQUIREMENTS.md` | Product requirements, **single source of truth** — change requirements here first |
+| `docs/BUSINESS.md` | Business profile: business facts (how things were done before the system, business rules) — change business rules here first |
 | `docs/PLAN.md` | Phased roadmap + Phase status (✅) + Spec Index; holds only the index, not the full text |
 | `docs/Progress.md` | Module status overview table + changelog (newest first) |
 | `docs/DECISIONS.md` | Key decision records, each with What/Why/Changes, newest first |
@@ -70,7 +71,7 @@ Responsibilities of each file in the seven-doc set:
 
 ## Workflow prompt
 
-> Copy the entire block below into `~/.claude/CLAUDE.md`. With this plugin installed, Section 5 is carried out by `/scaffold` and Section 8 by `/whats-next` — these two sections remain as the methodology write-up behind those commands. Without the plugin, you can still follow the description manually.
+> Copy the entire block below into `~/.claude/CLAUDE.md`. With this plugin installed, Section 6 is carried out by `/scaffold` and Section 9 by `/whats-next` — these two sections remain as the methodology write-up behind those commands. Without the plugin, you can still follow the description manually.
 
 ```markdown
 # Multi-agent development workflow (Conductor / Executor / Reviewer three tiers + documentation-driven project lifecycle)
@@ -114,29 +115,36 @@ Omitting `model` inherits the main session's model; omitting `effort` inherits t
 
 `effort` is only supported by the Workflow script's `agent()`; the bare Agent tool has no such parameter — subagents dispatched that way can only inherit the main session's tier and can't be lowered. So batch/parallel tasks should always go through Workflow orchestration first — don't fork off with a bare Agent. Every `agent()` in a Workflow script writes `model` + `effort` explicitly per stage according to the tier table; orchestration logic and final synthesis never go inside the workflow — they're done by the main conversation itself.
 
-## 5. Starting a new project: lay down doc scaffolding first (corresponds to /scaffold)
+## 5. Git branch & backup strategy
+
+1. **Branch means push**: day-to-day development always happens on a feature/wip branch — switch to or create one before starting work (a worktree flow satisfies this automatically); push the current branch to the remote immediately after every commit, no confirmation needed (use `-u` to set upstream if there isn't one yet) — this is your real-time offsite backup.
+2. **main is gated**: the confirmation checkpoint is at **merging into the default branch**, not at pushing. Merging into main (or committing directly on main) requires the user's confirmation first; after confirmation, push main and delete the merged remote feature branch.
+3. **No-remote fallback**: if the repo has no remote (or the branch has no upstream), remind the user to set one up after the first commit, so "auto-push" doesn't silently fail.
+
+## 6. Starting a new project: lay down doc scaffolding first (corresponds to /scaffold)
 
 When the user says "new project / initialize project / set up scaffolding", lay it down in place inside an **existing** project directory (the project name is taken from the directory name). Process:
 
-1. **Intake**: have the user describe the project idea, or point to a file (e.g. meeting notes); archive the raw notes into the first section of `docs/MEETINGS.md`. Ask targeted follow-up questions if information is insufficient.
+1. **Intake**: have the user describe the project idea, or point to a file (e.g. meeting notes); archive the raw notes into the first section of `docs/MEETINGS.md`, and separately distill any business facts they contain into `docs/BUSINESS.md`. Ask targeted follow-up questions if information is insufficient. Beyond deciding the tech stack/DB, **ask through a 7-slot business-context checklist** (used to fill in `docs/BUSINESS.md`; leave a placeholder for any slot with insufficient information — don't press the user or block the flow): ① goal & current manual process (before the system, who did it, how, where were the pain points); ② input: transactional data (is there a real sample file); ③ input: reference/config data (lookup tables, rule tables, allowed values); ④ processing flow (how input becomes output); ⑤ output (what's produced, for whom, is there a sample); ⑥ business hard rules & exceptions (rules that must never be violated, how exceptions are handled); ⑦ human review & feedback (who reviews, what can they change, should it be remembered by the system).
 2. **Decide and confirm** (give a rationale for each decision; write to disk only after the user signs off):
    - **Tech stack: fixed baseline, no re-choosing.** Example baseline: Go (standard library `net/http` + chi, no heavy framework) + hand-written pgx repositories (no ORM) + golang-migrate plain-SQL migrations; frontend React + TypeScript + Vite if needed; Docker multi-stage build into a single static binary with `/health`; the backend is stateless, all state lives in the database. (Feel free to swap this table for your own baseline — the key point is "fix the baseline once, stop re-choosing per project"; if you want a different stack, change the baseline table, don't make a one-off exception.)
    - **Database**: PostgreSQL by default; SQLite only for small, low-concurrency, single-machine setups. Base the call on concurrency, deployment shape, and data scale.
    - **Whether a web frontend is needed.**
    - **Core invariants**: the architectural constraints this project must "never break", 0 to N of them; leave a placeholder if none come to mind.
    - **Module breakdown**: top-level module names + a one-line responsibility each; leave a placeholder if unclear.
-3. **Write 10 files to disk** (check each one for existing presence first; for any that already exist, list them and ask the user to skip/back up/merge — **never overwrite silently**):
+3. **Write 11 files to disk** (check each one for existing presence first; for any that already exist, list them and ask the user to skip/back up/merge — **never overwrite silently**):
    - `.claude/CLAUDE.md` (project hard rules), `.gitignore`, `README.md`
-   - **The seven-doc set**:
+   - **The eight-doc set**:
      - `PLAN.md` — Overall Roadmap, each Phase's status (title carries ✅ = done), Spec Index
      - `Progress.md` — top half: module status overview table (pending/doing/done); bottom half: changelog (**newest first**)
      - `REQUIREMENTS.md` — Product Positioning, Target Users, Phased Roadmap, Confirmed Decisions (fill in with real content from intake wherever possible)
+     - `BUSINESS.md` — business profile: how things were done before the system, business rules, input/output sample registry (fill in with what the 7-slot checklist collected)
      - `ARCHITECTURE.md` — architecture design; `DEPLOYMENT.md` — deployment plan
      - `DECISIONS.md` — decision records, each with What/Why/Changes, **newest first** (the tech-stack baseline is the first entry)
      - `MEETINGS.md` — meeting-notes archive + an action-item list per section
-4. **Wrap-up**: `git init` (if not already) + initial commit; self-check for unreplaced placeholders and mangled text; report to the user what was generated and what decisions were made, and suggest moving on to the brainstorming flow in Section 6.
+4. **Wrap-up**: `git init` (if not already) + initial commit; self-check for unreplaced placeholders and mangled text; report to the user what was generated and what decisions were made, and suggest moving on to the brainstorming flow in Section 7.
 
-## 6. Main workflow: Brainstorming → Spec → Ultracode straight-through
+## 7. Main workflow: Brainstorming → Spec → Ultracode straight-through
 
 1. All creative work starts with superpowers:brainstorming, writing the design spec to `docs/superpowers/specs/<date>-<topic>-design.md` and registering it in the Spec Index of `docs/PLAN.md`.
 2. Writing the spec constitutes a standing authorization for this round of Workflow multi-agent implementation (ultracode): **don't wait for approval, don't ask "should I start implementing", don't invoke superpowers:writing-plans, don't produce an implementation plan document** — move straight into implementation automatically (if the user explicitly asks to stop mid-flow, stop as usual).
@@ -146,7 +154,7 @@ When the user says "new project / initialize project / set up scaffolding", lay 
 6. This workflow overrides the brainstorming SKILL.md rule that "the only skill you invoke after brainstorming is writing-plans"; subagent-driven-development / executing-plans lose their entry point since there's no longer a plan document — that's expected, no need to work around it to satisfy them.
 7. When the user explicitly names writing-plans / subagent-driven / inline / parallel dispatch, execute in the way named.
 
-## 7. Do GitHub research first for new products / major features
+## 8. Do GitHub research first for new products / major features
 
 - **New product/new project: research is mandatory**, no "should we research" decision step.
 - **Larger features: Claude's judgment call** (signals: needs a new subsystem or standalone module, the domain clearly has mature open-source options, expected effort is large; ask the user if unsure).
@@ -155,7 +163,7 @@ When the user says "new project / initialize project / set up scaffolding", lay 
 - **Output**: the research conclusion (adopt/self-host directly, fork and customize, build in-house + reusable components) must be presented as one of the formal candidate solutions, and captured in the spec's "Prior art" section.
 - Small tweaks don't trigger this; skip if the user explicitly says "no need to research".
 
-## 8. Continuity: ask "what's next" when returning to a project (corresponds to /whats-next)
+## 9. Continuity: ask "what's next" when returning to a project (corresponds to /whats-next)
 
 When the user says "what's next / where am I", and the project root has a `docs/PLAN.md`:
 
@@ -169,7 +177,7 @@ When the user says "what's next / where am I", and the project root has a `docs/
    | PLAN.md's roadmap is still TBD | Read the Phased Roadmap in REQUIREMENTS.md as input first, use brainstorming to define the phased roadmap |
    | All Phases are ✅ | The project is complete as planned; suggest a retrospective or starting a new Phase |
 4. **Output four parts**: ① Where you are (what was most recently completed, citing the date of the latest Progress entry); ② Next step (task name + the first action down to the file/command level + its source); ③ Watch-outs (decisions and pitfalls from DECISIONS/Progress in the same domain as the next step, with sources cited; omit if none); ④ Meeting action items not yet in any plan (unchecked items in the latest MEETINGS section that haven't entered any plan yet, prompting the user to decide where they go; omit if none). End by asking: start now?
-5. If the docs contradict each other (e.g. Progress says done but the spec has no implementation record) → clearly point out the contradiction and both sides' sources, and suggest reconciling before proceeding — **never silently pick one**; if `PLAN.md`/`Progress.md` are missing, that means this isn't a project under this workflow — suggest running Section 5's scaffolding first.
+5. If the docs contradict each other (e.g. Progress says done but the spec has no implementation record) → clearly point out the contradiction and both sides' sources, and suggest reconciling before proceeding — **never silently pick one**; if `PLAN.md`/`Progress.md` are missing, that means this isn't a project under this workflow — suggest running Section 6's scaffolding first.
 ```
 
 ## Repo structure
@@ -185,21 +193,21 @@ claude-workflow-kit/
     ├── workflow/                     # Chinese-output plugin
     │   ├── .claude-plugin/plugin.json
     │   └── skills/
-    │       ├── scaffold/             # /scaffold: SKILL.md + templates/ (10 templates)
+    │       ├── scaffold/             # /scaffold: SKILL.md + templates/ (11 templates)
     │       │   ├── SKILL.md
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
-    │       │       └── docs/         # the seven-doc set templates
+    │       │       └── docs/         # the eight-doc set templates
     │       └── whats-next/           # /whats-next: SKILL.md
     │           └── SKILL.md
-    └── workflow-en/                  # English-output plugin
+    └── workflow-en/                  # English-output plugin (same layout as workflow)
         ├── .claude-plugin/plugin.json
         └── skills/
-            ├── scaffold/              # /scaffold: SKILL.md + templates/ (10 templates)
+            ├── scaffold/              # /scaffold: SKILL.md + templates/ (11 templates)
             │   ├── SKILL.md
             │   └── templates/
             │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
-            │       └── docs/         # the seven-doc set templates
+            │       └── docs/         # the eight-doc set templates
             └── whats-next/           # /whats-next: SKILL.md
                 └── SKILL.md
 ```
