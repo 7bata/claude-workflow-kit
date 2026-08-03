@@ -1,0 +1,51 @@
+# Business — {{PROJECT_NAME}} (Business Profile)
+
+> Records the business facts this system serves: how things were done before the system existed, and what the business rules are.
+> Division of labor with `REQUIREMENTS.md`: this file holds "business facts" (relatively stable, sourced from the business side),
+> REQUIREMENTS holds "product decisions" (what we've decided to build). Business rule changes go here first;
+> then decide whether that also warrants a change to REQUIREMENTS.
+
+## 0. Goal & Current Manual Process
+
+<!-- TBD: before this system existed, who did this, with what tools (Excel/paper/word of mouth/another system), step by step?
+     Where are the pain points/bottlenecks in the current process (slow, error-prone, depends on one person, no audit trail…)? -->
+
+## 1. Trigger & Frequency
+
+<!-- TBD: when does this happen, how often (daily/weekly/on demand), what/who triggers it,
+     is it processed in full each time or incrementally? -->
+
+## 2. Input: Transactional Data
+
+<!-- TBD: what data varies on every run (orders, applications, submissions…)? What fields does it have, where does it come from?
+     ★ Real sample file: record the file's path/source (the file itself doesn't go into git, just note where to find it). -->
+
+## 3. Input: Reference/Config Data
+
+<!-- TBD: what relatively stable lookup tables, rule tables, or allowed-value lists exist? Who maintains them, how often do they change?
+     ★ Lookup table file: record the file's path/source. -->
+
+## 4. Processing Flow
+
+<!-- TBD: how does input become output, step by step? You can work backward from "2. Input" and "5. Output" to fill in the step list,
+     and mark which steps are human judgment calls vs. mechanical transformations. -->
+
+## 5. Output
+
+<!-- TBD: what's the final output, delivered to whom, in what format/shape?
+     ★ Expected output sample: record the sample file's path/source. -->
+
+## 6. Business Hard Rules & Exceptions
+
+<!-- TBD: which rules must never be violated (serious consequences if they are)?
+     How are exceptions/edge cases (missing data, mismatches, timeouts…) handled today? -->
+
+## 7. Human Review & Feedback
+
+<!-- TBD: who's responsible for review? What can they change during review, what can't they change?
+     Should human-corrected results be remembered by the system and used to improve the next run? -->
+
+## 8. Acceptance Baseline
+
+<!-- TBD: how do you know it was done "correctly"? Is there an existing baseline/reference result to compare against?
+     What's the allowed error/tolerance range? -->

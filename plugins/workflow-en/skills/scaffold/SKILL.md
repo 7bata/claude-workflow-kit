@@ -1,6 +1,6 @@
 ---
 name: scaffold
-description: Lay down the methodology scaffolding in place inside the current project directory (CLAUDE.md + the seven-doc set + .gitignore + README). The backend stack is fixed to Go (version baseline in the table inside the skill); Claude decides the database based on project intent. Triggered when the user says "set up scaffolding / initialize project / start new project / scaffold".
+description: Lay down the methodology scaffolding in place inside the current project directory (CLAUDE.md + the eight-doc set + .gitignore + README). The backend stack is fixed to Go (version baseline in the table inside the skill); Claude decides the database based on project intent. Triggered when the user says "set up scaffolding / initialize project / start new project / scaffold".
 allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 ---
 
@@ -39,9 +39,19 @@ Explain to the user and collect:
 
 > Tell me the idea for this project / a meeting summary, or point me to a file (e.g. meeting notes `*.md`) — I'll use it to determine the tech stack, database, core invariants, and module breakdown.
 
-- If the user gives a file path → Read it; if it's **meeting notes**, archive the raw content into the first section of `docs/MEETINGS.md` when writing to disk
+- If the user gives a file path → Read it; if it's **meeting notes**, archive the raw content into the first section of `docs/MEETINGS.md` when writing to disk, and separately distill any **business facts** it contains into `docs/BUSINESS.md` (previously all of this distillation duty fell to REQUIREMENTS; it's now split between facts and decisions)
 - If the user describes it verbally → use the conversation content
 - If there isn't enough information to decide, ask **targeted** follow-up questions (not generic ones)
+
+Beyond deciding the tech stack/DB, **ask through the following 7-slot business-context checklist** (used to fill in `docs/BUSINESS.md`; leave a placeholder comment for any slot with insufficient information — don't press the user or block the flow):
+
+1. Goal & current manual process — before this system existed, who did it, with what tools, step by step, and where were the pain points?
+2. Input: transactional data — what data varies on every run, and is there a real sample file?
+3. Input: reference/config data — lookup tables, rule tables, allowed values, and is there an existing file?
+4. Processing flow — how input becomes output
+5. Output — what gets produced, for whom, in what shape, and is there a sample of the expected output?
+6. Business hard rules & exceptions — rules that must never be violated, and how exceptions are handled today
+7. Human review & feedback — who reviews, what can they change, and should the corrected result feed back into the system?
 
 ## Step 3: Decide and confirm
 
@@ -60,10 +70,10 @@ State the **reasoning** behind each item, and let the user sign off. Only write 
 
 ## Step 4: Write to disk (with conflict protection)
 
-First list the 10 target files to be written, and **check each one for existence**:
+First list the 11 target files to be written, and **check each one for existence**:
 
 ```bash
-for f in .claude/CLAUDE.md docs/PLAN.md docs/Progress.md docs/ARCHITECTURE.md docs/DEPLOYMENT.md docs/REQUIREMENTS.md docs/DECISIONS.md docs/MEETINGS.md .gitignore README.md; do
+for f in .claude/CLAUDE.md docs/PLAN.md docs/Progress.md docs/ARCHITECTURE.md docs/DEPLOYMENT.md docs/REQUIREMENTS.md docs/BUSINESS.md docs/DECISIONS.md docs/MEETINGS.md .gitignore README.md; do
   test -e "$f" && echo "EXISTS: $f"
 done
 ```
@@ -89,6 +99,7 @@ Template path mapping: `templates/docs/X.md.tmpl` → `docs/X.md`; `templates/gi
 **Pre-filling content** (don't just substitute placeholders — fill in real content wherever possible):
 
 - `docs/REQUIREMENTS.md`: fill in as much real content as possible from what intake distilled (Product Positioning, Target Users & Roles, Phased Roadmap, Confirmed Decisions); leave a TBD comment for anything that can't be filled in
+- `docs/BUSINESS.md`: fill in each section with what the 7-slot checklist collected (goal & current process, inputs/outputs, processing flow, business hard rules, human review, …); leave the template's own TBD comment for any slot that can't be filled
 - `docs/MEETINGS.md`: if intake came from meeting notes, archive the raw notes as the first section; otherwise keep the empty skeleton
 - `docs/DECISIONS.md`: the template comes with a "Go baseline" first entry; if Step 3 produced other significant decisions (e.g. rationale for choosing SQLite), append a What/Why/Changes entry for each
 
@@ -107,3 +118,5 @@ LC_ALL=C grep -rl $'\xef\xbf\xbd' .claude docs README.md 2>/dev/null && echo "�
 ```
 
 Report to the user: which files were generated, the tech stack/DB decisions, and next-step suggestions (`/brainstorming` to start design — once the spec is approved, go straight into ultracode implementation, or just start working directly).
+
+If, as the project progresses, a reusable component/module gets distilled out (not part of this scaffolding pass — a reminder for the future): **if the team maintains a component index, register it there** so other projects can discover and reuse it during research.

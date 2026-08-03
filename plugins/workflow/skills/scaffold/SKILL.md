@@ -1,6 +1,6 @@
 ---
 name: scaffold
-description: 在当前项目目录里铺设方法论脚手架（CLAUDE.md + docs 七件套 + .gitignore + README）。后端技术栈固定为 Go（版本基线见 skill 内表格），数据库由 Claude 按项目意图判断。用户说"搭脚手架/初始化项目/开新项目/scaffold"时触发。
+description: 在当前项目目录里铺设方法论脚手架（CLAUDE.md + docs 八件套 + .gitignore + README）。后端技术栈固定为 Go（版本基线见 skill 内表格），数据库由 Claude 按项目意图判断。用户说"搭脚手架/初始化项目/开新项目/scaffold"时触发。
 allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 ---
 
@@ -39,9 +39,19 @@ basename "$PWD"
 
 > 把这个项目的想法 / 会议总结讲给我，或指给我一个文件（如纪要 `*.md`），我据此判断技术栈、数据库、核心不变量和模块划分。
 
-- 用户给文件路径 → 用 Read 读它；若是**会议纪要**，落盘时将原始内容归档进 `docs/MEETINGS.md` 第一节
+- 用户给文件路径 → 用 Read 读它；若是**会议纪要**，落盘时将原始内容归档进 `docs/MEETINGS.md` 第一节，其中的**业务事实**另提炼进 `docs/BUSINESS.md`（原先全部归 REQUIREMENTS 的提炼职责，现按事实/决定拆分）
 - 用户口述 → 用对话内容
 - 信息不足以判断时，**针对性追问**（不要泛泛）
+
+在判断技术栈/DB 之外，**按以下 7 格追问业务上下文**（用于填实 `docs/BUSINESS.md`；信息不足的格留占位注释，不逼问、不卡流程）：
+
+1. 目标与现状手工流程 —— 没系统之前谁、用什么工具、一步步怎么做，痛点在哪
+2. 输入：交易数据 —— 每次都变的数据是什么，有没有真实样本文件
+3. 输入：参考/配置数据 —— 对照表、规则表、允许值，有没有现成文件
+4. 加工流程 —— 输入怎么变成输出
+5. 输出 —— 产出什么、给谁、什么样，有没有期望输出样例
+6. 业务铁律与异常 —— 绝不能错的规则，意外情况怎么处理
+7. 人工介入与反馈 —— 谁复核、能改什么、改的结果要不要被系统记住
 
 ## 步骤 3：决策并确认
 
@@ -60,10 +70,10 @@ basename "$PWD"
 
 ## 步骤 4：落盘（带冲突保护）
 
-先列出将写入的 10 个目标文件，**逐个检查是否已存在**：
+先列出将写入的 11 个目标文件，**逐个检查是否已存在**：
 
 ```bash
-for f in .claude/CLAUDE.md docs/PLAN.md docs/Progress.md docs/ARCHITECTURE.md docs/DEPLOYMENT.md docs/REQUIREMENTS.md docs/DECISIONS.md docs/MEETINGS.md .gitignore README.md; do
+for f in .claude/CLAUDE.md docs/PLAN.md docs/Progress.md docs/ARCHITECTURE.md docs/DEPLOYMENT.md docs/REQUIREMENTS.md docs/BUSINESS.md docs/DECISIONS.md docs/MEETINGS.md .gitignore README.md; do
   test -e "$f" && echo "EXISTS: $f"
 done
 ```
@@ -89,6 +99,7 @@ done
 **内容预填**（不只替换占位符，能填实的就填实）：
 
 - `docs/REQUIREMENTS.md`：用 intake 提炼内容尽量填实（产品定位、目标用户、分期路线图、已确认决策）；填不了的保留待补注释
+- `docs/BUSINESS.md`：用 7 格追问收集到的内容按对应节填实（目标与现状流程、输入输出、加工流程、业务铁律、人工介入……）；填不了的格保留模板自带的待补注释
 - `docs/MEETINGS.md`：intake 来自会议纪要时，把原始纪要归档为第一节；否则保留空骨架
 - `docs/DECISIONS.md`：模板自带「Go 基线」首条；步骤 3 若有其他重要拍板（如数据库选 SQLite 的理由），各追加一条 What/Why/Changes
 
@@ -107,3 +118,5 @@ LC_ALL=C grep -rl $'\xef\xbf\xbd' .claude docs README.md 2>/dev/null && echo "�
 ```
 
 向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（`/brainstorming` 开始设计——spec 获批后直接 ultracode 实现，或直接开干）。
+
+若项目推进中沉淀出可复用的组件/模块（不是本次落盘范围，是给未来的提醒）：**若团队维护组件索引库，登记之**，方便其他项目调研时发现并复用。

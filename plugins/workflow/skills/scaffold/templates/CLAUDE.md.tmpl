@@ -18,7 +18,7 @@
 
 **每完成一个操作，按这个顺序做三件事**：
 
-1. **Commit 代码** — 原子 commit，message 要能看懂改了什么、为什么改
+1. **Commit 代码并 push 当前分支** — 原子 commit，message 要能看懂改了什么、为什么改；**commit 后立即 `git push` 当前 feature/wip 分支（无需确认；无 upstream 时用 `-u` 建立）**
 2. **更新 `docs/Progress.md`** — 「变更日志」追加记录（现象 / 根因 / 决策 / 验证结果）；模块状态有变化时同步「进度总览」表；涉及关键决策（选型、取舍、方案反转）另在 `docs/DECISIONS.md` 追加 What/Why/Changes 条目
 3. **检查 `docs/PLAN.md`** — 推进了某个 Phase / 改变了方案，同步更新阶段状态
 
@@ -34,9 +34,10 @@
 | `.env.example` / 部署脚本变化 | `docs/Progress.md` + `docs/DEPLOYMENT.md` |
 | 模块间接口变化（HTTP API / WS payload）| `docs/Progress.md` + `docs/ARCHITECTURE.md`（接口表）|
 | 依赖变化（go.mod / package.json 等）| `docs/Progress.md`（加了什么、为什么）|
-| 需求变化 / 需求反转 | `docs/REQUIREMENTS.md`（唯一真相源，先改这里）+ `docs/Progress.md` |
+| 需求变化 / 需求反转 | `docs/REQUIREMENTS.md`（唯一真相源，先改这里；分工注记：业务事实变化改 BUSINESS，产品范围变化改 REQUIREMENTS）+ `docs/Progress.md` |
+| 业务规则 / 业务流程变化 | `docs/BUSINESS.md`（业务事实源，先改这里）+ `docs/Progress.md` |
 | 关键决策（选型 / 取舍 / 方案反转 / 绕行）| `docs/DECISIONS.md`（What/Why/Changes）+ `docs/Progress.md` |
-| 会议纪要 | `docs/MEETINGS.md`（原始归档）+ `docs/REQUIREMENTS.md`（需求提炼）|
+| 会议纪要 | `docs/MEETINGS.md`（原始归档）+ `docs/BUSINESS.md`（业务事实提炼）+ `docs/REQUIREMENTS.md`（产品需求提炼）|
 
 **原则**：文档是单一事实源。代码和文档不一致时，先判断哪个对，再把另一个改齐。
 
@@ -64,6 +65,12 @@
 - commit 前必看 `git diff --staged`
 - **从不提交**：`.env`、真实凭据、`node_modules/`、`data/`（隐私）、`*.db`
 - **同一对话会话里不允许「写了代码不写文档」的结尾状态**
+
+### 5.1 分支与备份策略
+
+1. **分支即推**：日常开发一律在 feature/wip 分支进行，开工先切/建分支（worktree 流程自动满足）；每次 commit 后立即 push 当前分支到远端，无需确认——这就是实时异地备份
+2. **main 门禁**：确认点在**并入默认分支**，不在 push。merge 进 main（或直接在 main 上 commit）必须先获用户确认；确认后 push main + 删除已合并的远端 feature 分支
+3. **无远端兜底**：仓库没有 remote（或分支没有 upstream）时，首次 commit 后提醒用户建远端，避免「自动 push」静默失效
 
 ## 6. 密钥处理
 
@@ -102,7 +109,7 @@
 - 在 md 文件里写真实凭据
 - 把 `data/` 进 git
 - 破坏第 0 节核心不变量
-- 在没确认的情况下 `git push` 到远端
+- 在没确认的情况下把改动并入 main/默认分支（merge 或直接 commit）
 
 ---
 

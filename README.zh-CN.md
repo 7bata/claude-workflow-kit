@@ -2,13 +2,13 @@
 
 [English](README.md) | 中文
 
-一套文档驱动的 Claude Code 多代理开发工作流:**指挥 / 执行 / 评审三层分工** + **brainstorming → spec → ultracode 直通实现** + **docs 七件套项目文档体系**。
+一套文档驱动的 Claude Code 多代理开发工作流:**指挥 / 执行 / 评审三层分工** + **brainstorming → spec → ultracode 直通实现** + **docs 八件套项目文档体系**。
 
 包含两部分:
 
 1. **一段工作流 prompt**(本 README 下方)——放进你的 `~/.claude/CLAUDE.md`,定义模型分工、档位表和主流程
 2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供两个可执行命令:
-   - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 七件套 + `.gitignore` + `README.md`)
+   - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 八件套 + `.gitignore` + `README.md`)
    - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
 
 ## 安装
@@ -53,11 +53,12 @@ ultracode(Workflow 多代理编排)直接从 spec 实现
 code review → 验证 → 收尾,回写 docs/Progress.md 与 docs/PLAN.md
 ```
 
-docs 七件套各自的职责:
+docs 八件套各自的职责:
 
 | 文件 | 职责 |
 |---|---|
 | `docs/REQUIREMENTS.md` | 产品需求,**唯一真相源**,需求变化先改这里 |
+| `docs/BUSINESS.md` | 业务档案:业务事实(系统出现之前怎么做、业务规则),业务规则变化先改这里 |
 | `docs/PLAN.md` | 分阶段路线图 + Phase 状态(✅)+ Spec 索引,只装索引不装正文 |
 | `docs/Progress.md` | 模块状态总览表 + 变更日志(最新在上) |
 | `docs/DECISIONS.md` | 关键决策记录,每条 What/Why/Changes,最新在上 |
@@ -71,7 +72,7 @@ docs 七件套各自的职责:
 
 ## 工作流 prompt
 
-> 复制下面整段到 `~/.claude/CLAUDE.md`。装了本插件后,第五节由 `/scaffold`、第八节由 `/whats-next` 代为执行,这两节保留作为命令背后的方法论说明;没装插件也可以照描述手动执行。
+> 复制下面整段到 `~/.claude/CLAUDE.md`。装了本插件后,第六节由 `/scaffold`、第九节由 `/whats-next` 代为执行,这两节保留作为命令背后的方法论说明;没装插件也可以照描述手动执行。
 
 ```markdown
 # 多代理开发工作流(指挥 / 执行 / 评审 三层 + 文档驱动项目生命周期)
@@ -115,29 +116,36 @@ docs 七件套各自的职责:
 
 `effort` 只有 Workflow 脚本的 `agent()` 支持;裸 Agent 工具没有这个参数,派出去的子代理只能继承主会话档位、降不下来。所以批量/并行任务一律优先 Workflow 编排,别用裸 Agent 分叉。Workflow 脚本里每个 `agent()` 按档位表逐 stage 显式写 `model` + `effort`;编排逻辑与最终汇总不进 workflow,由主对话亲自做。
 
-## 五、开新项目:先铺文档脚手架(对应 /scaffold)
+## 五、Git 分支与备份策略
+
+1. **分支即推**:日常开发一律在 feature/wip 分支进行,开工先切/建分支(worktree 流程自动满足);每次 commit 后立即 `git push` 当前分支到远端,无需确认(无 upstream 时用 `-u` 建立)——这就是实时异地备份。
+2. **main 门禁**:确认点在**并入默认分支**,不在 push。merge 进 main(或直接在 main 上 commit)必须先获用户确认;确认后 push main + 删除已合并的远端 feature 分支。
+3. **无远端兜底**:仓库没有 remote(或分支没有 upstream)时,首次 commit 后提醒用户建远端,避免"自动 push"静默失效。
+
+## 六、开新项目:先铺文档脚手架(对应 /scaffold)
 
 用户说"开新项目 / 初始化项目 / 搭脚手架"时,在**已存在的**项目目录里就地铺设(项目名取目录名),流程:
 
-1. **Intake**:让用户讲项目想法,或指给一个文件(如会议纪要);纪要原文归档进 `docs/MEETINGS.md` 第一节。信息不够就针对性追问。
+1. **Intake**:让用户讲项目想法,或指给一个文件(如会议纪要);纪要原文归档进 `docs/MEETINGS.md` 第一节,其中的业务事实另提炼进 `docs/BUSINESS.md`。信息不够就针对性追问。除判断技术栈/DB 外,**按 7 格模型追问业务上下文**(用于填实 `docs/BUSINESS.md`;信息不足的格留占位、不逼问、不卡流程):① 目标与现状手工流程(没系统之前谁、怎么做、痛点在哪);② 输入:交易数据(有无真实样本文件);③ 输入:参考/配置数据(对照表、规则表、允许值);④ 加工流程(输入怎么变成输出);⑤ 输出(产出什么、给谁,有无期望样例);⑥ 业务铁律与异常(绝不能错的规则、意外情况怎么办);⑦ 人工介入与反馈(谁复核、能改什么、要不要被系统记住)。
 2. **决策并确认**(每项给出判断理由,用户拍板后才落盘):
    - **技术栈:固定基线,不做重复选型**。示例基线:Go(标准库 `net/http` + chi,无重框架)+ pgx 手写 repository(不用 ORM)+ golang-migrate 纯 SQL 迁移;前端如需要则 React + TypeScript + Vite;Docker 多阶段构建出单静态二进制,带 `/health`;后端无状态,状态全在数据库。(把这张表换成你自己的基线也行——关键是"基线固定、逐项目不再选型";想换栈就改基线表,不做单次临时偏离。)
    - **数据库**:默认 PostgreSQL;仅小型低并发/单机一体机用 SQLite。判断依据:并发量、部署形态、数据规模。
    - **是否需要 Web 前端**。
    - **核心不变量**:本项目"绝不破坏"的架构约束,0~N 条,想不出留占位。
    - **模块划分**:顶层模块名 + 一句话职责,想不清留占位。
-3. **落盘 10 个文件**(先逐个检查是否已存在,已存在的列出来问用户跳过/备份/合并,**绝不静默覆盖**):
+3. **落盘 11 个文件**(先逐个检查是否已存在,已存在的列出来问用户跳过/备份/合并,**绝不静默覆盖**):
    - `.claude/CLAUDE.md`(项目硬规则)、`.gitignore`、`README.md`
-   - **docs 七件套**:
+   - **docs 八件套**:
      - `PLAN.md` — 总体路线、各 Phase 状态(标题带 ✅ = 完成)、Spec 索引
      - `Progress.md` — 上半部模块状态总览表(pending/doing/done),下半部变更日志(**最新在上**)
      - `REQUIREMENTS.md` — 产品定位、目标用户、分期路线图、已确认决策(用 intake 内容能填实就填实)
+     - `BUSINESS.md` — 业务档案:系统出现之前怎么做、业务规则、输入输出样本登记(用 7 格追问收集的内容填实)
      - `ARCHITECTURE.md` — 架构设计;`DEPLOYMENT.md` — 部署方案
      - `DECISIONS.md` — 决策记录,每条 What/Why/Changes,**最新在上**(技术栈基线是首条)
      - `MEETINGS.md` — 会议纪要归档 + 每节的待办清单
-4. **收尾**:`git init`(如尚未)+ 首次 commit;自检无未替换占位、无乱码;向用户汇报生成了什么、做了哪些决策,建议下一步走第六节的 brainstorming。
+4. **收尾**:`git init`(如尚未)+ 首次 commit;自检无未替换占位、无乱码;向用户汇报生成了什么、做了哪些决策,建议下一步走第七节的 brainstorming。
 
-## 六、主流程:Brainstorming → Spec → Ultracode 直通
+## 七、主流程:Brainstorming → Spec → Ultracode 直通
 
 1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。
 2. spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权:**不等待批准、不问"是否开始实现"、不 invoke superpowers:writing-plans、不产出实现计划文档**,自动立即进入实现(用户中途主动喊停则照常停下)。
@@ -147,7 +155,7 @@ docs 七件套各自的职责:
 6. 本流程覆盖 brainstorming SKILL.md 中「结束后唯一可 invoke 的是 writing-plans」的规定;subagent-driven-development / executing-plans 因不再有 plan 文档而失去入口,属预期,不必绕路满足。
 7. 用户明确点名要 writing-plans / subagent-driven / inline / 并行分派时,按点名的方式执行。
 
-## 七、新产品/大功能先做 GitHub 调研
+## 八、新产品/大功能先做 GitHub 调研
 
 - **新产品/新项目:一律调研**,没有"要不要调研"的判断步骤。
 - **较大功能:由 Claude 判断**(信号:需要新子系统或独立模块、该领域明显有成熟开源轮子、预计工作量大;拿不准问用户)。
@@ -156,7 +164,7 @@ docs 七件套各自的职责:
 - **产出**:调研结论(直接采用/自部署、fork 二开、自研+可复用组件)必须作为正式候选方案之一呈现,并沉淀进 spec 的「Prior art」一节。
 - 小修小补不触发;用户明说"不用调研"可跳过。
 
-## 八、续航:回到项目先问"下一步"(对应 /whats-next)
+## 九、续航:回到项目先问"下一步"(对应 /whats-next)
 
 用户说"下一步干什么 / 我到哪了",且项目根目录有 `docs/PLAN.md` 时:
 
@@ -170,7 +178,7 @@ docs 七件套各自的职责:
    | PLAN.md 路线还是待补 | 先读 REQUIREMENTS.md 的分期路线图作输入,用 brainstorming 定分阶段路线 |
    | 所有 Phase 都 ✅ | 项目按计划完成;建议复盘或开新 Phase |
 4. **输出四部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略);④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略)。结尾问:现在开始吗?
-5. 文档之间矛盾(Progress 说完成但 spec 无实现记录之类)→ 明确指出矛盾及双方出处,建议先核对再动工,**不默默择一**;缺 `PLAN.md`/`Progress.md` 说明不是本工作流的项目,建议先走第五节铺脚手架。
+5. 文档之间矛盾(Progress 说完成但 spec 无实现记录之类)→ 明确指出矛盾及双方出处,建议先核对再动工,**不默默择一**;缺 `PLAN.md`/`Progress.md` 说明不是本工作流的项目,建议先走第六节铺脚手架。
 ```
 
 ## 仓库结构
@@ -186,11 +194,11 @@ claude-workflow-kit/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
     │   └── skills/
-    │       ├── scaffold/            # /scaffold:SKILL.md + templates/(10 个模板)
+    │       ├── scaffold/            # /scaffold:SKILL.md + templates/(11 个模板)
     │       │   ├── SKILL.md
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
-    │       │       └── docs/        # 七件套模板
+    │       │       └── docs/        # 八件套模板
     │       └── whats-next/          # /whats-next:SKILL.md
     │           └── SKILL.md
     └── workflow-en/                 # 英文输出插件(结构同 workflow)

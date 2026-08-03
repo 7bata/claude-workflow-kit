@@ -18,7 +18,7 @@ The root of this git repo is `{{PROJECT_NAME}}/`.
 
 **After completing each operation, do these three things in order**:
 
-1. **Commit the code** — atomic commit, with a message that makes clear what changed and why
+1. **Commit the code and push the current branch** — atomic commit, with a message that makes clear what changed and why; **immediately `git push` the current feature/wip branch after committing (no confirmation needed; use `-u` to set upstream if there isn't one yet)**
 2. **Update `docs/Progress.md`** — append an entry under "## Changelog" (symptom / root cause / decision / verification result); sync the "## Progress Overview" table when a module's status changes; for key decisions (tech choice, tradeoff, plan reversal) also append a What/Why/Changes entry to `docs/DECISIONS.md`
 3. **Check `docs/PLAN.md`** — if a Phase advanced or the plan changed, sync the phase status
 
@@ -34,9 +34,10 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
 | `.env.example` / deploy script changes | `docs/Progress.md` + `docs/DEPLOYMENT.md` |
 | Inter-module interface changes (HTTP API / WS payload) | `docs/Progress.md` + `docs/ARCHITECTURE.md` (interface table) |
 | Dependency changes (go.mod / package.json, etc.) | `docs/Progress.md` (what was added, why) |
-| Requirement changes / reversals | `docs/REQUIREMENTS.md` (single source of truth, edit here first) + `docs/Progress.md` |
+| Requirement changes / reversals | `docs/REQUIREMENTS.md` (single source of truth, edit here first; division of labor note: business-fact changes go to BUSINESS, product-scope changes go to REQUIREMENTS) + `docs/Progress.md` |
+| Business rule / business process changes | `docs/BUSINESS.md` (source of business facts, edit here first) + `docs/Progress.md` |
 | Key decisions (tech choice / tradeoff / plan reversal / workaround) | `docs/DECISIONS.md` (What/Why/Changes) + `docs/Progress.md` |
-| Meeting notes | `docs/MEETINGS.md` (raw archive) + `docs/REQUIREMENTS.md` (distilled requirements) |
+| Meeting notes | `docs/MEETINGS.md` (raw archive) + `docs/BUSINESS.md` (distilled business facts) + `docs/REQUIREMENTS.md` (distilled product requirements) |
 
 **Principle**: docs are the single source of truth. When code and docs disagree, decide which one is correct, then bring the other into line.
 
@@ -64,6 +65,12 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
 - Always review `git diff --staged` before committing
 - **Never commit**: `.env`, real credentials, `node_modules/`, `data/` (private), `*.db`
 - **A conversation session must never end in a "wrote code but didn't write docs" state**
+
+### 5.1 Branch & Backup Strategy
+
+1. **Branch means push**: day-to-day development always happens on a feature/wip branch — switch to or create one before starting work (a worktree flow satisfies this automatically); push the current branch to the remote immediately after every commit, no confirmation needed — this is your real-time offsite backup
+2. **main is gated**: the confirmation checkpoint is at **merging into the default branch**, not at pushing. Merging into main (or committing directly on main) requires the user's confirmation first; after confirmation, push main and delete the merged remote feature branch
+3. **No-remote fallback**: if the repo has no remote (or the branch has no upstream), remind the user to set one up after the first commit, so "auto-push" doesn't silently fail
 
 ## 6. Secrets Handling
 
@@ -102,7 +109,7 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
 - Write real credentials into md files
 - Commit `data/` into git
 - Break the Core Invariants in Section 0
-- `git push` to a remote without confirmation
+- Merge a change into main/the default branch (via merge or a direct commit) without confirmation
 
 ---
 
