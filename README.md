@@ -35,6 +35,19 @@ Then copy the entire "Workflow prompt" section below into `~/.claude/CLAUDE.md` 
 
 The main conversation should use the strongest model currently available (e.g. Fable/Opus) as the "Conductor".
 
+## Bonus plugin: speak-human
+
+Make Claude speak human and ask answerable questions. The rules are mined from 548 real AskUserQuestion decision records (67% picked as-is / 16% absorbed-then-synthesized / 12% declined into chat): a pre-question self-check (verify the premise with tools first, brief the why/state/impact, gloss every piece of jargon, don't force false either/or — leave room to combine, one decision point per round, real previews for visual calls) plus three expression rules (follow the user's language, gloss jargon everywhere, no file-name roll call as narration).
+
+```
+/plugin install speak-human-en@claude-workflow-kit   # English version
+/plugin install speak-human@claude-workflow-kit      # Chinese version (install one, not both)
+```
+
+- **On demand**: trigger with `/speak-human` in any session.
+- **Always on**: `touch ~/.claude/.speak-human-always` — a SessionStart hook injects the rules into every session automatically; delete the file to turn it off.
+- **Evals included** (`plugins/speak-human*/evals/`): 22 sanitized real failure cases + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
+
 ## Usage (project lifecycle)
 
 ```
@@ -200,16 +213,22 @@ claude-workflow-kit/
     │       │       └── docs/         # the eight-doc set templates
     │       └── whats-next/           # /whats-next: SKILL.md
     │           └── SKILL.md
-    └── workflow-en/                  # English-output plugin (same layout as workflow)
-        ├── .claude-plugin/plugin.json
-        └── skills/
-            ├── scaffold/              # /scaffold: SKILL.md + templates/ (11 templates)
-            │   ├── SKILL.md
-            │   └── templates/
-            │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
-            │       └── docs/         # the eight-doc set templates
-            └── whats-next/           # /whats-next: SKILL.md
-                └── SKILL.md
+    ├── workflow-en/                  # English-output plugin (same layout as workflow)
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/
+    │       ├── scaffold/              # /scaffold: SKILL.md + templates/ (11 templates)
+    │       │   ├── SKILL.md
+    │       │   └── templates/
+    │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
+    │       │       └── docs/         # the eight-doc set templates
+    │       └── whats-next/           # /whats-next: SKILL.md
+    │           └── SKILL.md
+    ├── speak-human/                  # Chinese speak-human plugin
+    │   ├── .claude-plugin/plugin.json
+    │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P8 + speaking discipline S1–S3
+    │   ├── hooks/                    # SessionStart hook, flag-file gated always-on
+    │   └── evals/                    # 22 sanitized cases + rubric + baseline-vs-skill runner
+    └── speak-human-en/               # English speak-human plugin (same layout)
 ```
 
 ## License

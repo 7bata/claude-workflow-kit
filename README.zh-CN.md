@@ -36,6 +36,19 @@
 
 主对话建议使用当前可用的最强模型(如 Fable/Opus),作为"指挥"。
 
+## 附赠插件:speak-human
+
+让 Claude 说人话、会提问。规则从 548 次真实 AskUserQuestion 抉择记录里挖出来(67% 照选 / 16% 吸收后自造答案 / 12% 拒绝转聊天):提问前自检清单(先用工具核实前提、交代为什么问/现状/影响、黑话逐个带解释、不硬造二选一——留组合位、一轮一个决策点、视觉决策给真预览)+ 三条表达纪律(语言跟随用户、全域黑话带解释、叙述禁文件名流水账)。
+
+```
+/plugin install speak-human@claude-workflow-kit      # 中文版
+/plugin install speak-human-en@claude-workflow-kit   # 英文版(二选一,别都装)
+```
+
+- **按需**:任意会话里 `/speak-human` 手动触发。
+- **常驻**:`touch ~/.claude/.speak-human-always` —— SessionStart hook 每个会话自动注入规则;删掉该文件即关闭。
+- **自带评测**(`plugins/speak-human*/evals/`):22 个脱敏真实失败案例 + 逐条判分标准 + 基线 vs 带 skill 对比跑分脚本(`run_evals.py`),改规则可以回归验证,不靠感觉。
+
 ## 使用方式(项目生命周期)
 
 ```
