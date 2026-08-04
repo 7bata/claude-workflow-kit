@@ -7,9 +7,10 @@
 包含两部分:
 
 1. **一段工作流 prompt**(本 README 下方)——放进你的 `~/.claude/CLAUDE.md`,定义模型分工、档位表和主流程
-2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供两个可执行命令:
+2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供三个可执行命令:
    - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 八件套 + `.gitignore` + `README.md`)
    - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
+   - `/sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP(操作手册)
 
 ## 安装
 
@@ -35,6 +36,19 @@
 | [superpowers 插件](https://github.com/obra/superpowers) | brainstorming / TDD / code review / worktree 等流程 skill | 主流程的骨架,安装方式见其 README |
 
 主对话建议使用当前可用的最强模型(如 Fable/Opus),作为"指挥"。
+
+## 附赠插件:speak-human
+
+让 Claude 说人话、会提问。规则从 548 次真实 AskUserQuestion 抉择记录里挖出来(67% 照选 / 16% 吸收后自造答案 / 12% 拒绝转聊天):提问前自检清单(先用工具核实前提、交代为什么问/现状/影响、黑话逐个带解释、不硬造二选一——留组合位、一轮一个决策点、视觉决策给真预览)+ 三条表达纪律(语言跟随用户、全域黑话带解释、叙述禁文件名流水账)。
+
+```
+/plugin install speak-human@claude-workflow-kit      # 中文版
+/plugin install speak-human-en@claude-workflow-kit   # 英文版(二选一,别都装)
+```
+
+- **按需**:任意会话里 `/speak-human` 手动触发。
+- **常驻**:`touch ~/.claude/.speak-human-always` —— SessionStart hook 每个会话自动注入规则;删掉该文件即关闭。
+- **自带评测**(`plugins/speak-human*/evals/`):22 个脱敏真实失败案例 + 逐条判分标准 + 基线 vs 带 skill 对比跑分脚本(`run_evals.py`),改规则可以回归验证,不靠感觉。
 
 ## 使用方式(项目生命周期)
 
@@ -189,7 +203,7 @@ claude-workflow-kit/
 ├── README.zh-CN.md                  # 本文件:方法论 + 安装 + 工作流 prompt
 ├── LICENSE                          # MIT
 ├── .claude-plugin/
-│   └── marketplace.json             # 插件市场清单(注册两个插件)
+│   └── marketplace.json             # 插件市场清单(注册四个插件)
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
@@ -199,9 +213,15 @@ claude-workflow-kit/
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
     │       │       └── docs/        # 八件套模板
-    │       └── whats-next/          # /whats-next:SKILL.md
-    │           └── SKILL.md
-    └── workflow-en/                 # 英文输出插件(结构同 workflow)
+    │       ├── whats-next/          # /whats-next:SKILL.md
+    │       │   └── SKILL.md
+    │       └── sop-generate/        # /sop-generate:SKILL.md + references/ + scripts/
+    │           ├── SKILL.md
+    │           ├── references/      # runbook-template.md(网络不可达时的降级交付模板)
+    │           └── scripts/         # crawl.mjs(原生 Playwright 降级采集脚本)
+    ├── workflow-en/                 # 英文输出插件(结构同 workflow)
+    ├── speak-human/                 # 中文版 speak-human 插件:hooks/ + skills/ + evals/
+    └── speak-human-en/              # 英文版 speak-human 插件(结构同 speak-human)
 ```
 
 ## License

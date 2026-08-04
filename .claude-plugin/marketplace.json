@@ -1,16 +1,28 @@
 {
   "name": "claude-workflow-kit",
-  "owner": { "name": "Tony Jiang" },
+  "owner": {
+    "name": "Tony Jiang"
+  },
   "plugins": [
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成"
     },
     {
       "name": "workflow-en",
       "source": "./plugins/workflow-en",
-      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation"
+      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation"
+    },
+    {
+      "name": "speak-human",
+      "source": "./plugins/speak-human",
+      "description": "中文版:让 Claude 说人话、会提问——提问前自检清单 + 表达纪律,规则源自 548 次真实抉择记录挖掘;touch ~/.claude/.speak-human-always 常驻"
+    },
+    {
+      "name": "speak-human-en",
+      "source": "./plugins/speak-human-en",
+      "description": "English version: make Claude speak human and ask well — pre-question self-check + expression discipline, mined from 548 real decision records; touch ~/.claude/.speak-human-always for always-on"
     }
   ]
 }

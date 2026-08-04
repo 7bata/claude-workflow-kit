@@ -7,9 +7,10 @@ A documentation-driven multi-agent development workflow for Claude Code: **Condu
 Contains two parts:
 
 1. **A workflow prompt** (below in this README) — drop it into your `~/.claude/CLAUDE.md` to define the model division of labor, the tier table, and the main workflow
-2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides two executable commands:
+2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides three executable commands:
    - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the eight-doc set + `.gitignore` + `README.md`)
    - `/whats-next`: read the docs to figure out where the project stands and what to do next
+   - `/sop-generate`: generate a screenshot-backed business SOP (operating manual) for an already-deployed web app
 
 ## Install
 
@@ -34,6 +35,19 @@ Then copy the entire "Workflow prompt" section below into `~/.claude/CLAUDE.md` 
 | [superpowers plugin](https://github.com/obra/superpowers) | brainstorming / TDD / code review / worktree and other process skills | The skeleton of the main workflow; see its README for install instructions |
 
 The main conversation should use the strongest model currently available (e.g. Fable/Opus) as the "Conductor".
+
+## Bonus plugin: speak-human
+
+Make Claude speak human and ask answerable questions. The rules are mined from 548 real AskUserQuestion decision records (67% picked as-is / 16% absorbed-then-synthesized / 12% declined into chat): a pre-question self-check (verify the premise with tools first, brief the why/state/impact, gloss every piece of jargon, don't force false either/or — leave room to combine, one decision point per round, real previews for visual calls) plus three expression rules (follow the user's language, gloss jargon everywhere, no file-name roll call as narration).
+
+```
+/plugin install speak-human-en@claude-workflow-kit   # English version
+/plugin install speak-human@claude-workflow-kit      # Chinese version (install one, not both)
+```
+
+- **On demand**: trigger with `/speak-human` in any session.
+- **Always on**: `touch ~/.claude/.speak-human-always` — a SessionStart hook injects the rules into every session automatically; delete the file to turn it off.
+- **Evals included** (`plugins/speak-human*/evals/`): 22 sanitized real failure cases + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
 
 ## Usage (project lifecycle)
 
@@ -198,18 +212,19 @@ claude-workflow-kit/
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
     │       │       └── docs/         # the eight-doc set templates
-    │       └── whats-next/           # /whats-next: SKILL.md
-    │           └── SKILL.md
-    └── workflow-en/                  # English-output plugin (same layout as workflow)
-        ├── .claude-plugin/plugin.json
-        └── skills/
-            ├── scaffold/              # /scaffold: SKILL.md + templates/ (11 templates)
-            │   ├── SKILL.md
-            │   └── templates/
-            │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
-            │       └── docs/         # the eight-doc set templates
-            └── whats-next/           # /whats-next: SKILL.md
-                └── SKILL.md
+    │       ├── whats-next/           # /whats-next: SKILL.md
+    │       │   └── SKILL.md
+    │       └── sop-generate/         # /sop-generate: SKILL.md + references/ + scripts/
+    │           ├── SKILL.md
+    │           ├── references/       # runbook-template.md (degraded-delivery template for unreachable networks)
+    │           └── scripts/          # crawl.mjs (native Playwright fallback collection script)
+    ├── workflow-en/                  # English-output plugin (same layout as workflow)
+    ├── speak-human/                  # Chinese speak-human plugin
+    │   ├── .claude-plugin/plugin.json
+    │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P8 + speaking discipline S1–S3
+    │   ├── hooks/                    # SessionStart hook, flag-file gated always-on
+    │   └── evals/                    # 22 sanitized cases + rubric + baseline-vs-skill runner
+    └── speak-human-en/               # English speak-human plugin (same layout)
 ```
 
 ## License
