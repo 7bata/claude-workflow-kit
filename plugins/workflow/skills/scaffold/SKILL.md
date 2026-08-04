@@ -121,7 +121,7 @@ done
 | `{{MODULES_BLOCK}}` | 步骤 3 模块划分；无则 `<!-- 待补：模块划分 -->` |
 | `{{CODE_CONVENTIONS_BLOCK}}` | 按基线生成的 Go 代码约定（Go 1.25、gofmt、error 显式处理并 wrap、`cmd/` + `internal/` 布局、依赖最小化）；有前端时追加 TS 约定（strict 模式、组件按页面分目录） |
 
-模板路径映射：`templates/docs/X.md.tmpl` → `docs/X.md`；`templates/gitignore.tmpl` → `.gitignore`；`templates/CLAUDE.md.tmpl` → `.claude/CLAUDE.md`；`templates/README.md.tmpl` → `README.md`。另建空目录占位 `data/.gitkeep`。
+模板路径映射：`templates/docs/X.md.tmpl` → `docs/X.md`；`templates/gitignore.tmpl` → `.gitignore`；`templates/CLAUDE.md.tmpl` → `.claude/CLAUDE.md`；`templates/README.md.tmpl` → `README.md`。另建空目录占位 `data/.gitkeep`。(data/.gitkeep 是清单外的占位文件,物理文件总数 = 清单数 + 1,自检时按此对账)
 
 **内容预填**（不只替换占位符，能填实的就填实）：
 

@@ -121,7 +121,7 @@ For each template: Read the template content → substitute placeholders → Wri
 | `{{MODULES_BLOCK}}` | Module breakdown from Step 3; if none, `<!-- TBD: module breakdown -->` |
 | `{{CODE_CONVENTIONS_BLOCK}}` | Go code conventions generated from the baseline (Go 1.25, gofmt, explicit error handling with wrapping, `cmd/` + `internal/` layout, minimal dependencies); if there's a frontend, append TS conventions (strict mode, components organized by page directory) |
 
-Template path mapping: `templates/docs/X.md.tmpl` → `docs/X.md`; `templates/gitignore.tmpl` → `.gitignore`; `templates/CLAUDE.md.tmpl` → `.claude/CLAUDE.md`; `templates/README.md.tmpl` → `README.md`. Also create an empty placeholder directory `data/.gitkeep`.
+Template path mapping: `templates/docs/X.md.tmpl` → `docs/X.md`; `templates/gitignore.tmpl` → `.gitignore`; `templates/CLAUDE.md.tmpl` → `.claude/CLAUDE.md`; `templates/README.md.tmpl` → `README.md`. Also create an empty placeholder directory `data/.gitkeep`. (data/.gitkeep is an extra placeholder outside the checklist; total physical files = checklist count + 1 — reconcile accordingly during self-check)
 
 **Pre-filling content** (don't just substitute placeholders — fill in real content wherever possible):
 
