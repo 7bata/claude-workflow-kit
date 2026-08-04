@@ -30,8 +30,10 @@ import argparse
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -73,22 +75,74 @@ def run_claude(prompt: str, timeout: float = DEFAULT_TIMEOUT) -> str:
     cmd = [claude_bin, "-p"]
     if model:
         cmd += ["--model", model]
+    # start_new_session:让 claude 及其派生的全部辅助进程独占一个进程组。
+    # 2026-08-04 实测事故:claude 的遗留辅助进程握着 stdout/stderr 管道写端不放,
+    # EOF 永远不来,communicate 只能磨满超时;只杀直接子进程无济于事——必须整组击杀。
     try:
-        result = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
-            input=prompt,
-            capture_output=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=timeout,
+            start_new_session=True,
         )
-    except subprocess.TimeoutExpired as e:
-        raise ClaudeError(f"claude 调用超时（{timeout}s）: {cmd}") from e
     except FileNotFoundError as e:
         raise ClaudeError(f"claude 可执行文件未找到: {claude_bin}") from e
-    if result.returncode != 0:
-        stderr_tail = (result.stderr or "").strip()[-500:]
-        raise ClaudeError(f"claude 退出码非零（{result.returncode}）: {stderr_tail}")
-    return result.stdout
+    try:
+        stdout, stderr = proc.communicate(input=prompt, timeout=timeout)
+    except subprocess.TimeoutExpired as e:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            proc.kill()
+        try:
+            proc.communicate(timeout=5)
+        except (subprocess.TimeoutExpired, OSError, ValueError):
+            pass
+        raise ClaudeError(f"claude 调用超时（{timeout}s）: {cmd}") from e
+    if proc.returncode != 0:
+        # stdout 也要留:claude CLI 的报错(如限流提示)可能走 stdout 而非 stderr
+        stderr_tail = (stderr or "").strip()[-300:]
+        stdout_tail = (stdout or "").strip()[-300:]
+        raise ClaudeError(
+            f"claude 退出码非零（{proc.returncode}）: stderr={stderr_tail!r} stdout={stdout_tail!r}"
+        )
+    return stdout
+
+
+def run_claude_retry(prompt: str, timeout: float = DEFAULT_TIMEOUT) -> str:
+    """带指数退避重试与节流的 run_claude。
+
+    2026-08-04 实测:连打 40+ 次后 claude 开始齐刷刷静默退 1(疑似限流),歇一阵恢复。
+    环境变量:EVALS_RETRIES(默认 3 次尝试)/ EVALS_BACKOFF(默认 "15,45" 秒)/
+    EVALS_PACE(每次成功调用后的节流间隔秒,默认 2)。
+    """
+    retries = max(1, int(os.environ.get("EVALS_RETRIES", "3")))
+    backoff = [
+        float(x) for x in os.environ.get("EVALS_BACKOFF", "15,45").split(",") if x.strip()
+    ]
+    pace = float(os.environ.get("EVALS_PACE", "2"))
+    last_err: Optional[ClaudeError] = None
+    for attempt in range(retries):
+        try:
+            out = run_claude(prompt, timeout=timeout)
+            if pace:
+                time.sleep(pace)
+            return out
+        except ClaudeError as e:
+            last_err = e
+            if attempt < retries - 1:
+                wait = backoff[min(attempt, len(backoff) - 1)] if backoff else 0
+                print(
+                    f"  重试 {attempt + 1}/{retries - 1}（等 {wait}s）: {str(e)[:100]}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                if wait:
+                    time.sleep(wait)
+    assert last_err is not None
+    raise last_err
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +291,7 @@ def evaluate_one(
     """
     gen_prompt = build_generation_prompt(case, skill_text)
     try:
-        question = run_claude(gen_prompt, timeout=timeout).strip()
+        question = run_claude_retry(gen_prompt, timeout=timeout).strip()
     except ClaudeError as e:
         return {"question": None, "scores": None, "error": f"生成失败: {e}"}
 
@@ -246,7 +300,7 @@ def evaluate_one(
 
     judge_prompt = build_judge_prompt(case, rubric_text, question)
     try:
-        judge_raw = run_claude(judge_prompt, timeout=timeout)
+        judge_raw = run_claude_retry(judge_prompt, timeout=timeout)
     except ClaudeError as e:
         return {"question": question, "scores": None, "error": f"judge 调用失败: {e}"}
 
@@ -364,9 +418,19 @@ def run(
     skill_text = load_skill_text(skill_path)
 
     case_results = []
-    for case in cases:
+    n = len(cases)
+    for i, case in enumerate(cases, 1):
+        # 心跳走 stderr 且强制 flush:后台跑时可实时观察卡在哪个案例哪一臂
+        print(f"[{i}/{n}] {case['id']} baseline...", file=sys.stderr, flush=True)
         baseline = evaluate_one(case, None, rubric_text, timeout)
+        if baseline["error"]:
+            print(f"[{i}/{n}] {case['id']} baseline ERROR: {baseline['error'][:120]}",
+                  file=sys.stderr, flush=True)
+        print(f"[{i}/{n}] {case['id']} skill...", file=sys.stderr, flush=True)
         skill = evaluate_one(case, skill_text, rubric_text, timeout)
+        if skill["error"]:
+            print(f"[{i}/{n}] {case['id']} skill ERROR: {skill['error'][:120]}",
+                  file=sys.stderr, flush=True)
         case_results.append({"id": case["id"], "baseline": baseline, "skill": skill})
 
     summary = aggregate(case_results)
