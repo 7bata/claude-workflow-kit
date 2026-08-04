@@ -26,6 +26,33 @@ The backend stack is **fixed to Go**, with version and library choices unified u
 
 Keep the backend service **stateless** (all state lives in the database), leaving room for horizontal scaling across multiple replicas.
 
+## SQLite branch (the concrete substitutions when Step 3 picks SQLite)
+
+The baseline table above defaults to PostgreSQL (pgx + golang-migrate + a postgres container/instance). If Step 3 determines **SQLite** (small, low-concurrency / single-machine appliance scenarios), swap the DB access layer and migration tool per the table below; the Go version, validation library, runtime image, and directory layout (`backend/internal/{db,repo}` etc. keep their names — only the implementation inside changes) stay unchanged — this is not "adjust as you see fit," follow it as written:
+
+| Component | SQLite substitute |
+|---|---|
+| DB access | `database/sql` + `modernc.org/sqlite` (a pure-Go driver, no cgo, compiles directly with `CGO_ENABLED=0`; do not use the cgo-dependent `mattn/go-sqlite3`) |
+| Migrations | golang-migrate's `sqlite` (modernc, pure-Go) driver; migrations stay `NNNN_*.up.sql/down.sql`; do not use the cgo `sqlite3` driver; absent a migration framework dependency, this can also degrade to running an embedded schema SQL at startup (`embed.FS` holding a `schema.sql`) — good enough for small projects |
+| Data file | A single file at `data/{{PROJECT_NAME}}.db` (reuses the `data/` directory this skill already writes to disk); no PG container/instance is provisioned |
+| Concurrency note | Turn on `_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)`; avoid holding long-lived transactions on write paths |
+
+**Placeholder linkage**: in `{{TECH_STACK}}`, replace `pgx + golang-migrate` with `database/sql (modernc.org/sqlite) + golang-migrate (sqlite driver)`; fill `{{DATABASE}}` with `SQLite`.
+
+**`docs/DECISIONS.md.tmpl`'s pre-seeded first entry is self-contradictory as-is and must be edited**: line 9's What — "Backend Go 1.25 (net/http + chi + pgx + golang-migrate), database {{DATABASE}}" — leaves `pgx + golang-migrate` unchanged while `{{DATABASE}}` renders as `SQLite`, producing "...pgx + golang-migrate...database SQLite" in the same sentence, a direct contradiction; before writing to disk, replace that half-sentence with `database/sql (modernc.org/sqlite) + golang-migrate (sqlite driver)`. Then append a separate entry recording the rationale for choosing SQLite, per "append a decision entry" below.
+
+**In `docs/ARCHITECTURE.md.tmpl`, the `pgx`/`BIGSERIAL`/`TIMESTAMPTZ`/`pgxpool` occurrences in sections 1/3/6 are hardcoded prose, not placeholders** (this template has not been made database-branch-aware). After writing `docs/ARCHITECTURE.md` to disk, if SQLite was chosen you must manually rewrite these spots per the table below — otherwise the doc contradicts the actual stack, and DDL written per `BIGSERIAL`/`TIMESTAMPTZ` will fail to create tables under SQLite outright:
+
+| Location | PostgreSQL original | Rewrite for SQLite |
+|---|---|---|
+| Section 1, "DB driver / queries" row | `pgx (hand-written repository)` | `database/sql + modernc.org/sqlite (hand-written repository)` |
+| Section 3, table-design conventions | `id BIGSERIAL PK`, `created_at/updated_at TIMESTAMPTZ` | `id INTEGER PRIMARY KEY AUTOINCREMENT`, `created_at/updated_at TEXT` (ISO8601 strings — SQLite has no native TIMESTAMPTZ type) |
+| Section 6, directory-layout comments | `pgx connection pool` / `pgxpool connection pool` / `hand-written pgx repository` | Rewrite accordingly to `database/sql (modernc.org/sqlite) connection` / `hand-written repository` |
+
+Append an entry to `docs/DECISIONS.md` recording the rationale for choosing SQLite (already required by Step 3).
+
+This skill's on-disk scope is 11 general-purpose files; the SQLite branch does not change that file count. Aside from the manual rewrites the table above requires for `docs/ARCHITECTURE.md` body text and the `docs/DECISIONS.md.tmpl` pre-seeded first entry, every other file only changes which value a tech-selection placeholder resolves to.
+
 ## Step 1: Confirm project name and directory
 
 ```bash
@@ -60,7 +87,7 @@ Based on the intake, list the following items for the user along with your reaso
 1. **Backend tech stack** — **fixed to Go, no question asked, no selection process** (see the "Tech stack baseline" table at the top). Only **state** to the user that this baseline will be used; if the user actively asks to switch stacks, treat it as a signal to update this skill's baseline table rather than deviating just this once
 2. **Database**:
    - **PostgreSQL by default** (for concurrency / most scenarios; Go side uses pgx + golang-migrate, per the baseline table)
-   - **SQLite only for small, low-concurrency / single-machine appliances** (e.g. a mac mini appliance)
+   - **SQLite only for small, low-concurrency / single-machine appliances** (e.g. a mac mini appliance) — if chosen, follow the "SQLite branch" section above
    - Basis for the decision: concurrency level, deployment shape (cloud vs. single machine), data scale
 3. **Whether a web frontend is needed**: if yes, follow the baseline React + TypeScript + Vite; for pure API / CLI projects, no frontend directory
 4. **Core invariants**: 0–N architectural constraints this project must "never break." Leave a placeholder if you can't think of any yet
@@ -88,7 +115,7 @@ For each template: Read the template content → substitute placeholders → Wri
 | `{{PROJECT_NAME}}` | Folder name from Step 1 |
 | `{{ONE_LINER}}` | One-line positioning distilled from intake |
 | `{{DATE}}` | `date +%F` |
-| `{{TECH_STACK}}` | Fixed baseline: `Go 1.25 (net/http + chi) + pgx + golang-migrate`; if there's a frontend, append `; frontend React + TypeScript + Vite (Node 20 build)` |
+| `{{TECH_STACK}}` | Fixed baseline: `Go 1.25 (net/http + chi) + pgx + golang-migrate`; if SQLite is chosen, substitute per the "SQLite branch" section; if there's a frontend, append `; frontend React + TypeScript + Vite (Node 20 build)` |
 | `{{DATABASE}}` | Database from Step 3 |
 | `{{INVARIANTS_BLOCK}}` | Core invariants from Step 3; if none, `<!-- TBD: this project's core invariants -->` |
 | `{{MODULES_BLOCK}}` | Module breakdown from Step 3; if none, `<!-- TBD: module breakdown -->` |

@@ -1,0 +1,92 @@
+# 架构设计 — {{PROJECT_NAME}}
+
+> {{ONE_LINER}}
+> 技术栈基线固定为 Go（见第 1 节），版本与选型统一沿用团队基线，不做选型。
+
+## 1. 技术栈
+
+| 层 | 选型 | 说明 |
+|----|------|------|
+| 后端 | Go 1.25（标准库 net/http + chi 路由） | REST API；goroutine 原生并发，单静态二进制，无状态可多副本横向扩展 |
+| DB 驱动 / 查询 | pgx（手写 repository） | 不用重量级 ORM，也不引入 sqlc；internal/repo 直接写类型化 SQL |
+| 迁移 | golang-migrate（纯 SQL 迁移） | 版本化 schema 迁移（NNNN_*.up.sql / down.sql） |
+| 校验 / 序列化 | encoding/json + go-playground/validator | 请求/响应 schema 校验 |
+| 数据库 | {{DATABASE}} | <!-- 待补：承载哪些核心数据 --> |
+| 前端 | React + TypeScript（Vite） | <!-- 无前端项目删除本行；Node 20 仅用于构建阶段 --> |
+
+**不需要的组件**：<!-- 待补：明确不引入什么及原因（如：无 ORM、无离线/同步层、无认证组件、无向量库） -->
+
+## 2. 总体架构图
+
+<!-- 待补：ASCII 字符图（偏好）或 mermaid flowchart：客户端 → API 层（handlers）→ Service 层 → Repo 层 → DB；标注无状态/扩展方式与明确不支持的能力（如离线） -->
+
+## 3. 数据模型 / ERD
+
+<!-- 待补：ERD（ASCII 字符图偏好，或 mermaid erDiagram）+ 关键建模决策说明（如实体拆分理由、防环约束） -->
+
+### 表设计
+
+约定：所有表含 `id BIGSERIAL PK`、`created_at TIMESTAMPTZ DEFAULT now()`、`updated_at TIMESTAMPTZ`。
+<!-- 待补：每表一小节，用「字段 | 类型 | 约束 / 说明」三列表格；注明哪些表需要并发保护（version 乐观锁）、哪些是纯追加表（append-only 不设锁） -->
+
+## 4. 核心业务设计
+
+{{MODULES_BLOCK}}
+
+<!-- 待补：每个核心域一小节（如状态机流转、聚合计算、缓存策略、并发控制），说明设计思路与边界情况 -->
+
+## 5. API 草图（REST，按阶段分期）
+
+> 统一约定：JSON、`/api/v1` 前缀；写操作携带 `version` 做乐观锁（如采用）；命名遵循状态机动作。
+
+| 方法 | 路径 | 用途 |
+|------|------|------|
+| | | <!-- 待补：按 MVP 分期列出 --> |
+
+## 6. 目录结构
+
+遵循 Go 社区惯例（`cmd/` 入口 + `internal/` 私有包）：
+
+```
+{{PROJECT_NAME}}/
+├── Dockerfile                      # 多阶段：Go 编译 + 前端构建（见第 7 节）
+├── backend/
+│   ├── go.mod  go.sum
+│   ├── cmd/
+│   │   └── server/
+│   │       └── main.go             # 入口：装配路由、pgx 连接池、静态前端、/health
+│   ├── internal/
+│   │   ├── config/                 # 配置（读环境变量）
+│   │   ├── db/                     # pgxpool 连接池
+│   │   ├── repo/                   # 手写 pgx repository（每实体一文件，类型化查询）
+│   │   ├── handlers/               # REST handler（对应第 5 节），按资源分文件
+│   │   ├── service/                # 业务逻辑
+│   │   ├── model/                  # 领域结构体
+│   │   └── middleware/             # 乐观锁冲突 -> 409、JSON 错误、请求日志
+│   ├── migrations/                 # golang-migrate 纯 SQL
+│   └── scripts/                    # 测试等脚本
+└── frontend/                       # 如需要：React + TS + Vite
+    ├── src/
+    │   ├── pages/
+    │   ├── components/
+    │   ├── api/                    # REST client
+    │   └── App.tsx
+    ├── package.json
+    └── vite.config.ts
+```
+
+## 7. 部署方式
+
+- 形态：单容器（端口 8080，`/health` 返回 `ok`）；前端构建产物由 Go 进程静态托管（`embed.FS` 或静态目录）
+- 构建：Docker 多阶段 —— `node:20-alpine` 构建前端 → `golang:1.25-alpine` 编译（`CGO_ENABLED=0`，内嵌前端 dist）→ `alpine:3.20` 最小运行镜像
+- 横向扩展：Go 实例无状态，可多副本共享同一数据库
+
+<!-- 待补：域名 / Registry / CI 流程 / 环境变量清单 -->
+
+## 8. 关键非功能约束（核心不变量）
+
+{{INVARIANTS_BLOCK}}
+
+| 约束 | 说明 | 落地点 |
+|------|------|--------|
+| | | <!-- 待补：每条约束一行，落地点写到具体文件/模块 --> |
