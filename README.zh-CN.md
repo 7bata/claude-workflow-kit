@@ -7,9 +7,10 @@
 包含两部分:
 
 1. **一段工作流 prompt**(本 README 下方)——放进你的 `~/.claude/CLAUDE.md`,定义模型分工、档位表和主流程
-2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供两个可执行命令:
+2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供三个可执行命令:
    - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 八件套 + `.gitignore` + `README.md`)
    - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
+   - `/sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP(操作手册)
 
 ## 安装
 
@@ -202,7 +203,7 @@ claude-workflow-kit/
 ├── README.zh-CN.md                  # 本文件:方法论 + 安装 + 工作流 prompt
 ├── LICENSE                          # MIT
 ├── .claude-plugin/
-│   └── marketplace.json             # 插件市场清单(注册两个插件)
+│   └── marketplace.json             # 插件市场清单(注册四个插件)
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
@@ -212,9 +213,15 @@ claude-workflow-kit/
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
     │       │       └── docs/        # 八件套模板
-    │       └── whats-next/          # /whats-next:SKILL.md
-    │           └── SKILL.md
-    └── workflow-en/                 # 英文输出插件(结构同 workflow)
+    │       ├── whats-next/          # /whats-next:SKILL.md
+    │       │   └── SKILL.md
+    │       └── sop-generate/        # /sop-generate:SKILL.md + references/ + scripts/
+    │           ├── SKILL.md
+    │           ├── references/      # runbook-template.md(网络不可达时的降级交付模板)
+    │           └── scripts/         # crawl.mjs(原生 Playwright 降级采集脚本)
+    ├── workflow-en/                 # 英文输出插件(结构同 workflow)
+    ├── speak-human/                 # 中文版 speak-human 插件:hooks/ + skills/ + evals/
+    └── speak-human-en/              # 英文版 speak-human 插件(结构同 speak-human)
 ```
 
 ## License

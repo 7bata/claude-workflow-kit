@@ -7,9 +7,10 @@ A documentation-driven multi-agent development workflow for Claude Code: **Condu
 Contains two parts:
 
 1. **A workflow prompt** (below in this README) — drop it into your `~/.claude/CLAUDE.md` to define the model division of labor, the tier table, and the main workflow
-2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides two executable commands:
+2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides three executable commands:
    - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the eight-doc set + `.gitignore` + `README.md`)
    - `/whats-next`: read the docs to figure out where the project stands and what to do next
+   - `/sop-generate`: generate a screenshot-backed business SOP (operating manual) for an already-deployed web app
 
 ## Install
 
@@ -211,18 +212,13 @@ claude-workflow-kit/
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
     │       │       └── docs/         # the eight-doc set templates
-    │       └── whats-next/           # /whats-next: SKILL.md
-    │           └── SKILL.md
+    │       ├── whats-next/           # /whats-next: SKILL.md
+    │       │   └── SKILL.md
+    │       └── sop-generate/         # /sop-generate: SKILL.md + references/ + scripts/
+    │           ├── SKILL.md
+    │           ├── references/       # runbook-template.md (degraded-delivery template for unreachable networks)
+    │           └── scripts/          # crawl.mjs (native Playwright fallback collection script)
     ├── workflow-en/                  # English-output plugin (same layout as workflow)
-    │   ├── .claude-plugin/plugin.json
-    │   └── skills/
-    │       ├── scaffold/              # /scaffold: SKILL.md + templates/ (11 templates)
-    │       │   ├── SKILL.md
-    │       │   └── templates/
-    │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
-    │       │       └── docs/         # the eight-doc set templates
-    │       └── whats-next/           # /whats-next: SKILL.md
-    │           └── SKILL.md
     ├── speak-human/                  # Chinese speak-human plugin
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P8 + speaking discipline S1–S3

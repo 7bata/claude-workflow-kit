@@ -7,12 +7,12 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成"
     },
     {
       "name": "workflow-en",
       "source": "./plugins/workflow-en",
-      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation"
+      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation"
     },
     {
       "name": "speak-human",
