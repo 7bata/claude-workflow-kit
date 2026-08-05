@@ -78,6 +78,9 @@ def run_claude(prompt: str, timeout: float = DEFAULT_TIMEOUT) -> str:
     # start_new_session:让 claude 及其派生的全部辅助进程独占一个进程组。
     # 2026-08-04 实测事故:claude 的遗留辅助进程握着 stdout/stderr 管道写端不放,
     # EOF 永远不来,communicate 只能磨满超时;只杀直接子进程无济于事——必须整组击杀。
+    # 评测隔离:常驻 speak-human hook 在 claude -p 里同样会触发(2026-08-05 实测),
+    # 若不隔离,"基线"臂也会被 hook 注入规则,两臂对照失效。inject.sh 识别此变量后静默。
+    env = dict(os.environ, SPEAK_HUMAN_EVALS_HERMETIC="1")
     try:
         proc = subprocess.Popen(
             cmd,
@@ -86,6 +89,7 @@ def run_claude(prompt: str, timeout: float = DEFAULT_TIMEOUT) -> str:
             stderr=subprocess.PIPE,
             text=True,
             start_new_session=True,
+            env=env,
         )
     except FileNotFoundError as e:
         raise ClaudeError(f"claude 可执行文件未找到: {claude_bin}") from e
@@ -417,21 +421,62 @@ def run(
     rubric_text = rubric_path.read_text(encoding="utf-8")
     skill_text = load_skill_text(skill_path)
 
+    # 断点续跑(2026-08-05 实测踩坑):环境多次在 60%+ 进度处强杀跑分进程,全量重来
+    # 代价过高。每个案例完成即追加写入 checkpoint.jsonl;重启时无错案例直接复用。
+    out_dir.mkdir(parents=True, exist_ok=True)
+    ckpt_path = out_dir / "checkpoint.jsonl"
+    done: dict[str, dict] = {}
+    if ckpt_path.exists():
+        for line in ckpt_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+                done[rec["id"]] = rec
+            except (json.JSONDecodeError, KeyError):
+                continue
+
+    # 评测隔离(2026-08-05 实测踩坑):常驻 speak-human hook 在 claude -p 里同样触发,
+    # 且本机可能有多路 hook 变体(用户级 + 插件缓存),逐个打环境变量补丁不可靠。
+    # 釜底抽薪:跑分期间把标志文件临时停飞(两路 hook 认同一个标志),finally 恢复。
+    # 若上次跑分崩溃留下 .evals-parked 残留,先恢复再继续,不丢用户的常驻开关。
+    flag = Path.home() / ".claude" / ".speak-human-always"
+    parked = flag.with_name(flag.name + ".evals-parked")
+    if parked.exists() and not flag.exists():
+        parked.rename(flag)
+    we_parked = False
+    if flag.exists():
+        flag.rename(parked)
+        we_parked = True
+
     case_results = []
     n = len(cases)
-    for i, case in enumerate(cases, 1):
-        # 心跳走 stderr 且强制 flush:后台跑时可实时观察卡在哪个案例哪一臂
-        print(f"[{i}/{n}] {case['id']} baseline...", file=sys.stderr, flush=True)
-        baseline = evaluate_one(case, None, rubric_text, timeout)
-        if baseline["error"]:
-            print(f"[{i}/{n}] {case['id']} baseline ERROR: {baseline['error'][:120]}",
-                  file=sys.stderr, flush=True)
-        print(f"[{i}/{n}] {case['id']} skill...", file=sys.stderr, flush=True)
-        skill = evaluate_one(case, skill_text, rubric_text, timeout)
-        if skill["error"]:
-            print(f"[{i}/{n}] {case['id']} skill ERROR: {skill['error'][:120]}",
-                  file=sys.stderr, flush=True)
-        case_results.append({"id": case["id"], "baseline": baseline, "skill": skill})
+    try:
+        for i, case in enumerate(cases, 1):
+            prev = done.get(case["id"])
+            if prev and not prev["baseline"].get("error") and not prev["skill"].get("error"):
+                print(f"[{i}/{n}] {case['id']} 检查点复用,跳过", file=sys.stderr, flush=True)
+                case_results.append(prev)
+                continue
+            # 心跳走 stderr 且强制 flush:后台跑时可实时观察卡在哪个案例哪一臂
+            print(f"[{i}/{n}] {case['id']} baseline...", file=sys.stderr, flush=True)
+            baseline = evaluate_one(case, None, rubric_text, timeout)
+            if baseline["error"]:
+                print(f"[{i}/{n}] {case['id']} baseline ERROR: {baseline['error'][:120]}",
+                      file=sys.stderr, flush=True)
+            print(f"[{i}/{n}] {case['id']} skill...", file=sys.stderr, flush=True)
+            skill = evaluate_one(case, skill_text, rubric_text, timeout)
+            if skill["error"]:
+                print(f"[{i}/{n}] {case['id']} skill ERROR: {skill['error'][:120]}",
+                      file=sys.stderr, flush=True)
+            rec = {"id": case["id"], "baseline": baseline, "skill": skill}
+            case_results.append(rec)
+            with open(ckpt_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    finally:
+        if we_parked and parked.exists() and not flag.exists():
+            parked.rename(flag)
 
     summary = aggregate(case_results)
 
