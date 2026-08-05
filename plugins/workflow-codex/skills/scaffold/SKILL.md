@@ -99,7 +99,7 @@ basename "$PWD"
    - **默认 PostgreSQL**（有并发 / 大多数场景；Go 侧用 pgx + golang-migrate，见基线表）
    - **仅小型低并发 / 单机一体机用 SQLite**（如离线一体机、边缘部署）——选中则按上面「SQLite 分支」执行
    - 判断依据：并发量、部署形态（云 vs 单机）、数据规模
-3. **是否需要 Web 前端**：需要则按基线 React + TypeScript + Vite；纯 API / CLI 项目则无 frontend 目录
+3. **是否需要 Web 前端**：需要则按基线 React + TypeScript + Vite；纯 API / CLI 项目则无 frontend 目录。判定为纯 CLI / 批处理（无 HTTP 接口、不监听端口）时，按上面「CLI / 无网络服务分支」执行
 4. **核心不变量**：本项目「绝不破坏」的架构约束，0~N 条。想不出就留占位
 5. **模块划分**：顶层模块名 + 一句话职责。想不清就留占位
 
@@ -125,7 +125,7 @@ done
 | `{{PROJECT_NAME}}` | 步骤 1 文件夹名 |
 | `{{ONE_LINER}}` | intake 提炼的一句话定位 |
 | `{{DATE}}` | `date +%F` |
-| `{{TECH_STACK}}` | 固定基线：`Go 1.25（net/http + chi）+ pgx + golang-migrate`；选 SQLite 时按「SQLite 分支」替换；有前端时追加 `；前端 React + TypeScript + Vite（Node 20 构建）` |
+| `{{TECH_STACK}}` | 固定基线：`Go 1.25（net/http + chi）+ pgx + golang-migrate`；选 SQLite 时按「SQLite 分支」替换；纯 CLI / 批处理时按「CLI / 无网络服务分支」替换，不写 `net/http + chi`；有前端时追加 `；前端 React + TypeScript + Vite（Node 20 构建）` |
 | `{{DATABASE}}` | 步骤 3 数据库 |
 | `{{INVARIANTS_BLOCK}}` | 步骤 3 核心不变量；无则 `<!-- 待补：本项目核心不变量 -->` |
 | `{{MODULES_BLOCK}}` | 步骤 3 模块划分；无则 `<!-- 待补：模块划分 -->` |

@@ -100,7 +100,7 @@ Based on the intake, list the following items for the user along with your reaso
    - **PostgreSQL by default** (for concurrency / most scenarios; Go side uses pgx + golang-migrate, per the baseline table)
    - **SQLite only for small, low-concurrency / single-machine appliances** (e.g. a mac mini appliance) — if chosen, follow the "SQLite branch" section above
    - Basis for the decision: concurrency level, deployment shape (cloud vs. single machine), data scale
-3. **Whether a web frontend is needed**: if yes, follow the baseline React + TypeScript + Vite; for pure API / CLI projects, no frontend directory
+3. **Whether a web frontend is needed**: if yes, follow the baseline React + TypeScript + Vite; for pure API / CLI projects, no frontend directory. If this is determined to be a pure CLI / batch job (no HTTP interface, no port listening), follow the "CLI / no-network-service branch" section above
 4. **Core invariants**: 0–N architectural constraints this project must "never break." Leave a placeholder if you can't think of any yet
 5. **Module breakdown**: top-level module names + one-line responsibility each. Leave a placeholder if unclear
 
@@ -126,7 +126,7 @@ For each template: Read the template content → substitute placeholders → Wri
 | `{{PROJECT_NAME}}` | Folder name from Step 1 |
 | `{{ONE_LINER}}` | One-line positioning distilled from intake |
 | `{{DATE}}` | `date +%F` |
-| `{{TECH_STACK}}` | Fixed baseline: `Go 1.25 (net/http + chi) + pgx + golang-migrate`; if SQLite is chosen, substitute per the "SQLite branch" section; if there's a frontend, append `; frontend React + TypeScript + Vite (Node 20 build)` |
+| `{{TECH_STACK}}` | Fixed baseline: `Go 1.25 (net/http + chi) + pgx + golang-migrate`; if SQLite is chosen, substitute per the "SQLite branch" section; if this is a pure CLI / batch job, substitute per the "CLI / no-network-service branch" section instead — do not write `net/http + chi`; if there's a frontend, append `; frontend React + TypeScript + Vite (Node 20 build)` |
 | `{{DATABASE}}` | Database from Step 3 |
 | `{{INVARIANTS_BLOCK}}` | Core invariants from Step 3; if none, `<!-- TBD: this project's core invariants -->` |
 | `{{MODULES_BLOCK}}` | Module breakdown from Step 3; if none, `<!-- TBD: module breakdown -->` |
