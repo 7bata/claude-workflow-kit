@@ -100,7 +100,7 @@ git commit --allow-empty -m probe && git reset --hard HEAD~1
 
 - **Where specs live**: Codex has no superpowers plugin, so design specs live at `docs/specs/YYYY-MM-DD-<topic>-design.md`, not the Claude-side `docs/superpowers/specs/` used below
 - **Who drives parallel implementation**: once a spec is finalized, `parallel-do` handles the parallel implementation, not the ultracode / Workflow multi-agent orchestration tool below
-- **Where to edit the tech-stack baseline**: edit `plugins/workflow-codex/skills/scaffold/SKILL.md` and its `templates/`, not `plugins/workflow/` as the "Customizing the tech-stack baseline" section below points to
+- **Where to edit the tech-stack baseline**: edit `plugins/workflow-codex/skills/scaffold/SKILL.md` and its `templates/`, not `plugins/workflow-en/` as the "Customizing the tech-stack baseline" section below points to
 
 ## Usage (project lifecycle)
 
