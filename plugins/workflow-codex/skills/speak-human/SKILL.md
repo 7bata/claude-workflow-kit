@@ -199,17 +199,26 @@ AGENTS="$HOME/.codex/AGENTS.md"
 mkdir -p "$(dirname "$AGENTS")"
 touch "$AGENTS"
 
-# 1) 删除旧的 speak-human 标记块(幂等的关键)
+# 1) 删除旧的 speak-human 标记块(幂等的关键),并把文件尾部连续空行压成一个,
+#    避免反复安装在标记块附近堆积空行
 awk '
   /<!-- speak-human:BEGIN -->/ {skip=1}
   !skip {print}
   /<!-- speak-human:END -->/ {skip=0; next}
 ' "$AGENTS" > "$AGENTS.tmp" && mv "$AGENTS.tmp" "$AGENTS"
+python3 - "$AGENTS" <<'PYEOF'
+import pathlib, sys
+p = pathlib.Path(sys.argv[1])
+t = p.read_text()
+t = (t.rstrip("\n") + "\n") if t.strip() else ""
+p.write_text(t)
+PYEOF
 
-# 2) 从 SKILL.md 提取正文:去掉 frontmatter,去掉「常驻安装」一节
+# 2) 从 SKILL.md 提取正文:去掉 frontmatter(只消费前两条 ---,正文里的分节线
+#    --- 保留),去掉「常驻安装」一节
 BODY=$(awk '
   BEGIN{fm=0}
-  /^---$/{fm++; next}
+  /^---$/{ if (fm<2) { fm++; next } }
   fm<2{next}
   /^## 常驻安装$/{stop=1}
   !stop{print}
@@ -228,15 +237,22 @@ echo "已写入 $AGENTS"
 
 ### 卸载(删掉常驻规则,可继续手动 `/speak-human` 触发)
 
+`~/.codex/AGENTS.md` 不存在时视为未安装,只打印提示、不报错、不会凭空创建该文件:
+
 ```sh
 AGENTS="$HOME/.codex/AGENTS.md"
-awk '
-  /<!-- speak-human:BEGIN -->/ {skip=1}
-  !skip {print}
-  /<!-- speak-human:END -->/ {skip=0; next}
-' "$AGENTS" > "$AGENTS.tmp" && mv "$AGENTS.tmp" "$AGENTS"
-echo "已从 $AGENTS 移除 speak-human 常驻块"
+if [ ! -f "$AGENTS" ]; then
+  echo "未安装,无需卸载"
+else
+  awk '
+    /<!-- speak-human:BEGIN -->/ {skip=1}
+    !skip {print}
+    /<!-- speak-human:END -->/ {skip=0; next}
+  ' "$AGENTS" > "$AGENTS.tmp" && mv "$AGENTS.tmp" "$AGENTS"
+  echo "已从 $AGENTS 移除 speak-human 常驻块"
+fi
 ```
 
-安装脚本重复跑多次是安全的(先删旧块再追加新块,不会累积);卸载脚本跑在没有
-标记块的文件上也是安全的(不匹配就原样保留全文)。
+安装脚本重复跑多次是安全的(先删旧块、压平尾部空行,再追加新块,不会累积);
+卸载脚本跑在没有标记块的文件上也是安全的(不匹配就原样保留全文),文件本身不
+存在时也不报错。

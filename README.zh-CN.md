@@ -63,11 +63,12 @@
 ### 安装 workflow-codex
 
 ```
-codex plugin marketplace add <本仓库路径或 clone 地址>
+git clone <本仓库地址> ~/claude-workflow-kit
+codex plugin marketplace add ~/claude-workflow-kit
 codex plugin add workflow-codex@claude-workflow-kit
 ```
 
-市场清单已在仓库的 `.agents/plugins/marketplace.json`,`marketplace add` 指向本仓库根目录(本地路径或你 fork/clone 后的 git 地址均可)即可发现它。
+市场清单已在仓库的 `.agents/plugins/marketplace.json`,`marketplace add` 指向 clone 到本地后的仓库根目录即可发现它(尚未实测 `marketplace add` 直接指向 git 地址的用法,故不在此推荐)。
 
 ## 使用方式(项目生命周期)
 

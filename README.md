@@ -62,11 +62,12 @@ The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugin
 ### Installing workflow-codex
 
 ```
-codex plugin marketplace add <path to this repo, or its clone URL>
+git clone <this repo's URL> ~/claude-workflow-kit
+codex plugin marketplace add ~/claude-workflow-kit
 codex plugin add workflow-codex@claude-workflow-kit
 ```
 
-The marketplace manifest already lives at `.agents/plugins/marketplace.json` in this repo — `marketplace add` just needs to point at the repo root (a local path or your fork/clone URL both work).
+The marketplace manifest already lives at `.agents/plugins/marketplace.json` in this repo — `marketplace add` just needs to point at the local repo root after cloning (pointing it directly at a git URL hasn't been verified to work, so it isn't recommended here).
 
 ## Usage (project lifecycle)
 
