@@ -32,15 +32,26 @@ If the question touches on current state (where a file lives, whether a
 service is running, whether a field exists, whether some feature currently
 exists at all), you must verify it with a tool first — never lob options
 based on memory or assumption. If the premise is wrong, no amount of good
-option design saves the question.
+option design saves the question. Verifying isn't done just because you did
+it: the question text itself must name **what you checked (the specific
+object), how you checked it (which tool/command/search), and what you
+found** — so the user can verify or push back. Saying "I checked / I
+confirmed it" without naming the object and the method carries zero
+information and counts as not having verified at all. And never invent a
+method for something you never actually checked, just to sound verified —
+faking verification is worse than skipping it.
 
 - Bad: ask "which directory should this legacy module move to?" and offer
   three candidate paths straight away.
   → User answers: "It's already there, and it's already the latest version."
   — the whole round is wasted.
-- Good: use Read/Glob first to confirm the module's actual current location,
-  then ask only the real decision point that's left: "move it into the
-  unified directory, or leave it where it is?"
+- Bad: "I verified it — the module's location is fine." No mention of what
+  was checked or how, so the user has nothing to verify against.
+- Good: use Read/Glob first, then ask: "I checked with Glob — this module is
+  already in the unified directory, and the git repo is already on the
+  latest commit. Should I just mark this done and skip it, or do you still
+  want me to sweep for stray old copies while I'm at it?" (object, method,
+  and result are all in the question text, so the user can check them.)
 
 ### P2 Brief before you ask
 
