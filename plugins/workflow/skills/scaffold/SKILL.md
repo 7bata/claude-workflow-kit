@@ -53,6 +53,17 @@ allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 
 本 skill 落盘范围是 11 个通用文件，SQLite 分支不改变落盘文件数量；除上表要求手工改写 `docs/ARCHITECTURE.md` 正文、`docs/DECISIONS.md.tmpl` 预置首条外，其余文件只改变技术选型占位符取值。
 
+## CLI / 无网络服务分支（步骤 3 判定为纯 CLI / 批处理时的具体替代）
+
+上面基线表默认对外提供 HTTP 接口（`net/http + chi` + `/health` 健康检查 + 容器运行）。步骤 3 若判定项目是**纯 CLI / 批处理**（无 HTTP 接口、不监听端口），按以下替换，不是"酌情调整"，按此执行：
+
+| 组件 | CLI 替代 |
+|---|---|
+| `{{TECH_STACK}}` | `Go 1.25 标准库 CLI + <DB 访问栈>`（`<DB 访问栈>` 按上面基线表或 SQLite 分支取值），不写 `net/http + chi` |
+| 目录结构 | `backend/cmd/<binary>` 入口 + `backend/internal/{cli,core,db,repo,model}`；不建 `handlers/`、`middleware/` |
+| `docs/ARCHITECTURE.md` | 第 1 节删掉路由/HTTP 接口行；第 6 节目录结构注释同步为 `cmd/<binary>` + `internal/{cli,core,db,repo,model}`，不出现 `handlers`/`middleware` |
+| `docs/DEPLOYMENT.md` | 部署形态写「单二进制，`CGO_ENABLED=0 go build`，无容器/端口/健康检查」；不写 `alpine` 运行镜像与 `/health` |
+
 ## 步骤 1：确认项目名与目录
 
 ```bash
@@ -89,7 +100,7 @@ basename "$PWD"
    - **默认 PostgreSQL**（有并发 / 大多数场景；Go 侧用 pgx + golang-migrate，见基线表）
    - **仅小型低并发 / 单机一体机用 SQLite**（如 mac mini appliance）——选中则按上面「SQLite 分支」执行
    - 判断依据：并发量、部署形态（云 vs 单机）、数据规模
-3. **是否需要 Web 前端**：需要则按基线 React + TypeScript + Vite；纯 API / CLI 项目则无 frontend 目录
+3. **是否需要 Web 前端**：需要则按基线 React + TypeScript + Vite；纯 API / CLI 项目则无 frontend 目录。判定为纯 CLI / 批处理（无 HTTP 接口、不监听端口）时，按上面「CLI / 无网络服务分支」执行
 4. **核心不变量**：本项目「绝不破坏」的架构约束，0~N 条。想不出就留占位
 5. **模块划分**：顶层模块名 + 一句话职责。想不清就留占位
 
@@ -115,7 +126,7 @@ done
 | `{{PROJECT_NAME}}` | 步骤 1 文件夹名 |
 | `{{ONE_LINER}}` | intake 提炼的一句话定位 |
 | `{{DATE}}` | `date +%F` |
-| `{{TECH_STACK}}` | 固定基线：`Go 1.25（net/http + chi）+ pgx + golang-migrate`；选 SQLite 时按「SQLite 分支」替换；有前端时追加 `；前端 React + TypeScript + Vite（Node 20 构建）` |
+| `{{TECH_STACK}}` | 固定基线：`Go 1.25（net/http + chi）+ pgx + golang-migrate`；选 SQLite 时按「SQLite 分支」替换；纯 CLI / 批处理时按「CLI / 无网络服务分支」替换，不写 `net/http + chi`；有前端时追加 `；前端 React + TypeScript + Vite（Node 20 构建）` |
 | `{{DATABASE}}` | 步骤 3 数据库 |
 | `{{INVARIANTS_BLOCK}}` | 步骤 3 核心不变量；无则 `<!-- 待补：本项目核心不变量 -->` |
 | `{{MODULES_BLOCK}}` | 步骤 3 模块划分；无则 `<!-- 待补：模块划分 -->` |
@@ -133,10 +144,14 @@ done
 ## 步骤 5：收尾
 
 ```bash
-git rev-parse --git-dir >/dev/null 2>&1 || git init
+set -e
+git rev-parse --git-dir >/dev/null 2>&1 || git init -b main
 git add -A
 git commit -m "chore: 初始化项目脚手架"
+git rev-parse HEAD >/dev/null 2>&1 && echo "初始 commit 已产生 ✓" || { echo "⚠ 仓库未建立/未提交，停止"; exit 1; }
 ```
+
+初始 commit 校验通过后，把 `docs/PLAN.md` 的 Phase 0 标题改为 `## Phase 0：环境与脚手架 ✅ <date +%F 的结果>`；校验未通过则保持原样并在标题后追加 `（未纳入版本控制，待补 git 提交）`。
 
 落盘后**自检**：
 ```bash
@@ -144,6 +159,6 @@ grep -rl '{{' .claude docs README.md 2>/dev/null && echo "⚠ 有未替换占位
 LC_ALL=C grep -rl $'\xef\xbf\xbd' .claude docs README.md 2>/dev/null && echo "⚠ 有乱码" || echo "无乱码 ✓"
 ```
 
-向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（`/brainstorming` 开始设计——spec 获批后直接 ultracode 实现，或直接开干）。
+向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（`/brainstorming` 开始设计——spec 获批后直接 ultracode 实现；改动小到一个原子 commit 能覆盖、且不新增模块与对外接口时，可跳过 spec 直接做，但要在 `docs/Progress.md` 记一句为什么跳过，否则一律先出 spec）。
 
 若项目推进中沉淀出可复用的组件/模块（不是本次落盘范围，是给未来的提醒）：**若团队维护组件索引库，登记之**，方便其他项目调研时发现并复用。

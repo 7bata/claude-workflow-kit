@@ -52,14 +52,60 @@
 
 ## 附赠插件:Codex CLI 版工作流
 
-同一套文档驱动工作流,面向 OpenAI Codex CLI 的移植版:`plugins/workflow-codex/`(打包成 `.codex-plugin/plugin.json`,不是 Claude Code 插件——按你的 Codex CLI 版本对应的 skill/插件加载机制安装)。它以 `AGENTS.md` 取代 `.claude/CLAUDE.md`,共四个 skill:
+同一套文档驱动工作流,面向 OpenAI Codex CLI 的移植版:`plugins/workflow-codex/`(打包成 `.codex-plugin/plugin.json`,不是 Claude Code 插件——按你的 Codex CLI 版本对应的 skill/插件加载机制安装)。它以 `AGENTS.md` 取代 `.claude/CLAUDE.md`,共五个 skill:
 
 - `scaffold`:铺设方法论脚手架(`AGENTS.md` + docs 八件套 + `.gitignore` + `README.md`)
 - `whats-next`:读文档判断下一步该干什么
 - `sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP
 - `parallel-do`:把一个步骤拆成独立子任务,分波 spawn 并行 Codex subagent 执行——这个 skill 是 Codex 独有的,补的是 Claude Code 原生多代理编排工具在 Codex 侧缺失的能力
+- `speak-human`:让 Codex 提问与表达遵守说人话纪律——移植自下方「附赠插件:speak-human」的同一套 P1~P8/S1~S3 规则,常驻方式改为写入 `~/.codex/AGENTS.md`(见该 skill 文件末尾「常驻安装」一节的脚本)
+
+### 安装 workflow-codex
+
+```
+git clone <本仓库地址> ~/claude-workflow-kit
+codex plugin marketplace add ~/claude-workflow-kit
+codex plugin add workflow-codex@claude-workflow-kit
+```
+
+市场清单已在仓库的 `.agents/plugins/marketplace.json`,`marketplace add` 指向 clone 到本地后的仓库根目录即可发现它(尚未实测 `marketplace add` 直接指向 git 地址的用法,故不在此推荐)。
+
+### 运行模式(必读)
+
+Codex 默认沙箱 `workspace-write` 把 `.git` 排除在可写范围外,`git init` / `git commit` 都会报 `Operation not permitted`;本工作流每个操作都要原子 commit,因此必须先给 `.git` 写权限。`read-only` 模式完全跑不了。以下两个方案均已实测通过:
+
+1. **推荐(窗口最小,实测通过 `git init` 与 `git commit` 两种场景)**:保持 `workspace-write`,只把本项目的 `.git` 加进可写根——
+
+   ```
+   codex -s workspace-write -c 'sandbox_workspace_write.writable_roots=["/abs/path/to/项目/.git"]'
+   ```
+
+   或写进 `~/.codex/config.toml`(可放在按项目切换的 profile 里):
+
+   ```toml
+   [sandbox_workspace_write]
+   writable_roots = ["/abs/path/to/项目/.git"]
+   ```
+
+   该路径在 `.git` 尚不存在时也有效(用空目录实测 `git init -b main` + 首个 commit 均退出 0),scaffold 首次铺设同样适用。
+
+2. **一次性/容器/CI 环境**可用更粗的开关:`codex -s danger-full-access`;非交互批跑用 `codex exec --dangerously-bypass-approvals-and-sandbox`。仅在自己信任的项目目录里用。
+
+开工前先跑一句自检,能过再开始,别等 scaffold 落到一半才发现:
+
+```
+git commit --allow-empty -m probe && git reset --hard HEAD~1
+```
+
+### Codex 版与 Claude 版的口径差异
+
+- **spec 落哪**:Codex 侧没有 superpowers 插件,design spec 落 `docs/specs/YYYY-MM-DD-<主题>-design.md`,不用下面 Claude 版口径的 `docs/superpowers/specs/`
+- **并行实现靠谁**:spec 定稿后的并行实现由 `parallel-do` 承担,不是下面的 ultracode / Workflow 多代理编排工具
+- **改技术栈基线改哪**:改 `plugins/workflow-codex/skills/scaffold/SKILL.md` 与其 `templates/`,不是下面「自定义技术栈基线」指向的 `plugins/workflow/`
 
 ## 使用方式(项目生命周期)
+
+> 以下路径与编排工具为 **Claude 版口径**;Codex 版见上「Codex 版与 Claude 版的口径差异」。
 
 ```
 开新项目          回到项目
@@ -90,6 +136,8 @@ docs 八件套各自的职责:
 | `docs/MEETINGS.md` | 会议纪要原始归档 + 待办,结论提炼进上面各文档 |
 
 ## 自定义技术栈基线
+
+> 以下路径为 **Claude 版口径**;Codex 版见上「Codex 版与 Claude 版的口径差异」。
 
 `/scaffold` 自带一张**固定的 Go 技术栈基线表**(Go + chi + pgx + golang-migrate,前端 React + TS + Vite)。"基线固定、逐项目不再重复选型"是方法论的一部分;具体选哪个栈是个人偏好——想换成你自己的栈,改 `plugins/workflow/skills/scaffold/SKILL.md` 里的基线表和 `templates/` 对应内容即可,方法论不变。
 
@@ -229,13 +277,14 @@ claude-workflow-kit/
     │           ├── references/      # runbook-template.md(网络不可达时的降级交付模板)
     │           └── scripts/         # crawl.mjs(原生 Playwright 降级采集脚本)
     ├── workflow-en/                 # 英文输出插件(结构同 workflow)
-    ├── workflow-codex/               # OpenAI Codex CLI 移植版(四个 skill,无 Claude Code 插件清单)
+    ├── workflow-codex/               # OpenAI Codex CLI 移植版(五个 skill,无 Claude Code 插件清单)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/
     │       ├── scaffold/            # 铺 AGENTS.md + 八件套(无 CLAUDE.md.tmpl)
     │       ├── whats-next/
     │       ├── sop-generate/
-    │       └── parallel-do/         # Codex 专属:把一步拆给多个 Codex subagent 并行执行
+    │       ├── parallel-do/         # Codex 专属:把一步拆给多个 Codex subagent 并行执行
+    │       └── speak-human/         # 说人话纪律 Codex 移植版,常驻靠写入 ~/.codex/AGENTS.md
     ├── speak-human/                 # 中文版 speak-human 插件:hooks/ + skills/ + evals/
     └── speak-human-en/              # 英文版 speak-human 插件(结构同 speak-human)
 ```

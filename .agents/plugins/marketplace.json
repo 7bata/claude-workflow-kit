@@ -1,0 +1,12 @@
+{
+  "name": "claude-workflow-kit",
+  "interface": { "displayName": "Claude Workflow Kit (Codex)" },
+  "plugins": [
+    {
+      "name": "workflow-codex",
+      "source": { "source": "local", "path": "./plugins/workflow-codex" },
+      "policy": { "installation": "AVAILABLE" },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -51,14 +51,60 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 
 ## Bonus plugin: Workflow Kit for Codex CLI
 
-The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugins/workflow-codex/` (packaged as a `.codex-plugin/plugin.json`, not a Claude Code plugin — install it through whatever skill/plugin mechanism your Codex CLI build uses). It targets `AGENTS.md` instead of `.claude/CLAUDE.md` and ships **four** skills:
+The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugins/workflow-codex/` (packaged as a `.codex-plugin/plugin.json`, not a Claude Code plugin — install it through whatever skill/plugin mechanism your Codex CLI build uses). It targets `AGENTS.md` instead of `.claude/CLAUDE.md` and ships **five** skills:
 
 - `scaffold`: lay down the methodology scaffolding (`AGENTS.md` + the eight-doc set + `.gitignore` + `README.md`)
 - `whats-next`: read the docs to figure out what to do next
 - `sop-generate`: generate a screenshot-backed business SOP for an already-deployed web app
 - `parallel-do`: split a step into independent subtasks and fan them out to parallel Codex subagents — this one is Codex-only, standing in for Claude Code's native multi-agent orchestration tool
+- `speak-human`: makes Codex follow the same say-it-like-a-human discipline for asking and speaking — a port of the same P1–P8/S1–S3 rules from the "Bonus plugin: speak-human" section below, with always-on persistence reworked to write into `~/.codex/AGENTS.md` (see the "always-on install" section at the end of that skill file for the script)
+
+### Installing workflow-codex
+
+```
+git clone <this repo's URL> ~/claude-workflow-kit
+codex plugin marketplace add ~/claude-workflow-kit
+codex plugin add workflow-codex@claude-workflow-kit
+```
+
+The marketplace manifest already lives at `.agents/plugins/marketplace.json` in this repo — `marketplace add` just needs to point at the local repo root after cloning (pointing it directly at a git URL hasn't been verified to work, so it isn't recommended here).
+
+### Run mode (read this first)
+
+Codex's default `workspace-write` sandbox excludes `.git` from what's writable — `git init` / `git commit` both fail with `Operation not permitted`. This workflow makes an atomic commit after every operation, so `.git` needs write access before anything else works. `read-only` mode won't run at all. Both options below have been verified working:
+
+1. **Recommended (smallest exposure window — verified for both `git init` and `git commit`)**: stay in `workspace-write`, and just add this project's `.git` to the writable roots —
+
+   ```
+   codex -s workspace-write -c 'sandbox_workspace_write.writable_roots=["/abs/path/to/project/.git"]'
+   ```
+
+   or set it in `~/.codex/config.toml` (can live in a per-project profile):
+
+   ```toml
+   [sandbox_workspace_write]
+   writable_roots = ["/abs/path/to/project/.git"]
+   ```
+
+   This also works before `.git` exists yet (verified with an empty directory: both `git init -b main` and the first commit exit 0), so it covers scaffold's first-run case too.
+
+2. **For one-off / containerized / CI environments**, a coarser switch works: `codex -s danger-full-access`; for non-interactive batch runs, `codex exec --dangerously-bypass-approvals-and-sandbox`. Only use these in a project directory you trust.
+
+Run a quick self-check before starting — pass it before you begin, don't wait until scaffold is half-done to find out:
+
+```
+git commit --allow-empty -m probe && git reset --hard HEAD~1
+```
+
+### Where the Codex version and the Claude version diverge
+
+- **Where specs live**: Codex has no superpowers plugin, so design specs live at `docs/specs/YYYY-MM-DD-<topic>-design.md`, not the Claude-side `docs/superpowers/specs/` used below
+- **Who drives parallel implementation**: once a spec is finalized, `parallel-do` handles the parallel implementation, not the ultracode / Workflow multi-agent orchestration tool below
+- **Where to edit the tech-stack baseline**: edit `plugins/workflow-codex/skills/scaffold/SKILL.md` and its `templates/`, not `plugins/workflow-en/` as the "Customizing the tech-stack baseline" section below points to
 
 ## Usage (project lifecycle)
+
+> The paths and orchestration tool below are **Claude-version conventions**; see "Where the Codex version and the Claude version diverge" above for Codex.
 
 ```
 New project          Returning to a project
@@ -89,6 +135,8 @@ Responsibilities of each file in the eight-doc set:
 | `docs/MEETINGS.md` | Raw archive of meeting notes + action items; conclusions get distilled into the docs above |
 
 ## Customizing the tech-stack baseline
+
+> The path below is a **Claude-version convention**; see "Where the Codex version and the Claude version diverge" above for Codex.
 
 `/scaffold` ships with a **fixed Go tech-stack baseline table** (Go + chi + pgx + golang-migrate, frontend React + TS + Vite). "Fix the baseline once, stop re-choosing per project" is part of the methodology; which specific stack you pick is a matter of personal preference — to swap in your own stack, edit the baseline table and corresponding `templates/` content in `plugins/workflow-en/skills/scaffold/SKILL.md`; the methodology itself doesn't change.
 
@@ -228,13 +276,14 @@ claude-workflow-kit/
     │           ├── references/       # runbook-template.md (degraded-delivery template for unreachable networks)
     │           └── scripts/          # crawl.mjs (native Playwright fallback collection script)
     ├── workflow-en/                  # English-output plugin (same layout as workflow)
-    ├── workflow-codex/                # OpenAI Codex CLI port (four skills, no Claude Code plugin manifest)
+    ├── workflow-codex/                # OpenAI Codex CLI port (five skills, no Claude Code plugin manifest)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/
     │       ├── scaffold/             # AGENTS.md + the eight-doc set (no CLAUDE.md.tmpl)
     │       ├── whats-next/
     │       ├── sop-generate/
-    │       └── parallel-do/          # Codex-only: fan a step out to parallel Codex subagents
+    │       ├── parallel-do/          # Codex-only: fan a step out to parallel Codex subagents
+    │       └── speak-human/          # ported say-it-like-a-human discipline, persists via ~/.codex/AGENTS.md
     ├── speak-human/                  # Chinese speak-human plugin
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P8 + speaking discipline S1–S3
