@@ -18,11 +18,16 @@ The root of this git repo is `{{PROJECT_NAME}}/`.
 
 **After completing each operation, do these three things in order**:
 
-1. **Commit the code and push the current branch** — atomic commit, with a message that makes clear what changed and why; **immediately `git push` the current feature/wip branch after committing (no confirmation needed; use `-u` to set upstream if there isn't one yet)**
-2. **Update `docs/Progress.md`** — append an entry under "## Changelog" (symptom / root cause / decision / verification result); sync the "## Progress Overview" table when a module's status changes; for key decisions (tech choice, tradeoff, plan reversal) also append a What/Why/Changes entry to `docs/DECISIONS.md`
-3. **Check `docs/PLAN.md`** — if a Phase advanced or the plan changed, sync the phase status
+1. **Update the docs first** — an entry under `docs/Progress.md` "## Changelog" (symptom / root cause / decision / verification result) is mandatory; use the "## 2. Doc Sync Rules" table below to decide whether `docs/PLAN.md` (a Phase advanced / the plan changed), `docs/DECISIONS.md` (key decisions: tech choice, tradeoff, plan reversal), `docs/ARCHITECTURE.md`, or `docs/DEPLOYMENT.md` also needs updating
+2. **Make one atomic commit that includes both the code and the docs** — `git add` the source changes from this operation together with the doc updates from step 1; the message should make clear what changed and why (always review `git diff --staged` before committing)
+3. **Push the current branch immediately** — `git push` the current feature/wip branch right after committing (no confirmation needed; use `-u` to set upstream if there isn't one yet; if there's no remote, follow §5.1 item 3 and remind the user to set one up)
 
 The granularity of "one operation" ≈ the change covered by one atomic commit. Don't lump multiple independent changes into one big commit.
+
+> **Why "update docs first, then one commit" rather than "commit first, update docs after"** (this order flipped once before — this footnote exists so it doesn't flip again):
+> 1. "Commit first, docs after" necessarily produces at least one historical commit where code and docs disagree; if the session gets interrupted right there, you're left in exactly the "wrote code but didn't write docs" end state that Section 5 explicitly forbids;
+> 2. Updating the docs is part of the same "operation" — bundling it into one commit is what actually satisfies this section's own "one operation ≈ one atomic commit" rule; splitting it into two commits quietly redefines that granularity;
+> 3. Empirical evidence: across multiple real-project smoke runs, docs and code were committed together throughout, and the resulting history stayed clean with no intermediate inconsistent state.
 
 ## 2. Doc Sync Rules
 

@@ -52,6 +52,17 @@ description: 在当前项目目录里铺设方法论脚手架（AGENTS.md + docs
 
 本 skill 落盘范围是 11 个通用文件（不含部署模板包），SQLite 分支不改变落盘文件数量；除上表要求手工改写 `docs/ARCHITECTURE.md` 正文、`docs/DECISIONS.md.tmpl` 预置首条外，其余文件只改变技术选型占位符取值。
 
+## CLI / 无网络服务分支（步骤 3 判定为纯 CLI / 批处理时的具体替代）
+
+上面基线表默认对外提供 HTTP 接口（`net/http + chi` + `/health` 健康检查 + 容器运行）。步骤 3 若判定项目是**纯 CLI / 批处理**（无 HTTP 接口、不监听端口），按以下替换，不是"酌情调整"，按此执行：
+
+| 组件 | CLI 替代 |
+|---|---|
+| `{{TECH_STACK}}` | `Go 1.25 标准库 CLI + <DB 访问栈>`（`<DB 访问栈>` 按上面基线表或 SQLite 分支取值），不写 `net/http + chi` |
+| 目录结构 | `backend/cmd/<binary>` 入口 + `backend/internal/{cli,core,db,repo,model}`；不建 `handlers/`、`middleware/` |
+| `docs/ARCHITECTURE.md` | 第 1 节删掉路由/HTTP 接口行；第 6 节目录结构注释同步为 `cmd/<binary>` + `internal/{cli,core,db,repo,model}`，不出现 `handlers`/`middleware` |
+| `docs/DEPLOYMENT.md` | 部署形态写「单二进制，`CGO_ENABLED=0 go build`，无容器/端口/健康检查」；不写 `alpine` 运行镜像与 `/health` |
+
 ## 步骤 1：确认项目名与目录
 
 ```bash
@@ -120,7 +131,7 @@ done
 | `{{MODULES_BLOCK}}` | 步骤 3 模块划分；无则 `<!-- 待补：模块划分 -->` |
 | `{{CODE_CONVENTIONS_BLOCK}}` | 按基线生成的 Go 代码约定（Go 1.25、gofmt、error 显式处理并 wrap、`cmd/` + `internal/` 布局、依赖最小化）；有前端时追加 TS 约定（strict 模式、组件按页面分目录） |
 
-模板路径映射：`templates/docs/X.md.tmpl` → `docs/X.md`；`templates/gitignore.tmpl` → `.gitignore`；`templates/AGENTS.md.tmpl` → `AGENTS.md`；`templates/README.md.tmpl` → `README.md`。另建空目录占位 `data/.gitkeep`。(data/.gitkeep 是清单外的占位文件,物理文件总数 = 清单数 + 1,自检时按此对账)
+模板路径映射：`templates/docs/X.md.tmpl` → `docs/X.md`；`templates/gitignore.tmpl` → `.gitignore`；`templates/AGENTS.md.tmpl` → `AGENTS.md`；`templates/README.md.tmpl` → `README.md`。另建空目录占位 `data/.gitkeep` 与 `docs/specs/.gitkeep`（design spec 落盘目录，`.gitignore` 只对 `data/.gitkeep` 做白名单，`docs/specs/.gitkeep` 不受影响，可直接入 git）。(清单 11 个 + data/.gitkeep + docs/specs/.gitkeep，物理文件总数 = 清单数 + 2，自检时按此对账)
 
 **内容预填**（不只替换占位符，能填实的就填实）：
 
@@ -132,10 +143,16 @@ done
 ## 步骤 5：收尾
 
 ```bash
-git rev-parse --git-dir >/dev/null 2>&1 || git init
+set -e
+git rev-parse --git-dir >/dev/null 2>&1 || git init -b main   # 默认分支叫 main，配合 AGENTS.md §5.1 的 main 门禁
 git add -A
 git commit -m "chore: 初始化项目脚手架"
+git rev-parse HEAD >/dev/null 2>&1 && echo "初始 commit 已产生 ✓" || { echo "⚠ 仓库未建立/未提交，停止"; exit 1; }
 ```
+
+上述任一步报 `Operation not permitted`（Codex 默认 `workspace-write` 沙箱拒写 `.git`）→ **停下，不要继续汇报成功，也不要把 Phase 0 标 ✅**。原样告诉用户失败原文，并给出修复方式：重新以 `-c 'sandbox_workspace_write.writable_roots=["<项目绝对路径>/.git"]'` 启动，或用 `-s danger-full-access`（详见 README「运行模式」）。用户拒绝放开权限时，如实记录『脚手架已落盘但未纳入版本控制』，PLAN 的 Phase 0 保持未完成。
+
+初始 commit 校验通过后，把 `docs/PLAN.md` 的 Phase 0 标题改为 `## Phase 0：环境与脚手架 ✅ <date +%F 的结果>`；校验未通过则保持原样并在标题后追加 `（未纳入版本控制，待补 git 提交）`。
 
 落盘后**自检**：
 ```bash
@@ -143,6 +160,6 @@ grep -rl '{{' AGENTS.md docs README.md 2>/dev/null && echo "⚠ 有未替换占�
 LC_ALL=C grep -rl $'\xef\xbf\xbd' AGENTS.md docs README.md 2>/dev/null && echo "⚠ 有乱码" || echo "无乱码 ✓"
 ```
 
-向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（先与用户把设计聊透、出 design spec——获批后按 spec 拆独立单元用 `parallel-do` 分波并行实现，或直接开干）。
+向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（先与用户把设计聊透、design spec 请落 `docs/specs/`——获批后按 spec 拆独立单元用 `parallel-do` 分波并行实现；改动小到一个原子 commit 能覆盖、且不新增模块与对外接口时，可跳过 spec 直接做，但要在 `docs/Progress.md` 记一句为什么跳过，否则一律先出 spec）。
 
 若项目推进中沉淀出可复用的组件/模块（不是本次落盘范围，是给未来的提醒）：**若团队维护组件索引库，登记之**，方便其他项目调研时发现并复用。

@@ -53,6 +53,17 @@ Append an entry to `docs/DECISIONS.md` recording the rationale for choosing SQLi
 
 This skill's on-disk scope is 11 general-purpose files; the SQLite branch does not change that file count. Aside from the manual rewrites the table above requires for `docs/ARCHITECTURE.md` body text and the `docs/DECISIONS.md.tmpl` pre-seeded first entry, every other file only changes which value a tech-selection placeholder resolves to.
 
+## CLI / no-network-service branch (the concrete substitutions when Step 3 determines a pure CLI / batch job)
+
+The baseline table above defaults to exposing an HTTP interface (`net/http + chi` + `/health` health check + container runtime). If Step 3 determines the project is a **pure CLI / batch job** (no HTTP interface, no port listening), swap per the table below — this is not "adjust as you see fit," follow it as written:
+
+| Component | CLI substitute |
+|---|---|
+| `{{TECH_STACK}}` | `Go 1.25 standard-library CLI + <DB access stack>` (`<DB access stack>` per the baseline table or the SQLite branch above); do not write `net/http + chi` |
+| Directory layout | `backend/cmd/<binary>` entrypoint + `backend/internal/{cli,core,db,repo,model}`; do not create `handlers/` or `middleware/` |
+| `docs/ARCHITECTURE.md` | Drop the routing/HTTP-interface row from Section 1; sync Section 6's directory-layout comment to `cmd/<binary>` + `internal/{cli,core,db,repo,model}`, with no `handlers`/`middleware` mentioned |
+| `docs/DEPLOYMENT.md` | Deployment shape: "single binary, `CGO_ENABLED=0 go build`, no container/port/health check"; do not write the `alpine` runtime image or `/health` |
+
 ## Step 1: Confirm project name and directory
 
 ```bash
@@ -133,10 +144,14 @@ Template path mapping: `templates/docs/X.md.tmpl` → `docs/X.md`; `templates/gi
 ## Step 5: Wrap-up
 
 ```bash
-git rev-parse --git-dir >/dev/null 2>&1 || git init
+set -e
+git rev-parse --git-dir >/dev/null 2>&1 || git init -b main
 git add -A
 git commit -m "chore: initialize project scaffold"
+git rev-parse HEAD >/dev/null 2>&1 && echo "Initial commit created ✓" || { echo "⚠ Repo not initialized / not committed, stopping"; exit 1; }
 ```
+
+Once the initial-commit check passes, update `docs/PLAN.md`'s Phase 0 heading to `## Phase 0: Environment & Scaffolding ✅ <output of date +%F>`; if the check fails, leave the heading as-is and append `(not yet under version control — git commit still pending)`.
 
 After writing to disk, **self-check**:
 ```bash

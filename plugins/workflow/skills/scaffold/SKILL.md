@@ -53,6 +53,17 @@ allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 
 本 skill 落盘范围是 11 个通用文件，SQLite 分支不改变落盘文件数量；除上表要求手工改写 `docs/ARCHITECTURE.md` 正文、`docs/DECISIONS.md.tmpl` 预置首条外，其余文件只改变技术选型占位符取值。
 
+## CLI / 无网络服务分支（步骤 3 判定为纯 CLI / 批处理时的具体替代）
+
+上面基线表默认对外提供 HTTP 接口（`net/http + chi` + `/health` 健康检查 + 容器运行）。步骤 3 若判定项目是**纯 CLI / 批处理**（无 HTTP 接口、不监听端口），按以下替换，不是"酌情调整"，按此执行：
+
+| 组件 | CLI 替代 |
+|---|---|
+| `{{TECH_STACK}}` | `Go 1.25 标准库 CLI + <DB 访问栈>`（`<DB 访问栈>` 按上面基线表或 SQLite 分支取值），不写 `net/http + chi` |
+| 目录结构 | `backend/cmd/<binary>` 入口 + `backend/internal/{cli,core,db,repo,model}`；不建 `handlers/`、`middleware/` |
+| `docs/ARCHITECTURE.md` | 第 1 节删掉路由/HTTP 接口行；第 6 节目录结构注释同步为 `cmd/<binary>` + `internal/{cli,core,db,repo,model}`，不出现 `handlers`/`middleware` |
+| `docs/DEPLOYMENT.md` | 部署形态写「单二进制，`CGO_ENABLED=0 go build`，无容器/端口/健康检查」；不写 `alpine` 运行镜像与 `/health` |
+
 ## 步骤 1：确认项目名与目录
 
 ```bash
@@ -133,10 +144,14 @@ done
 ## 步骤 5：收尾
 
 ```bash
-git rev-parse --git-dir >/dev/null 2>&1 || git init
+set -e
+git rev-parse --git-dir >/dev/null 2>&1 || git init -b main
 git add -A
 git commit -m "chore: 初始化项目脚手架"
+git rev-parse HEAD >/dev/null 2>&1 && echo "初始 commit 已产生 ✓" || { echo "⚠ 仓库未建立/未提交，停止"; exit 1; }
 ```
+
+初始 commit 校验通过后，把 `docs/PLAN.md` 的 Phase 0 标题改为 `## Phase 0：环境与脚手架 ✅ <date +%F 的结果>`；校验未通过则保持原样并在标题后追加 `（未纳入版本控制，待补 git 提交）`。
 
 落盘后**自检**：
 ```bash
