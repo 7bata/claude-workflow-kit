@@ -70,7 +70,42 @@ codex plugin add workflow-codex@claude-workflow-kit
 
 市场清单已在仓库的 `.agents/plugins/marketplace.json`,`marketplace add` 指向 clone 到本地后的仓库根目录即可发现它(尚未实测 `marketplace add` 直接指向 git 地址的用法,故不在此推荐)。
 
+### 运行模式(必读)
+
+Codex 默认沙箱 `workspace-write` 把 `.git` 排除在可写范围外,`git init` / `git commit` 都会报 `Operation not permitted`;本工作流每个操作都要原子 commit,因此必须先给 `.git` 写权限。`read-only` 模式完全跑不了。以下两个方案均已实测通过:
+
+1. **推荐(窗口最小,实测通过 `git init` 与 `git commit` 两种场景)**:保持 `workspace-write`,只把本项目的 `.git` 加进可写根——
+
+   ```
+   codex -s workspace-write -c 'sandbox_workspace_write.writable_roots=["/abs/path/to/项目/.git"]'
+   ```
+
+   或写进 `~/.codex/config.toml`(可放在按项目切换的 profile 里):
+
+   ```toml
+   [sandbox_workspace_write]
+   writable_roots = ["/abs/path/to/项目/.git"]
+   ```
+
+   该路径在 `.git` 尚不存在时也有效(用空目录实测 `git init -b main` + 首个 commit 均退出 0),scaffold 首次铺设同样适用。
+
+2. **一次性/容器/CI 环境**可用更粗的开关:`codex -s danger-full-access`;非交互批跑用 `codex exec --dangerously-bypass-approvals-and-sandbox`。仅在自己信任的项目目录里用。
+
+开工前先跑一句自检,能过再开始,别等 scaffold 落到一半才发现:
+
+```
+git commit --allow-empty -m probe && git reset --hard HEAD~1
+```
+
+### Codex 版与 Claude 版的口径差异
+
+- **spec 落哪**:Codex 侧没有 superpowers 插件,design spec 落 `docs/specs/YYYY-MM-DD-<主题>-design.md`,不用下面 Claude 版口径的 `docs/superpowers/specs/`
+- **并行实现靠谁**:spec 定稿后的并行实现由 `parallel-do` 承担,不是下面的 ultracode / Workflow 多代理编排工具
+- **改技术栈基线改哪**:改 `plugins/workflow-codex/skills/scaffold/SKILL.md` 与其 `templates/`,不是下面「自定义技术栈基线」指向的 `plugins/workflow/`
+
 ## 使用方式(项目生命周期)
+
+> 以下路径与编排工具为 **Claude 版口径**;Codex 版见上「Codex 版与 Claude 版的口径差异」。
 
 ```
 开新项目          回到项目
@@ -101,6 +136,8 @@ docs 八件套各自的职责:
 | `docs/MEETINGS.md` | 会议纪要原始归档 + 待办,结论提炼进上面各文档 |
 
 ## 自定义技术栈基线
+
+> 以下路径为 **Claude 版口径**;Codex 版见上「Codex 版与 Claude 版的口径差异」。
 
 `/scaffold` 自带一张**固定的 Go 技术栈基线表**(Go + chi + pgx + golang-migrate,前端 React + TS + Vite)。"基线固定、逐项目不再重复选型"是方法论的一部分;具体选哪个栈是个人偏好——想换成你自己的栈,改 `plugins/workflow/skills/scaffold/SKILL.md` 里的基线表和 `templates/` 对应内容即可,方法论不变。
 

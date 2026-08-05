@@ -1,6 +1,6 @@
 {
   "name": "workflow",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "文档驱动的多代理开发工作流（指挥/执行/评审三层）：/scaffold 在项目里铺设 CLAUDE.md + docs 八件套脚手架，/whats-next 读文档判断下一步该干什么，sop-generate 为已部署的 Web 应用生成带截图的中文业务 SOP",
   "author": {
     "name": "Tony Jiang"

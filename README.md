@@ -69,7 +69,42 @@ codex plugin add workflow-codex@claude-workflow-kit
 
 The marketplace manifest already lives at `.agents/plugins/marketplace.json` in this repo — `marketplace add` just needs to point at the local repo root after cloning (pointing it directly at a git URL hasn't been verified to work, so it isn't recommended here).
 
+### Run mode (read this first)
+
+Codex's default `workspace-write` sandbox excludes `.git` from what's writable — `git init` / `git commit` both fail with `Operation not permitted`. This workflow makes an atomic commit after every operation, so `.git` needs write access before anything else works. `read-only` mode won't run at all. Both options below have been verified working:
+
+1. **Recommended (smallest exposure window — verified for both `git init` and `git commit`)**: stay in `workspace-write`, and just add this project's `.git` to the writable roots —
+
+   ```
+   codex -s workspace-write -c 'sandbox_workspace_write.writable_roots=["/abs/path/to/project/.git"]'
+   ```
+
+   or set it in `~/.codex/config.toml` (can live in a per-project profile):
+
+   ```toml
+   [sandbox_workspace_write]
+   writable_roots = ["/abs/path/to/project/.git"]
+   ```
+
+   This also works before `.git` exists yet (verified with an empty directory: both `git init -b main` and the first commit exit 0), so it covers scaffold's first-run case too.
+
+2. **For one-off / containerized / CI environments**, a coarser switch works: `codex -s danger-full-access`; for non-interactive batch runs, `codex exec --dangerously-bypass-approvals-and-sandbox`. Only use these in a project directory you trust.
+
+Run a quick self-check before starting — pass it before you begin, don't wait until scaffold is half-done to find out:
+
+```
+git commit --allow-empty -m probe && git reset --hard HEAD~1
+```
+
+### Where the Codex version and the Claude version diverge
+
+- **Where specs live**: Codex has no superpowers plugin, so design specs live at `docs/specs/YYYY-MM-DD-<topic>-design.md`, not the Claude-side `docs/superpowers/specs/` used below
+- **Who drives parallel implementation**: once a spec is finalized, `parallel-do` handles the parallel implementation, not the ultracode / Workflow multi-agent orchestration tool below
+- **Where to edit the tech-stack baseline**: edit `plugins/workflow-codex/skills/scaffold/SKILL.md` and its `templates/`, not `plugins/workflow/` as the "Customizing the tech-stack baseline" section below points to
+
 ## Usage (project lifecycle)
+
+> The paths and orchestration tool below are **Claude-version conventions**; see "Where the Codex version and the Claude version diverge" above for Codex.
 
 ```
 New project          Returning to a project
@@ -100,6 +135,8 @@ Responsibilities of each file in the eight-doc set:
 | `docs/MEETINGS.md` | Raw archive of meeting notes + action items; conclusions get distilled into the docs above |
 
 ## Customizing the tech-stack baseline
+
+> The path below is a **Claude-version convention**; see "Where the Codex version and the Claude version diverge" above for Codex.
 
 `/scaffold` ships with a **fixed Go tech-stack baseline table** (Go + chi + pgx + golang-migrate, frontend React + TS + Vite). "Fix the baseline once, stop re-choosing per project" is part of the methodology; which specific stack you pick is a matter of personal preference — to swap in your own stack, edit the baseline table and corresponding `templates/` content in `plugins/workflow-en/skills/scaffold/SKILL.md`; the methodology itself doesn't change.
 
