@@ -40,7 +40,7 @@ from typing import Optional
 REPO_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_CASES_PATH = REPO_DIR / "evals" / "cases.jsonl"
 DEFAULT_RUBRIC_PATH = REPO_DIR / "evals" / "rubric.md"
-DEFAULT_SKILL_PATH = REPO_DIR / "SKILL.md"
+DEFAULT_SKILL_PATH = REPO_DIR / "skills" / "speak-human" / "SKILL.md"
 DEFAULT_OUT_DIR = REPO_DIR / "evals" / "out"
 
 ALL_RULES = [f"P{i}" for i in range(1, 9)] + [f"S{i}" for i in range(1, 4)]
