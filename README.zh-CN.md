@@ -52,12 +52,22 @@
 
 ## 附赠插件:Codex CLI 版工作流
 
-同一套文档驱动工作流,面向 OpenAI Codex CLI 的移植版:`plugins/workflow-codex/`(打包成 `.codex-plugin/plugin.json`,不是 Claude Code 插件——按你的 Codex CLI 版本对应的 skill/插件加载机制安装)。它以 `AGENTS.md` 取代 `.claude/CLAUDE.md`,共四个 skill:
+同一套文档驱动工作流,面向 OpenAI Codex CLI 的移植版:`plugins/workflow-codex/`(打包成 `.codex-plugin/plugin.json`,不是 Claude Code 插件——按你的 Codex CLI 版本对应的 skill/插件加载机制安装)。它以 `AGENTS.md` 取代 `.claude/CLAUDE.md`,共五个 skill:
 
 - `scaffold`:铺设方法论脚手架(`AGENTS.md` + docs 八件套 + `.gitignore` + `README.md`)
 - `whats-next`:读文档判断下一步该干什么
 - `sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP
 - `parallel-do`:把一个步骤拆成独立子任务,分波 spawn 并行 Codex subagent 执行——这个 skill 是 Codex 独有的,补的是 Claude Code 原生多代理编排工具在 Codex 侧缺失的能力
+- `speak-human`:让 Codex 提问与表达遵守说人话纪律——移植自下方「附赠插件:speak-human」的同一套 P1~P8/S1~S3 规则,常驻方式改为写入 `~/.codex/AGENTS.md`(见该 skill 文件末尾「常驻安装」一节的脚本)
+
+### 安装 workflow-codex
+
+```
+codex plugin marketplace add <本仓库路径或 clone 地址>
+codex plugin add workflow-codex@claude-workflow-kit
+```
+
+市场清单已在仓库的 `.agents/plugins/marketplace.json`,`marketplace add` 指向本仓库根目录(本地路径或你 fork/clone 后的 git 地址均可)即可发现它。
 
 ## 使用方式(项目生命周期)
 
@@ -229,13 +239,14 @@ claude-workflow-kit/
     │           ├── references/      # runbook-template.md(网络不可达时的降级交付模板)
     │           └── scripts/         # crawl.mjs(原生 Playwright 降级采集脚本)
     ├── workflow-en/                 # 英文输出插件(结构同 workflow)
-    ├── workflow-codex/               # OpenAI Codex CLI 移植版(四个 skill,无 Claude Code 插件清单)
+    ├── workflow-codex/               # OpenAI Codex CLI 移植版(五个 skill,无 Claude Code 插件清单)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/
     │       ├── scaffold/            # 铺 AGENTS.md + 八件套(无 CLAUDE.md.tmpl)
     │       ├── whats-next/
     │       ├── sop-generate/
-    │       └── parallel-do/         # Codex 专属:把一步拆给多个 Codex subagent 并行执行
+    │       ├── parallel-do/         # Codex 专属:把一步拆给多个 Codex subagent 并行执行
+    │       └── speak-human/         # 说人话纪律 Codex 移植版,常驻靠写入 ~/.codex/AGENTS.md
     ├── speak-human/                 # 中文版 speak-human 插件:hooks/ + skills/ + evals/
     └── speak-human-en/              # 英文版 speak-human 插件(结构同 speak-human)
 ```

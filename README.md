@@ -51,12 +51,22 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 
 ## Bonus plugin: Workflow Kit for Codex CLI
 
-The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugins/workflow-codex/` (packaged as a `.codex-plugin/plugin.json`, not a Claude Code plugin — install it through whatever skill/plugin mechanism your Codex CLI build uses). It targets `AGENTS.md` instead of `.claude/CLAUDE.md` and ships **four** skills:
+The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugins/workflow-codex/` (packaged as a `.codex-plugin/plugin.json`, not a Claude Code plugin — install it through whatever skill/plugin mechanism your Codex CLI build uses). It targets `AGENTS.md` instead of `.claude/CLAUDE.md` and ships **five** skills:
 
 - `scaffold`: lay down the methodology scaffolding (`AGENTS.md` + the eight-doc set + `.gitignore` + `README.md`)
 - `whats-next`: read the docs to figure out what to do next
 - `sop-generate`: generate a screenshot-backed business SOP for an already-deployed web app
 - `parallel-do`: split a step into independent subtasks and fan them out to parallel Codex subagents — this one is Codex-only, standing in for Claude Code's native multi-agent orchestration tool
+- `speak-human`: makes Codex follow the same say-it-like-a-human discipline for asking and speaking — a port of the same P1–P8/S1–S3 rules from the "Bonus plugin: speak-human" section below, with always-on persistence reworked to write into `~/.codex/AGENTS.md` (see the "always-on install" section at the end of that skill file for the script)
+
+### Installing workflow-codex
+
+```
+codex plugin marketplace add <path to this repo, or its clone URL>
+codex plugin add workflow-codex@claude-workflow-kit
+```
+
+The marketplace manifest already lives at `.agents/plugins/marketplace.json` in this repo — `marketplace add` just needs to point at the repo root (a local path or your fork/clone URL both work).
 
 ## Usage (project lifecycle)
 
@@ -228,13 +238,14 @@ claude-workflow-kit/
     │           ├── references/       # runbook-template.md (degraded-delivery template for unreachable networks)
     │           └── scripts/          # crawl.mjs (native Playwright fallback collection script)
     ├── workflow-en/                  # English-output plugin (same layout as workflow)
-    ├── workflow-codex/                # OpenAI Codex CLI port (four skills, no Claude Code plugin manifest)
+    ├── workflow-codex/                # OpenAI Codex CLI port (five skills, no Claude Code plugin manifest)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/
     │       ├── scaffold/             # AGENTS.md + the eight-doc set (no CLAUDE.md.tmpl)
     │       ├── whats-next/
     │       ├── sop-generate/
-    │       └── parallel-do/          # Codex-only: fan a step out to parallel Codex subagents
+    │       ├── parallel-do/          # Codex-only: fan a step out to parallel Codex subagents
+    │       └── speak-human/          # ported say-it-like-a-human discipline, persists via ~/.codex/AGENTS.md
     ├── speak-human/                  # Chinese speak-human plugin
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P8 + speaking discipline S1–S3
