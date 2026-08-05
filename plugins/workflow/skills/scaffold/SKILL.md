@@ -159,6 +159,6 @@ grep -rl '{{' .claude docs README.md 2>/dev/null && echo "⚠ 有未替换占位
 LC_ALL=C grep -rl $'\xef\xbf\xbd' .claude docs README.md 2>/dev/null && echo "⚠ 有乱码" || echo "无乱码 ✓"
 ```
 
-向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（`/brainstorming` 开始设计——spec 获批后直接 ultracode 实现，或直接开干）。
+向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（`/brainstorming` 开始设计——spec 获批后直接 ultracode 实现；改动小到一个原子 commit 能覆盖、且不新增模块与对外接口时，可跳过 spec 直接做，但要在 `docs/Progress.md` 记一句为什么跳过，否则一律先出 spec）。
 
 若项目推进中沉淀出可复用的组件/模块（不是本次落盘范围，是给未来的提醒）：**若团队维护组件索引库，登记之**，方便其他项目调研时发现并复用。
