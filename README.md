@@ -56,6 +56,7 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 - **Fuzzy name matching**: auto-generated session names are mostly "dirname-2char" (e.g. `hapi-ec`); typing just "hapi" works. On zero or multiple hits it shows you the live session list and asks instead of guessing.
 - **Self-contained messages**: the receiving session has none of your context, so the relay must carry the background, the specifics (branches, commits, paths), and the expected action — never "as we discussed".
 - **Honest delivery reporting**: "sent" never gets inflated into "they got it"; when permission modes differ between sessions the message is held at the receiver for approval, and the skill relays that state truthfully.
+- **Cross-account detection with a file-handoff fallback**: cross-session discovery is isolated per login account (each session registers only in its own profile's registry; verified bidirectionally) — windows opened under another account are invisible and unreachable. On zero hits the skill checks the shared socket directory for surplus sockets, explains the likely cross-account cause, and falls back to a self-contained handoff file plus a one-line paste command the user drops into the target window.
 
 ```
 /plugin install send-to-en@claude-workflow-kit   # English version

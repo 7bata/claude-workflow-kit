@@ -27,12 +27,12 @@
     {
       "name": "send-to",
       "source": "./plugins/send-to",
-      "description": "中文版:/send-to <会话名> 把消息转达给本机另一个 Claude Code 会话——会话名模糊匹配、多命中/零命中亮列表、消息自包含、发送后如实汇报挂起状态(需 Claude Code v2.1.224+,macOS/Linux)"
+      "description": "中文版:/send-to <会话名> 把消息转达给本机另一个 Claude Code 会话——会话名模糊匹配、多命中/零命中亮列表、消息自包含、如实汇报挂起状态、跨账号窗口识别与文件交接降级(需 Claude Code v2.1.224+,macOS/Linux)"
     },
     {
       "name": "send-to-en",
       "source": "./plugins/send-to-en",
-      "description": "English version: /send-to <session-name> relays a message to another Claude Code session on this machine — fuzzy name matching, list-on-ambiguity, self-contained messages, honest held-delivery reporting (needs Claude Code v2.1.224+, macOS/Linux)"
+      "description": "English version: /send-to <session-name> relays a message to another Claude Code session on this machine — fuzzy name matching, list-on-ambiguity, self-contained messages, honest held-delivery reporting, cross-account window detection with file-handoff fallback (needs Claude Code v2.1.224+, macOS/Linux)"
     }
   ]
 }
