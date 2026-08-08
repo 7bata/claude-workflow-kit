@@ -1,0 +1,8 @@
+{
+  "name": "send-to-en",
+  "version": "0.1.0",
+  "description": "English version: /send-to <session-name> relays a message to another Claude Code session on this machine — fuzzy prefix/substring name matching, shows the session list on zero/multiple hits, enforces self-contained messages, verbatim [ref] retry, honest held-delivery reporting. Built on cross-session messaging (Claude Code v2.1.224+, macOS/Linux)",
+  "author": { "name": "Tony Jiang" },
+  "homepage": "https://github.com/7bata/claude-workflow-kit",
+  "keywords": ["claude-code", "cross-session-messaging", "sendmessage", "listagents", "skills"]
+}

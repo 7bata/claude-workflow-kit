@@ -49,6 +49,19 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 - **Always on**: `touch ~/.claude/.speak-human-always` — a SessionStart hook injects the rules into every session automatically; delete the file to turn it off.
 - **Evals included** (`plugins/speak-human/evals/`): 33 sanitized real failure cases (25 verified + 8 unverified) + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
 
+## Bonus plugin: send-to
+
+`/send-to <session-name> <what to relay>` — relay a message to another Claude Code session on the same machine, built on cross-session messaging (Claude Code v2.1.224+, macOS/Linux; sending has no built-in slash command, which is why this skill exists). What it pins down:
+
+- **Fuzzy name matching**: auto-generated session names are mostly "dirname-2char" (e.g. `hapi-ec`); typing just "hapi" works. On zero or multiple hits it shows you the live session list and asks instead of guessing.
+- **Self-contained messages**: the receiving session has none of your context, so the relay must carry the background, the specifics (branches, commits, paths), and the expected action — never "as we discussed".
+- **Honest delivery reporting**: "sent" never gets inflated into "they got it"; when permission modes differ between sessions the message is held at the receiver for approval, and the skill relays that state truthfully.
+
+```
+/plugin install send-to-en@claude-workflow-kit   # English version
+/plugin install send-to@claude-workflow-kit      # Chinese version (install one, not both)
+```
+
 ## Bonus plugin: Workflow Kit for Codex CLI
 
 The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugins/workflow-codex/` (packaged as a `.codex-plugin/plugin.json`, not a Claude Code plugin — install it through whatever skill/plugin mechanism your Codex CLI build uses). It targets `AGENTS.md` instead of `.claude/CLAUDE.md` and ships **five** skills:
@@ -289,7 +302,11 @@ claude-workflow-kit/
     │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P9 + speaking discipline S1–S3
     │   ├── hooks/                    # SessionStart hook, flag-file gated always-on
     │   └── evals/                    # 33 sanitized cases + rubric + baseline-vs-skill runner
-    └── speak-human-en/               # English speak-human plugin (same layout)
+    ├── speak-human-en/               # English speak-human plugin (same layout)
+    ├── send-to/                      # Chinese send-to plugin: relay a message to another local session
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/send-to/SKILL.md   # fuzzy target matching + self-contained message rules + honest delivery reporting
+    └── send-to-en/                   # English send-to plugin (same layout)
 ```
 
 ## License
