@@ -50,6 +50,19 @@
 - **常驻**:`touch ~/.claude/.speak-human-always` —— SessionStart hook 每个会话自动注入规则;删掉该文件即关闭。
 - **自带评测**(`plugins/speak-human/evals/`):33 个脱敏真实失败案例(25 verified + 8 unverified) + 逐条判分标准 + 基线 vs 带 skill 对比跑分脚本(`run_evals.py`),改规则可以回归验证,不靠感觉。
 
+## 附赠插件:send-to
+
+`/send-to 会话名 要转达的内容` —— 把消息转达给本机另一个 Claude Code 会话,基于跨会话消息功能(Claude Code v2.1.224+,macOS/Linux;发消息本身没有内置斜杠命令,这正是本插件存在的原因)。它定死了几件事:
+
+- **会话名模糊匹配**:自动生成的会话名多是「目录名-两位后缀」(如 `hapi-ec`),只输 "hapi" 也能对上;零命中或多个命中时把在线会话列表亮出来问你,不替你猜。
+- **消息强制自包含**:对方会话没有你这边的任何上下文,转达必须带上背景、实质内容(分支、提交、路径)和期望动作,禁止"按我们刚才说的"。
+- **如实汇报投递状态**:"已发送"不会被吹成"对方已收到";两个会话权限模式不一致时消息会在对方端挂起等批准,skill 会把挂起状态如实转告。
+
+```
+/plugin install send-to@claude-workflow-kit      # 中文版
+/plugin install send-to-en@claude-workflow-kit   # 英文版(二选一,别都装)
+```
+
 ## 附赠插件:Codex CLI 版工作流
 
 同一套文档驱动工作流,面向 OpenAI Codex CLI 的移植版:`plugins/workflow-codex/`(打包成 `.codex-plugin/plugin.json`,不是 Claude Code 插件——按你的 Codex CLI 版本对应的 skill/插件加载机制安装)。它以 `AGENTS.md` 取代 `.claude/CLAUDE.md`,共五个 skill:
@@ -260,7 +273,7 @@ claude-workflow-kit/
 ├── README.zh-CN.md                  # 本文件:方法论 + 安装 + 工作流 prompt
 ├── LICENSE                          # MIT
 ├── .claude-plugin/
-│   └── marketplace.json             # 插件市场清单(注册四个插件)
+│   └── marketplace.json             # 插件市场清单(注册六个插件)
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
@@ -286,7 +299,11 @@ claude-workflow-kit/
     │       ├── parallel-do/         # Codex 专属:把一步拆给多个 Codex subagent 并行执行
     │       └── speak-human/         # 说人话纪律 Codex 移植版,常驻靠写入 ~/.codex/AGENTS.md
     ├── speak-human/                 # 中文版 speak-human 插件:hooks/ + skills/ + evals/
-    └── speak-human-en/              # 英文版 speak-human 插件(结构同 speak-human)
+    ├── speak-human-en/              # 英文版 speak-human 插件(结构同 speak-human)
+    ├── send-to/                     # 中文版 send-to 插件:跨会话消息转达
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/send-to/SKILL.md  # 目标模糊匹配 + 消息自包含硬规则 + 投递状态如实汇报
+    └── send-to-en/                  # 英文版 send-to 插件(结构同 send-to)
 ```
 
 ## License
