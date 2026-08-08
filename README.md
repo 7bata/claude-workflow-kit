@@ -47,7 +47,7 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 
 - **On demand**: trigger with `/speak-human` in any session.
 - **Always on**: `touch ~/.claude/.speak-human-always` — a SessionStart hook injects the rules into every session automatically; delete the file to turn it off.
-- **Evals included** (`plugins/speak-human*/evals/`): 22 sanitized real failure cases + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
+- **Evals included** (`plugins/speak-human/evals/`): 30 sanitized real failure cases (22 verified + 8 unverified) + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
 
 ## Bonus plugin: Workflow Kit for Codex CLI
 
@@ -288,7 +288,7 @@ claude-workflow-kit/
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P8 + speaking discipline S1–S3
     │   ├── hooks/                    # SessionStart hook, flag-file gated always-on
-    │   └── evals/                    # 22 sanitized cases + rubric + baseline-vs-skill runner
+    │   └── evals/                    # 30 sanitized cases + rubric + baseline-vs-skill runner
     └── speak-human-en/               # English speak-human plugin (same layout)
 ```
 

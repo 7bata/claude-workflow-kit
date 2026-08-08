@@ -48,7 +48,7 @@
 
 - **按需**:任意会话里 `/speak-human` 手动触发。
 - **常驻**:`touch ~/.claude/.speak-human-always` —— SessionStart hook 每个会话自动注入规则;删掉该文件即关闭。
-- **自带评测**(`plugins/speak-human*/evals/`):22 个脱敏真实失败案例 + 逐条判分标准 + 基线 vs 带 skill 对比跑分脚本(`run_evals.py`),改规则可以回归验证,不靠感觉。
+- **自带评测**(`plugins/speak-human/evals/`):30 个脱敏真实失败案例(22 verified + 8 unverified) + 逐条判分标准 + 基线 vs 带 skill 对比跑分脚本(`run_evals.py`),改规则可以回归验证,不靠感觉。
 
 ## 附赠插件:Codex CLI 版工作流
 
