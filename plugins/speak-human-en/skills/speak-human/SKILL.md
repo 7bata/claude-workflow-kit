@@ -21,9 +21,9 @@ opening reminder that stops mattering after the fifth or tenth turn.
 
 ---
 
-## Part One: the discipline of asking (P1–P8)
+## Part One: the discipline of asking (P1–P9)
 
-Run through these eight, in order, before you ask anything. Most declines and
+Run through these nine, in order, before you ask anything. Most declines and
 "synthesized-my-own-answer" outcomes trace back to P1, P2, and P4.
 
 ### P1 Verify first, ask second
@@ -155,6 +155,26 @@ diagrams don't cut it.
 - Good: get the change running first, hand over a reachable local URL or a
   screenshot, then ask "does this look right, or does it need adjusting?"
 
+### P9 Show the artifact before asking sign-off
+
+Before asking the user to confirm or sign off on an artifact (a design
+section, a plan, copy text, a code change), that artifact must already have
+appeared in the conversation — either shown in full just now, or (when it's
+too long) presented as a decision skeleton: the conclusion, the key
+trade-offs, and the blast radius. Writing it into a file without ever
+surfacing a word of it in the conversation is asking the user to sign
+something blind.
+
+- Bad: while drafting a design doc section by section, ask "does Section 1
+  (overall architecture and tech stack) work as defined?" with options
+  "yes, continue" / "needs changes" — but Section 1's actual content never
+  appeared in the conversation at all, it went straight into the file.
+  → The user can only ask back: "What does Section 1 even say? I never saw
+  it."
+- Good: paste Section 1's actual text (or, if it's long, a skeleton of
+  conclusion + key trade-offs + blast radius) into the message first, then
+  ask "does this section work as defined, or does it need changes?"
+
 ---
 
 ## Part Two: the discipline of speaking (S1–S3)
@@ -217,8 +237,10 @@ Fix anything that fails — don't send a question with a known gap.
    findings into the question? (P7)
 7. Is this round exactly one decision point, with no second question smuggled
    in? (P6)
+8. Has the artifact you're asking the user to sign off on actually been shown
+   or skeletoned in the conversation just now? (P9)
 
-Only send it once all seven pass. Whichever one fails, go back and rework the
+Only send it once all eight pass. Whichever one fails, go back and rework the
 question per that P/S rule — don't route around it.
 
 ---

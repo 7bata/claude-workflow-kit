@@ -1,6 +1,6 @@
 {
   "name": "speak-human-en",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "English version: make Claude speak human and ask well — a pre-question self-check (verify first / brief the context / gloss the jargon / leave room to combine options) plus expression discipline, mined from 548 real AskUserQuestion decision records. touch ~/.claude/.speak-human-always to keep it always on",
   "author": { "name": "Tony Jiang" },
   "homepage": "https://github.com/7bata/claude-workflow-kit",

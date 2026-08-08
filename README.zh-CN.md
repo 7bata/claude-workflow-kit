@@ -48,7 +48,7 @@
 
 - **按需**:任意会话里 `/speak-human` 手动触发。
 - **常驻**:`touch ~/.claude/.speak-human-always` —— SessionStart hook 每个会话自动注入规则;删掉该文件即关闭。
-- **自带评测**(`plugins/speak-human/evals/`):30 个脱敏真实失败案例(22 verified + 8 unverified) + 逐条判分标准 + 基线 vs 带 skill 对比跑分脚本(`run_evals.py`),改规则可以回归验证,不靠感觉。
+- **自带评测**(`plugins/speak-human/evals/`):33 个脱敏真实失败案例(25 verified + 8 unverified) + 逐条判分标准 + 基线 vs 带 skill 对比跑分脚本(`run_evals.py`),改规则可以回归验证,不靠感觉。
 
 ## 附赠插件:Codex CLI 版工作流
 
@@ -58,7 +58,7 @@
 - `whats-next`:读文档判断下一步该干什么
 - `sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP
 - `parallel-do`:把一个步骤拆成独立子任务,分波 spawn 并行 Codex subagent 执行——这个 skill 是 Codex 独有的,补的是 Claude Code 原生多代理编排工具在 Codex 侧缺失的能力
-- `speak-human`:让 Codex 提问与表达遵守说人话纪律——移植自下方「附赠插件:speak-human」的同一套 P1~P8/S1~S3 规则,常驻方式改为写入 `~/.codex/AGENTS.md`(见该 skill 文件末尾「常驻安装」一节的脚本)
+- `speak-human`:让 Codex 提问与表达遵守说人话纪律——移植自下方「附赠插件:speak-human」的同一套 P1~P9/S1~S3 规则,常驻方式改为写入 `~/.codex/AGENTS.md`(见该 skill 文件末尾「常驻安装」一节的脚本)
 
 ### 安装 workflow-codex
 
