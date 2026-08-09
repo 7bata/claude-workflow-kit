@@ -158,22 +158,49 @@ diagrams don't cut it.
 ### P9 Show the artifact before asking sign-off
 
 Before asking the user to confirm or sign off on an artifact (a design
-section, a plan, copy text, a code change), that artifact must already have
-appeared in the conversation — either shown in full just now, or (when it's
-too long) presented as a decision skeleton: the conclusion, the key
-trade-offs, and the blast radius. Writing it into a file without ever
-surfacing a word of it in the conversation is asking the user to sign
-something blind.
+section, a plan, copy text, a code change), the artifact's content or its
+decision skeleton (conclusion, key trade-offs, blast radius) must sit
+somewhere that is **still visible at the moment of decision**. Only two
+places qualify: first, the visible prose of the same reply, above the
+question; second, the question payload itself (the question text, the
+option descriptions, and the preview — the panel embedded in the question
+dialog, available on single-select questions only). If the skeleton won't
+fit in the payload, or would get truncated there, fall back to the first
+place. None of the following count as being on the table — at decision
+time the user can see none of them:
 
+1. Worked out only in thinking (the internal reasoning) — the thinking
+   area collapses to a "+N lines" stub the moment it ends; the user never
+   read it, and it is not part of the conversation;
+2. Scattered across earlier rounds — answered question rounds fold into
+   one-line records, and ordinary prose gets pushed off the screen by
+   later output; folded or not, if it isn't in this reply, treat it as
+   invisible to the user;
+3. Written only into a file — not a word surfaced in the conversation,
+   which is asking the user to sign blind.
+
+Whenever the question text says "the above" / "as shown earlier", check
+the reference: if the referent is not in this reply's prose or in the
+question payload, the reference is dangling — paste the content first,
+then ask.
+
+- Bad: an entire brainstorm's design work happened in thinking, the only
+  visible output was a few option dialogs, and the final question asks
+  "any changes to the six design sections above?" — there is no "above"
+  on screen: the reasoning has collapsed and the earlier rounds folded
+  into one-line records. → The user refuses: "it washed the actual
+  context away again."
 - Bad: while drafting a design doc section by section, ask "does Section 1
   (overall architecture and tech stack) work as defined?" with options
   "yes, continue" / "needs changes" — but Section 1's actual content never
   appeared in the conversation at all, it went straight into the file.
   → The user can only ask back: "What does Section 1 even say? I never saw
   it."
-- Good: paste Section 1's actual text (or, if it's long, a skeleton of
-  conclusion + key trade-offs + blast radius) into the message first, then
-  ask "does this section work as defined, or does it need changes?"
+- Good: in the same reply, paste the artifact's text right above the
+  question (or, when it's long, a skeleton — one line per section: name +
+  conclusion + key trade-off), then ask "anything to change?"; if a single
+  section is too long, confirm section by section, one round each, pasting
+  each section's text in its own round.
 
 ---
 
@@ -237,8 +264,10 @@ Fix anything that fails — don't send a question with a known gap.
    findings into the question? (P7)
 7. Is this round exactly one decision point, with no second question smuggled
    in? (P6)
-8. Has the artifact you're asking the user to sign off on actually been shown
-   or skeletoned in the conversation just now? (P9)
+8. Is the artifact being signed off — its content or skeleton — right in
+   this reply's prose or in the question payload? (Worked out in thinking,
+   asked about in earlier rounds, or written to a file — none of those
+   count.) (P9)
 
 Only send it once all eight pass. Whichever one fails, go back and rework the
 question per that P/S rule — don't route around it.

@@ -1,6 +1,6 @@
 {
   "name": "speak-human",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "中文版:让 Claude 说人话、会提问——提问前自检清单(先核实/交代背景/黑话带解释/选项留组合位) + 表达纪律,规则源自作者 548 次真实 AskUserQuestion 抉择记录的数据挖掘。touch ~/.claude/.speak-human-always 即常驻",
   "author": { "name": "Tony Jiang" },
   "homepage": "https://github.com/7bata/claude-workflow-kit",
