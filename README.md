@@ -9,6 +9,7 @@ Contains two parts:
 1. **A workflow prompt** (below in this README) — drop it into your `~/.claude/CLAUDE.md` to define the model division of labor, the tier table, and the main workflow
 2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides three executable commands:
    - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the eight-doc set + `.gitignore` + `README.md`)
+   - Plus a standing capability: **auto-scaffold** — new sessions auto-recognize "the user wants to build something new" and silently create the folder + git repo + scaffolding (on by default, opt-out available; see the "Auto-scaffolding new projects" section below)
    - `/whats-next`: read the docs to figure out where the project stands and what to do next
    - `/sop-generate`: generate a screenshot-backed business SOP (operating manual) for an already-deployed web app
 
@@ -229,6 +230,14 @@ When the user says "new project / initialize project / set up scaffolding", lay 
      - `MEETINGS.md` — meeting-notes archive + an action-item list per section
 4. **Wrap-up**: `git init` (if not already) + initial commit; self-check for unreplaced placeholders and mangled text; report to the user what was generated and what decisions were made, and suggest moving on to the brainstorming flow in Section 7.
 
+### 6a. Auto-scaffolding new projects (auto-scaffold)
+
+For pure vibe-coding users who never type `/scaffold` and have no mental model of "a project is a folder": once the plugin is installed, a new session silently gets a standing rule injected at startup — when the user is describing "wanting to build something new" (not asking a question, not editing existing code) and the current directory is outside any git repo with no `docs/`/`.claude/`, it auto-creates the folder, runs `git init`, and lays down the eight-doc set via `/scaffold`'s Auto mode, then reports back in a single line and keeps working without waiting for confirmation. **The guiding principle is: when in doubt, don't act.** If it's unclear whether this counts as a new project, it does not trigger and work continues as normal; if the target directory already has a same-named file, it immediately downgrades to interactive mode and never overwrites silently.
+
+- **Turning it off**: `touch ~/.claude/.auto-scaffold-off` disables it globally (the hook detects the flag and stops injecting the rule).
+- **Changing the projects root**: write your preferred root path into `~/.claude/workflow-projects-root`; defaults to `~/Projects` if absent.
+- **Trigger evals**: `plugins/workflow/evals/` (`cases.jsonl` + `run_evals.py` + `rubric.md`), covering trigger / no-trigger cases (13 total: 5 trigger, 8 no-trigger; the downgrade path is covered separately by a smoke test, not the evals set).
+
 ## 7. Main workflow: Brainstorming → Spec → Ultracode straight-through
 
 1. All creative work starts with superpowers:brainstorming, writing the design spec to `docs/superpowers/specs/<date>-<topic>-design.md` and registering it in the Spec Index of `docs/PLAN.md`.
@@ -277,8 +286,10 @@ claude-workflow-kit/
 └── plugins/
     ├── workflow/                     # Chinese-output plugin
     │   ├── .claude-plugin/plugin.json
+    │   ├── hooks/                    # auto-scaffold standing rule: hooks.json + inject.sh + auto-scaffold.md
+    │   ├── evals/                    # auto-scaffold trigger evals: cases.jsonl + run_evals.py + rubric.md + .gitignore (out/, __pycache__/)
     │   └── skills/
-    │       ├── scaffold/             # /scaffold: SKILL.md + templates/ (11 templates)
+    │       ├── scaffold/             # /scaffold: SKILL.md (with Auto mode section) + templates/ (11 templates)
     │       │   ├── SKILL.md
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
@@ -289,7 +300,7 @@ claude-workflow-kit/
     │           ├── SKILL.md
     │           ├── references/       # runbook-template.md (degraded-delivery template for unreachable networks)
     │           └── scripts/          # crawl.mjs (native Playwright fallback collection script)
-    ├── workflow-en/                  # English-output plugin (same layout as workflow)
+    ├── workflow-en/                  # English-output plugin (same layout as workflow, incl. matching hooks/)
     ├── workflow-codex/                # OpenAI Codex CLI port (five skills, no Claude Code plugin manifest)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/

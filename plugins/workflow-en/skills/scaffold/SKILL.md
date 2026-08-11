@@ -1,6 +1,6 @@
 ---
 name: scaffold
-description: Lay down the methodology scaffolding in place inside the current project directory (CLAUDE.md + the eight-doc set + .gitignore + README). The backend stack is fixed to Go (version baseline in the table inside the skill); Claude decides the database based on project intent. Triggered when the user says "set up scaffolding / initialize project / start new project / scaffold".
+description: Lay down the methodology scaffolding in place inside the current project directory (CLAUDE.md + the eight-doc set + .gitignore + README). The backend stack is fixed to Go (version baseline in the table inside the skill); Claude decides the database based on project intent. Triggered when the user says "set up scaffolding / initialize project / start new project / scaffold"; also triggered when the user describes wanting to build a new product/tool/website while not currently inside a project directory (Auto mode, paired with the auto-scaffold standing rule).
 allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 ---
 
@@ -162,3 +162,15 @@ LC_ALL=C grep -rl $'\xef\xbf\xbd' .claude docs README.md 2>/dev/null && echo "�
 Report to the user: which files were generated, the tech stack/DB decisions, and next-step suggestions (`/brainstorming` to start design — once the spec is approved, go straight into ultracode implementation; you may skip the spec and work directly only when the change fits in a single atomic commit and adds no new modules or public interfaces — note in `docs/Progress.md` why you skipped; otherwise always write a spec first).
 
 If, as the project progresses, a reusable component/module gets distilled out (not part of this scaffolding pass — a reminder for the future): **if the team maintains a component index, register it there** so other projects can discover and reuse it during research.
+
+## Auto mode (triggered silently by the auto-scaffold standing rule)
+
+This runs **alongside** the manual interactive flow above, which stays unchanged word for word. When silently triggered by the auto-scaffold hook, follow this section instead — never pause to ask, never present options:
+
+- **Skip the intake follow-up questions in Step 2 and the 7-slot business checklist, and skip the AskUserQuestion confirmation in Step 3** — don't stop to wait for the user's answers; judge directly from the information already present in the request sentence;
+- **Database defaults to PostgreSQL**; only follow the existing SQLite branch or CLI branch in Step 3 when the request sentence contains a clear signal such as single-machine / offline / pure command-line, and record the rationale in `docs/DECISIONS.md` as usual (Step 4's "Pre-filling content" requirements for `docs/DECISIONS.md` apply unchanged);
+- `docs/REQUIREMENTS.md` gets its one-line positioning and initial requirements filled directly from the request sentence; `docs/BUSINESS.md`'s 7 slots are **all** left as the template's own TBD placeholder comments (no follow-up questions — left for a later conversation to naturally fill in); `docs/MEETINGS.md` stays as the empty skeleton;
+- Step 4's conflict protection simplifies to a fail-safe in Auto mode: Auto mode should only ever run inside a freshly created empty directory, and the moment any `EXISTS` file turns up — **don't ask skip/backup/merge, immediately downgrade to interactive mode**, never overwrite silently;
+- Step 5's wrap-up (`git init -b main` + initial commit + placeholder/garbled-text self-check) runs unchanged; compress the completed wrap-up report into one line;
+- Auto is a parallel entry point alongside the manual flow — it does not replace or rewrite the body text of any step above.
+

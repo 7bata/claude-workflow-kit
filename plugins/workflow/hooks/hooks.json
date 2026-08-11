@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/inject.sh\"",
+            "timeout": 5,
+            "statusMessage": "检查 auto-scaffold 自动铺设开关..."
+          }
+        ]
+      }
+    ]
+  }
+}

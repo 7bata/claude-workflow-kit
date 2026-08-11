@@ -1,6 +1,6 @@
 ---
 name: scaffold
-description: 在当前项目目录里铺设方法论脚手架（CLAUDE.md + docs 八件套 + .gitignore + README）。后端技术栈固定为 Go（版本基线见 skill 内表格），数据库由 Claude 按项目意图判断。用户说"搭脚手架/初始化项目/开新项目/scaffold"时触发。
+description: 在当前项目目录里铺设方法论脚手架（CLAUDE.md + docs 八件套 + .gitignore + README）。后端技术栈固定为 Go（版本基线见 skill 内表格），数据库由 Claude 按项目意图判断。用户说"搭脚手架/初始化项目/开新项目/scaffold"时触发；用户描述要做一个新产品/工具/网站且当前不在项目目录时也触发（auto 模式，配合 auto-scaffold 常驻规则）。
 allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 ---
 
@@ -162,3 +162,14 @@ LC_ALL=C grep -rl $'\xef\xbf\xbd' .claude docs README.md 2>/dev/null && echo "�
 向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（`/brainstorming` 开始设计——spec 获批后直接 ultracode 实现；改动小到一个原子 commit 能覆盖、且不新增模块与对外接口时，可跳过 spec 直接做，但要在 `docs/Progress.md` 记一句为什么跳过，否则一律先出 spec）。
 
 若项目推进中沉淀出可复用的组件/模块（不是本次落盘范围，是给未来的提醒）：**若团队维护组件索引库，登记之**，方便其他项目调研时发现并复用。
+
+## Auto 模式（被 auto-scaffold 常驻规则触发时）
+
+与上面的手动交互流程**并列**，手动流程一字不动。被 auto-scaffold hook 静默触发时，走本节，全程不追问、不发选项：
+
+- **跳过步骤 2 的 intake 追问与七格业务追问、跳过步骤 3 的 AskUserQuestion 确认**——不停下等用户回答，直接用需求句里已有的信息判断；
+- **数据库默认 PostgreSQL**；只有需求句里出现单机 / 离线 / 纯命令行这类明显信号时，才走步骤 3 已有的 SQLite 分支或 CLI 分支，判断理由照常写进 `docs/DECISIONS.md`（步骤 4「内容预填」里对 `docs/DECISIONS.md` 的要求原样适用）；
+- `docs/REQUIREMENTS.md` 用需求句直接填实一句话定位与初版需求；`docs/BUSINESS.md` 七格**全部**留模板自带的待补占位注释（不追问，留给后续会话自然补）；`docs/MEETINGS.md` 保持空骨架；
+- 步骤 4 的冲突保护在 Auto 模式下简化为 fail-safe：Auto 模式只应在新建空目录里跑，一旦扫到任何 `EXISTS` 文件——**不问跳过/备份/合并，立即降级为交互模式**，绝不静默覆盖；
+- 步骤 5 的收尾（`git init -b main` + 初始 commit + 占位符与乱码自检）原样执行；执行完的收尾汇报压缩为一行；
+- Auto 是手动流程之外的并列入口，不替代、不改写上面任何步骤的正文。
