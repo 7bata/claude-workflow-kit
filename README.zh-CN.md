@@ -11,6 +11,7 @@
    - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 八件套 + `.gitignore` + `README.md`)
    - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
    - `/sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP(操作手册)
+   - 外加一个常驻能力:**auto-scaffold**——新会话开局自动认出"用户要做个新东西",无声建目录 + git 仓 + 脚手架(默认开启,可 opt-out;见下方「新项目自动铺设」一节)
 
 ## 安装
 
@@ -230,6 +231,16 @@ docs 八件套各自的职责:
      - `MEETINGS.md` — 会议纪要归档 + 每节的待办清单
 4. **收尾**:`git init`(如尚未)+ 首次 commit;自检无未替换占位、无乱码;向用户汇报生成了什么、做了哪些决策,建议下一步走第七节的 brainstorming。
 
+### 六之一、新项目自动铺设(auto-scaffold)
+
+面向不会敲 `/scaffold`、脑中没有"项目=文件夹"意识的纯 vibe coding 用户:插件装好后,新会话开局静默注入一条判定规则——用户在描述"要做一个新东西"(而不是问问题/改现有代码)、当前目录又不在任何 git 仓库且没有 `docs/`/`.claude/` 时,自动建目录 + `git init` + 走 `/scaffold` 的 Auto 模式铺好八件套,只回一行话告知路径就继续干活,不停下等确认。**判定原则是宁漏勿错**:拿不准是不是新项目就不触发,照常干活;目标目录里已经有同名文件就立即降级为交互模式,绝不静默覆盖。
+
+- **关闭**:`touch ~/.claude/.auto-scaffold-off` 即全局 opt-out(hook 检测到就不再注入规则)。
+- **换根目录**:`~/.claude/workflow-projects-root` 文件写入你想要的根路径,不写则默认 `~/Projects`。
+- **判定 evals**:`plugins/workflow/evals/`(`cases.jsonl` + `run_evals.py` + `rubric.md`),覆盖触发/不触发两类判例(共 15 条:trigger 6 条、no_trigger 9 条;降级路径由单独的冒烟测试覆盖,不在本 evals 集合内)。
+- **opt-out 后仍可手动触发**:`touch` 关闭标志只是关掉自动静默建项目;`/scaffold` 命令本身照常可用,手动敲或按描述触发都不受影响。
+- **已有 git 仓内不注入**:会话所在目录已在 git 仓内时,hook 不再注入本规则(判定条件 2 本就不会触发,省上下文)。
+
 ## 七、主流程:Brainstorming → Spec → Ultracode 直通
 
 1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。
@@ -278,8 +289,10 @@ claude-workflow-kit/
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
+    │   ├── hooks/                   # auto-scaffold 常驻规则:hooks.json + inject.sh + auto-scaffold.md
+    │   ├── evals/                   # auto-scaffold 判定 evals:cases.jsonl + run_evals.py + rubric.md + .gitignore(out/、__pycache__/)
     │   └── skills/
-    │       ├── scaffold/            # /scaffold:SKILL.md + templates/(11 个模板)
+    │       ├── scaffold/            # /scaffold:SKILL.md(含 Auto 模式节)+ templates/(11 个模板)
     │       │   ├── SKILL.md
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
@@ -290,7 +303,7 @@ claude-workflow-kit/
     │           ├── SKILL.md
     │           ├── references/      # runbook-template.md(网络不可达时的降级交付模板)
     │           └── scripts/         # crawl.mjs(原生 Playwright 降级采集脚本)
-    ├── workflow-en/                 # 英文输出插件(结构同 workflow)
+    ├── workflow-en/                 # 英文输出插件(结构同 workflow,含同款 hooks/)
     ├── workflow-codex/               # OpenAI Codex CLI 移植版(五个 skill,无 Claude Code 插件清单)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/
