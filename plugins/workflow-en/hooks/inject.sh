@@ -16,6 +16,12 @@
 # (mirrors speak-human).
 [ -n "${AUTO_SCAFFOLD_EVALS_HERMETIC:-}" ] && exit 0
 
+# Sessions already inside a git repo can never satisfy condition 2 in the
+# rule body, so injecting is pure context waste; the tradeoff is that a
+# session that later cd's out of the repo won't pick up the rule -- an
+# acceptable cost.
+git rev-parse --git-dir >/dev/null 2>&1 && exit 0
+
 FLAG="${HOME}/.claude/.auto-scaffold-off"
 [ -f "$FLAG" ] && exit 0
 

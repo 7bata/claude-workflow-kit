@@ -9,6 +9,10 @@
 # 否则常驻用户跑评测时"基线"臂也会从 hook 拿到规则,两臂对照失效(仿 speak-human)。
 [ -n "${AUTO_SCAFFOLD_EVALS_HERMETIC:-}" ] && exit 0
 
+# 已在 git 仓里的会话,规则正文判定条件 2 永远不满足,注入纯属上下文浪费;
+# 副作用是会话中途 cd 出仓将拿不到规则,属可接受取舍。
+git rev-parse --git-dir >/dev/null 2>&1 && exit 0
+
 FLAG="${HOME}/.claude/.auto-scaffold-off"
 [ -f "$FLAG" ] && exit 0
 

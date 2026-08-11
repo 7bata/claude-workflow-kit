@@ -7,7 +7,7 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架(auto-scaffold)"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）"
     },
     {
       "name": "workflow-en",

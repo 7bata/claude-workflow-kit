@@ -57,6 +57,8 @@ superpowers 自身都需 hook 强制模型用 skill)、C(写各机器全局 CLAU
    而不是:问问题、闲聊、改现有代码、在现有项目里加功能;
 2. 当前目录不在任何 git 仓库内(git rev-parse --git-dir 失败),
    且当前目录没有 docs/ 或 .claude/(不是已铺过的项目);
+   例外:当前目录就是用户家目录 $HOME 本身时,~/.claude 是 Claude 自己的
+   配置目录、不算项目标记——$HOME 不是 git 仓即视为满足本条;
 3. 本次对话尚未为这个需求建过项目。
 
 拿不准算不算新项目时:不触发,照常干活——宁可漏建,不可错建垃圾文件夹。
@@ -67,6 +69,10 @@ superpowers 自身都需 hook 强制模型用 skill)、C(写各机器全局 CLAU
 1. 从需求句提炼英文 kebab-case 项目名(如"记账小工具"→ expense-tracker);
 2. 定项目根:~/.claude/workflow-projects-root 文件存在则以其内容为根,
    否则默认 ~/Projects;创建 <根>/<项目名>/ 并进入;
+   - <根>/<项目名>/ 已存在:不复用、不覆盖,视同"拿不准"——本次不自动
+     建项目,一行说明后就地继续干活;
+   - 创建或写入失败(含用户拒绝授权):不重试;已建出的空目录删掉,
+     不留残目录;一行说明"没能自动建项目,先就地干活",照常继续;
 3. 按 scaffold skill 的「Auto 模式」铺设(技术栈走基线不询问;能从
    用户需求句填实的填实,其余留模板占位;git init + 初始 commit 含在内);
 4. 一行话告知:"已建项目 <名> 于 <路径>,这个需求后续都在里面做"——
@@ -79,7 +85,11 @@ touch ~/.claude/.auto-scaffold-off 即全局关闭(hook 检测到就不注入)�
 hook 配置(`plugins/workflow/hooks/hooks.json`)与 speak-human 同款:
 SessionStart,matcher `startup|resume|clear|compact`,timeout 5,调 `inject.sh`。
 `inject.sh` 防御:opt-out 标志存在 → 静默退出;规则文件缺失 → 静默退出;评测
-隔离环境变量 `AUTO_SCAFFOLD_EVALS_HERMETIC` 非空 → 静默退出。
+隔离环境变量 `AUTO_SCAFFOLD_EVALS_HERMETIC` 非空 → 静默退出;当前目录已在
+git 仓内 → 静默退出(判定条件 2 永远不满足,注入纯属上下文浪费)。
+
+2026-08-11 终审修订:HOME 豁免、同名目录条款、失败分支、git 仓早退(评审
+Important #1/#4)。
 
 ## 5. scaffold skill 增「Auto 模式」
 
@@ -116,10 +126,11 @@ SessionStart,matcher `startup|resume|clear|compact`,timeout 5,调 `inject.sh`。
    bug" → 不触发;"就在这个文件夹里改" → 不触发。
 3. **降级冒烟**:目标目录预放同名 README.md → Auto 模式降级为交互模式,不静默
    覆盖。
-4. **轻量判定 evals**:仿 speak-human evals 基建,8~12 条 trigger/no-trigger
-   判例(jsonl + 判分脚本),hermetic 环境变量隔离评测子进程。
-5. **hook 卫生**:opt-out 标志、规则文件缺失、hermetic 变量三种情况下 inject.sh
-   均静默安全退出。
+4. **轻量判定 evals**:仿 speak-human evals 基建,判例集 15 条(jsonl + 判分
+   脚本,含 HOME 根目录触发与同名目录不触发两条终审补例),hermetic 环境变量
+   隔离评测子进程。
+5. **hook 卫生**:opt-out 标志、规则文件缺失、hermetic 变量、已在 git 仓内
+   四种情况下 inject.sh 均静默安全退出。
 
 ## 8. 实施顺序
 

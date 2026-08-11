@@ -236,7 +236,9 @@ For pure vibe-coding users who never type `/scaffold` and have no mental model o
 
 - **Turning it off**: `touch ~/.claude/.auto-scaffold-off` disables it globally (the hook detects the flag and stops injecting the rule).
 - **Changing the projects root**: write your preferred root path into `~/.claude/workflow-projects-root`; defaults to `~/Projects` if absent.
-- **Trigger evals**: `plugins/workflow/evals/` (`cases.jsonl` + `run_evals.py` + `rubric.md`), covering trigger / no-trigger cases (13 total: 5 trigger, 8 no-trigger; the downgrade path is covered separately by a smoke test, not the evals set).
+- **Trigger evals**: `plugins/workflow/evals/` (`cases.jsonl` + `run_evals.py` + `rubric.md`), covering trigger / no-trigger cases (15 total: 6 trigger, 9 no-trigger; the downgrade path is covered separately by a smoke test, not the evals set).
+- **Still triggerable manually after opt-out**: touching the off-flag only disables silent auto-creation; the `/scaffold` command itself still works, whether typed manually or triggered by its own description.
+- **No injection inside an existing git repo**: when the session's directory is already inside a git repo, the hook stops injecting this rule (condition 2 could never trigger anyway, so this saves context).
 
 ## 7. Main workflow: Brainstorming → Spec → Ultracode straight-through
 

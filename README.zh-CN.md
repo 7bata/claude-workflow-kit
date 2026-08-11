@@ -237,7 +237,9 @@ docs 八件套各自的职责:
 
 - **关闭**:`touch ~/.claude/.auto-scaffold-off` 即全局 opt-out(hook 检测到就不再注入规则)。
 - **换根目录**:`~/.claude/workflow-projects-root` 文件写入你想要的根路径,不写则默认 `~/Projects`。
-- **判定 evals**:`plugins/workflow/evals/`(`cases.jsonl` + `run_evals.py` + `rubric.md`),覆盖触发/不触发两类判例(共 13 条:trigger 5 条、no_trigger 8 条;降级路径由单独的冒烟测试覆盖,不在本 evals 集合内)。
+- **判定 evals**:`plugins/workflow/evals/`(`cases.jsonl` + `run_evals.py` + `rubric.md`),覆盖触发/不触发两类判例(共 15 条:trigger 6 条、no_trigger 9 条;降级路径由单独的冒烟测试覆盖,不在本 evals 集合内)。
+- **opt-out 后仍可手动触发**:`touch` 关闭标志只是关掉自动静默建项目;`/scaffold` 命令本身照常可用,手动敲或按描述触发都不受影响。
+- **已有 git 仓内不注入**:会话所在目录已在 git 仓内时,hook 不再注入本规则(判定条件 2 本就不会触发,省上下文)。
 
 ## 七、主流程:Brainstorming → Spec → Ultracode 直通
 
