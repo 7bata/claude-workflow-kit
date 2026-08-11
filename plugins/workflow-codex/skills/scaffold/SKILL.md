@@ -163,3 +163,104 @@ LC_ALL=C grep -rl $'\xef\xbf\xbd' AGENTS.md docs README.md 2>/dev/null && echo "
 向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（先与用户把设计聊透、design spec 请落 `docs/specs/`——获批后按 spec 拆独立单元用 `parallel-do` 分波并行实现；改动小到一个原子 commit 能覆盖、且不新增模块与对外接口时，可跳过 spec 直接做，但要在 `docs/Progress.md` 记一句为什么跳过，否则一律先出 spec）。
 
 若项目推进中沉淀出可复用的组件/模块（不是本次落盘范围，是给未来的提醒）：**若团队维护组件索引库，登记之**，方便其他项目调研时发现并复用。
+
+## Auto 模式与常驻安装（可选）
+
+Claude Code 版靠插件级 SessionStart hook，每次会话开局自动判定"用户是不是在描述一个新项目"并静默铺设脚手架。**Codex CLI 没有会话开局一类的常驻 hook 机制**，所以这个自动触发在 Codex 里不会随插件安装自动生效——本 skill 只能靠用户手动 `/scaffold` 显式调用。想要"说一句要做新东西就自动建目录铺脚手架"的效果，需要自己 opt-in：把下面的判定规则手动写进 `~/.codex/AGENTS.md`（Codex 每个会话都会全局加载这个文件）。
+
+规则片段（以 Claude 版定稿规则为底，三处按 Codex 场景适配：触发后第 3 步的铺设动作改为指向**本 skill 自己的落盘清单与 `AGENTS.md.tmpl` 模板**，不再引用 Claude 版专有的「Auto 模式」小节；原「关闭」一节整节删去，改为文末一句话说明；项目标记与配置路径改用 Codex 惯例——已铺项目标记看 `AGENTS.md`、配置目录与项目根配置在 `~/.codex` 下，Codex 用户机器上未必有 `~/.claude`）：
+
+```markdown
+# auto-scaffold:新项目自动铺设
+
+## 判定(三条全满足才触发)
+1. 用户在描述"要做一个新的东西"——新产品/工具/网站/系统,
+   而不是:问问题、闲聊、改现有代码、在现有项目里加功能;
+2. 当前目录不在任何 git 仓库内(git rev-parse --git-dir 失败),
+   且当前目录没有 docs/ 或 AGENTS.md(不是已铺过的项目);
+   例外:当前目录就是用户家目录 $HOME 本身时,~/.codex 是 Codex 自己的
+   配置目录、不算项目标记——$HOME 不是 git 仓即视为满足本条;
+3. 本次对话尚未为这个需求建过项目。
+
+拿不准算不算新项目时:不触发,照常干活——宁可漏建,不可错建垃圾文件夹。
+用户明说"不用建项目/就在这儿改"时:不触发。
+已有仓库但缺 docs 的存量项目:不归本规则管,不要顺手补铺。
+
+## 触发后动作(静默执行,全程不追问、不发选项)
+1. 从需求句提炼英文 kebab-case 项目名(如"记账小工具"→ expense-tracker);
+2. 定项目根:~/.codex/workflow-projects-root 文件存在则以其内容为根,
+   否则默认 ~/Projects;创建 <根>/<项目名>/ 并进入;
+   - <根>/<项目名>/ 已存在:不复用、不覆盖,视同"拿不准"——本次不自动
+     建项目,一行说明后就地继续干活;
+   - 创建或写入失败(含权限被拒):不重试;已建出的空目录删掉,
+     不留残目录;一行说明"没能自动建项目,先就地干活",照常继续;
+3. 按本 skill 步骤 4 的落盘清单与 `AGENTS.md.tmpl` 模板铺设(技术栈走
+   基线不询问;能从用户需求句填实的填实,其余留模板占位;git init +
+   初始 commit 含在内,步骤 5 的沙箱写权限约束原样适用);
+4. 一行话告知:"已建项目 <名> 于 <路径>,这个需求后续都在里面做"——
+   说完直接继续干用户真正要的活,不停下等确认。
+```
+
+从 `~/.codex/AGENTS.md` 删除本节（标记块之间的内容）即全局关闭——Codex 没有可检测的 opt-out 标志文件，关闭只能靠删除。
+
+可直接复制执行的幂等安装脚本（在 zsh/bash 下验证通过，`$SKILL` 换成本机实际的 `SKILL.md` 路径；写法照抄本插件 `speak-human` skill 末尾「常驻安装」一节的先例：先删旧标记块、压平尾部空行，再追加新块，重复执行不会累积）：
+
+```sh
+SKILL="$HOME/.codex/plugins/cache/workflow-codex/skills/scaffold/SKILL.md"
+AGENTS="$HOME/.codex/AGENTS.md"
+mkdir -p "$(dirname "$AGENTS")"
+touch "$AGENTS"
+
+# 1) 删除旧的 auto-scaffold 标记块(幂等的关键),并把文件尾部连续空行压成一个
+awk '
+  /<!-- auto-scaffold:BEGIN -->/ {skip=1}
+  !skip {print}
+  /<!-- auto-scaffold:END -->/ {skip=0; next}
+' "$AGENTS" > "$AGENTS.tmp" && mv "$AGENTS.tmp" "$AGENTS"
+python3 - "$AGENTS" <<'PYEOF'
+import pathlib, sys
+p = pathlib.Path(sys.argv[1])
+t = p.read_text()
+t = (t.rstrip("\n") + "\n") if t.strip() else ""
+p.write_text(t)
+PYEOF
+
+# 2) 从本 SKILL.md「Auto 模式与常驻安装」一节里提取规则片段
+#    (第一个 ```markdown 围栏到下一个 ``` 之间的内容)
+BODY=$(awk '
+  /^## Auto 模式与常驻安装/ {insect=1}
+  insect && /^```markdown$/ {f=1; next}
+  insect && f && /^```$/ {exit}
+  insect && f {print}
+' "$SKILL")
+
+# 3) 追加新标记块
+{
+  echo ""
+  echo "<!-- auto-scaffold:BEGIN -->"
+  echo "$BODY"
+  echo "<!-- auto-scaffold:END -->"
+} >> "$AGENTS"
+
+echo "已写入 $AGENTS"
+```
+
+### 卸载（删掉常驻规则，可继续手动 `/scaffold` 触发）
+
+`~/.codex/AGENTS.md` 不存在时视为未安装，只打印提示、不报错、不会凭空创建该文件：
+
+```sh
+AGENTS="$HOME/.codex/AGENTS.md"
+if [ ! -f "$AGENTS" ]; then
+  echo "未安装,无需卸载"
+else
+  awk '
+    /<!-- auto-scaffold:BEGIN -->/ {skip=1}
+    !skip {print}
+    /<!-- auto-scaffold:END -->/ {skip=0; next}
+  ' "$AGENTS" > "$AGENTS.tmp" && mv "$AGENTS.tmp" "$AGENTS"
+  echo "已从 $AGENTS 移除 auto-scaffold 常驻块"
+fi
+```
+
+安装脚本重复跑多次是安全的（先删旧块、压平尾部空行，再追加新块，不会累积）；卸载脚本跑在没有标记块的文件上也是安全的（不匹配就原样保留全文），文件本身不存在时也不报错。
