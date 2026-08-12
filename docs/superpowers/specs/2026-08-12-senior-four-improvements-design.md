@@ -1,0 +1,126 @@
+# Senior 四点改进入 kit — Design Spec
+
+- 日期:2026-08-12
+- 状态:已获 Tony 逐节确认(2026-08-12 会话内:载体范围、落地形态、设计骨架三轮均选"照此定")
+- 依据:senior 190 场会话语料分析(`~/Proj/Stellark/Projects/stellark-benchmark/data/analysis/senior-usage-analysis.md` 第六节),经 Tony 拍板反向抄进 kit;交接任务书 `/tmp/send-to-handoff-claude-workflow-kit.md` 任务 A
+
+## 1. 背景与目标
+
+对 senior 使用 Claude Code 的 190 场会话分析发现四条 kit 尚未覆盖、实战验证有效的纪律。本 spec 把四点植入 kit 的全部 Claude 系与 Codex 系载体,并同步本机与 huake 面(stellark 面随 vibe/engineer 合并另行立项,本轮不动——Tony 2026-08-12 拍板)。
+
+四点内容(已拍板,不再论证):
+
+1. **链式对抗评审**:现有对抗验证是"3 票 opus 不同镜头独立投票";补链式变体——每轮评审显式继承上一轮的结论与被否决的假设,适合诊断/根因/排障类任务。实证:senior 网络诊断会话靠链式接力抓出"上一轮 22% 重传是对单个 socket 的错误算术""DERP 中继污染测量数据"这类自我纠错,平行独立票抓不到(每票从零开始)。
+2. **评审报 DELTA 不报摘要**:评审只报与上一版/其他票的差异,禁止"我检查了一遍没问题"式水报告。
+3. **安全措辞防误伤**:安全/加固类文档用中性工程语言描述"系统做什么"而非"防什么攻击",避免内容安全分类器整条拦截导致 spec 回炉、被迫换模型。
+4. **生产红线 / FORBIDDEN FILES 前置实现侧**:现有规则(后果覆盖难度、评审查回滚路径)是评审侧的;补实现侧——派实现 agent 时就把红线写进每个 implementer 的 prompt。
+
+## 2. 落地形态(已拍板)
+
+- **不新开大节、不重编号**:①②④贴着现有段落扩写;③新增「七之一」小节(沿用「六之一」编号先例)。
+- **双语同构**:README.zh-CN.md 与 README.md 的工作流 prompt 段结构一致,中英同点位植入。
+- **codex 面同步**,适配其口径:无 model/effort 档位旋钮、主对话亲自验收、并行靠 parallel-do。
+- **本机 `~/.claude/CLAUDE.md` 保持个性化措辞**(带日期戳校准、session-report 复盘风格),不拿 README 措辞覆盖。
+- **huake 仓按对应段落适配植入**,不整文件替换其 Stellark 定制模板。
+
+## 3. 规范文本(canonical,中文版;英文版照此同义翻译)
+
+以下为各插入点的基准文本。实现 agent 可做上下文衔接的微调,但**语义要素一个不许丢**。
+
+### 3.1 点①:README §三「升降档四原则」原则 2 追加
+
+在原则 2 现有文本("…这也是 Workflow 对抗验证模式的本意。")之后追加:
+
+> 评审的编排分两种,按任务性质选:**平行多票**(上面的 3 票不同镜头,各票独立、互不可见)适合验收裁决与正确性确认;**链式接力**适合诊断、根因分析、排障——每轮评审的 prompt 显式附上一轮的结论与已被否决的假设,让本轮在前人基础上往深挖,而不是从零重投。平行票每票从零开始,抓不到"上一轮结论本身算错了"这类自我纠错,链式抓得到;链式的收敛标准建议用"连续两轮无新发现"。链式轮与轮是继承关系,不算凑票数。
+
+### 3.2 点④:README §三 原则 3 追加一句
+
+在原则 3 末尾("…贵的只是验证。")之后追加:
+
+> 红线同样要**前置到实现侧**:派实现 agent 时就把生产红线写进每个 prompt(见七.4),不能只靠评审兜底。
+
+### 3.3 点②④:README §七.4(ultracode 编排段)两处修改
+
+实现 prompt 自包含清单,由「附 spec 相关段落 + 项目 CLAUDE.md 硬规则」扩为:
+
+> prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则 + **生产红线与文件所有权**——FORBIDDEN FILES(本单元不许碰的文件/目录点名列出)、绝不重启共享服务、绝不读写生产数据、禁止 force push 与任何丢弃改动的历史改写、只改分给本单元的文件
+
+评审句("…测试弱视同打回,被打回的单元重跑时测试与实现分开派两个 agent")之后追加:
+
+> 评审报告一律**报差异不报摘要**:只报与上一轮、与其他票不同的新发现与推翻项,禁止"检查了一遍没问题"式复述;无新发现就写明"无新发现"并列出复核过的检查点。评审编排按任务选:验收裁决用平行多镜头票,诊断/根因/排障用链式接力(每轮 prompt 附上一轮结论与被否决的假设,连续两轮无新发现才收,见三.2)。
+
+### 3.4 点③:README 新增「七之一、安全加固类工作的措辞规范」(位于 §七 与 §八 之间)
+
+> ### 七之一、安全加固类工作的措辞规范
+>
+> 安全/加固类的 spec、派工 prompt、代码注释、commit message,一律用中性工程语言描述**系统做什么**——输入校验、频率限制、会话过期、权限收紧——而不是"防什么人、挡什么行为"。确需记录威胁场景时,写进面向人的项目文档(`DECISIONS.md` / `BUSINESS.md`),不进派工 prompt 与代码注释。原因:带对抗性叙述的消息可能被内容安全分类器整条拦截,导致 spec 回炉重写、被迫换模型——这是多场真实会话反复踩中的坑。这是措辞工程,不是隐瞒:同一个加固动作,按"系统行为"描述同样表达得完整。
+
+注意:本节自身的行文也必须遵守本节规范(不堆砌攻击性词汇当反例清单)。
+
+### 3.5 scaffold 模板 CLAUDE.md.tmpl(zh/en)§7 追加四条 bullet
+
+在「多代理分工」bullet 列表内(评审 stage 条目之后)追加:
+
+> - 评审编排按任务选:验收裁决用平行多镜头票;诊断/根因/排障用链式接力——每轮评审 prompt 显式附上一轮结论与被否决的假设,连续两轮无新发现才收
+> - 评审报告只报差异(与上一轮/与其他票的新发现与推翻项),禁止"检查了一遍没问题"式摘要;无新发现要明说并列出复核点
+> - 派实现 agent 的 prompt 除 spec 段落与本文件硬规则外,必须点名生产红线与文件所有权:FORBIDDEN FILES 清单、绝不重启共享服务、绝不读写生产数据、禁止 force push 与丢改动的历史改写、只改分给本单元的文件
+
+在 §7 顶层 bullet 列表(「多代理分工」bullet 之前)追加:
+
+> - 安全/加固类的 spec、派工 prompt、代码注释、commit message 用中性工程语言写"系统做什么"(校验、限流、过期、权限收紧),不写"防什么攻击";威胁场景记录进 `docs/DECISIONS.md`,不进派工 prompt 与代码注释——防内容安全分类器整条拦截导致回炉
+
+### 3.6 codex 面适配(AGENTS.md.tmpl + parallel-do SKILL.md)
+
+AGENTS.md.tmpl §7.1 追加三条 bullet(不引入 model/effort 概念):
+
+> - **多轮验收报差异**:同一单元的第二轮及以后验收,只报与上一轮的差异(新发现/推翻项),不重复复述;无新发现要明说并列出复核点
+> - **诊断/根因/排障用链式接力**:下一轮验收/复查的 prompt 显式附上一轮结论与被否决的假设,连续两轮无新发现才收;验收裁决类照旧用多镜头(见上"多镜头替代单轮加长")
+> - **派写入子任务的 prompt 边界里点名生产红线**:FORBIDDEN FILES 清单、绝不重启共享服务、绝不读写生产数据、禁止 force push 与丢改动的历史改写、只改分给本子任务的文件
+
+AGENTS.md.tmpl §7 顶层 bullet 列表追加安全措辞条(同 3.5 末条,`docs/DECISIONS.md` 路径不变)。
+
+parallel-do SKILL.md 两处:
+
+- 步骤 5「边界」bullet 由「只允许改哪些文件、不许碰什么」扩为点名生产红线(FORBIDDEN FILES 逐个列、绝不重启共享服务、绝不读写生产数据、禁止 force push 与丢改动的历史改写);TDD 要求原文保留。
+- 步骤 6 第 2 条「不合格的子任务…返工后重新验收」追加:返工后的重新验收只报与上一轮的差异,不重复复述已核对项。
+
+### 3.7 本机 `~/.claude/CLAUDE.md`(个性化措辞,merge 后同步)
+
+- 「四条使用原则」第 2 条末尾追加链式接力变体:注明"2026-08-12 依 senior 190 场语料分析入表",举"上一轮 22% 重传是单 socket 错误算术"级自我纠错为实证,收敛标准"连续两轮无新发现"。
+- 「Brainstorming → Ultracode 直通流程」第 2 点:实现 prompt 清单加生产红线/FORBIDDEN FILES;评审描述加"报差异不报摘要"与链式选项。
+- 新增顶层小节「## 安全加固类工作的措辞规范(2026-08-12)」,内容同 3.4,措辞按本机风格(可注明出处日期)。
+
+### 3.8 huake 仓 `claude-toolkit-engineer`(merge 后同步,走其自身 wip→确认→merge 流程)
+
+- 其 scaffold 的 CLAUDE.md.tmpl:找到评审/多代理分工对应段,按 3.5 同义植入;无对应段则在其计划/文档约定节新增。实现时先读其实际结构再定插入点,**不整文件替换**。
+- 安全措辞条同步植入。
+- README 如有 skill 说明表,核对是否需要同步描述(不新增 skill,计数不变)。
+
+## 4. 改动文件清单(kit 仓,本分支)
+
+| 文件 | 改动 |
+|---|---|
+| `README.zh-CN.md` | 3.1 / 3.2 / 3.3 / 3.4 |
+| `README.md` | 同上,英文同构 |
+| `plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl` | 3.5(中文) |
+| `plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl` | 3.5(英文) |
+| `plugins/workflow-codex/skills/scaffold/templates/AGENTS.md.tmpl` | 3.6 |
+| `plugins/workflow-codex/skills/parallel-do/SKILL.md` | 3.6 |
+
+本机与 huake 面(3.7 / 3.8)在本分支 merge 进 main 后执行,不在本分支内。
+
+## 5. 验收条款
+
+1. 四点在上述 6 个 kit 文件全部落位,语义要素与第 3 节 canonical 文本一一对应,无遗漏。
+2. 双语 README 工作流 prompt 段结构对齐:节序一致、新增小节编号均为「七之一 / 7a」式,无任何既有节被重编号。
+3. codex 面不出现 `model` / `effort` 档位概念;适配口径为"主对话亲自验收 + parallel-do 分波"。
+4. 「七之一」及各安全措辞条自身行文符合其自身规范(描述"做什么",不堆攻击性词汇)。
+5. 乱码扫描通过:`LC_ALL=C grep -l $'\xef\xbf\xbd' README*.md plugins/**/*.md plugins/**/*.tmpl` 无命中。
+6. 既有内容零回归:除插入点外,各文件其余内容 diff 为空。
+
+## 6. 实施与评审档位
+
+- 分支:`wip/senior-four-improvements`,commit 即 push。
+- ultracode 编排:README zh(sonnet/medium)→ README en 同构(sonnet/medium,输入含 zh 终稿 diff)→ 两个 tmpl(sonnet/medium)→ codex 两文件(sonnet/medium);每单元 opus/medium 评审(镜头:canonical 语义完整性 + 双语一致性 + 零回归),打回重跑升 high。
+- 终审:opus/high(README 是 kit 门面、方法论 prompt 是全局规则,爆炸半径大)。
+- merge 进 main 前找 Tony 确认(门禁)。
