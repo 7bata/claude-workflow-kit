@@ -69,6 +69,7 @@
   | `project` | cwd 的 basename | `"unknown"` |
   | `session_id` | hook stdin JSON 里的 session_id | `"unknown"` |
   | `source` | hook 触发源(startup/resume/clear/compact) | `"unknown"` |
+  | `cmd` | 自身 Claude 主进程的启动命令行(`ps -o command=` 对**自身祖先**取,属自我登记不属侦察),用于区分交互主会话与派生/headless 进程 | `"unknown"` |
   | `registered_at` | ISO8601 注册时间 | 必有(`date -u`) |
 
 - 有效性:条目仅当对应 socket 仍存在时有效;**读取侧必须先过滤**。
@@ -93,7 +94,7 @@
 
 实现单元动手前先在本机实测,结论回填实现;拿不准一律写保守分支(字段缺 → `"unknown"`,流程不 fail):
 
-1. 子代理是否触发 SessionStart、是否有自己的 socket(影响"注册表条目=主会话"这一解读的措辞强度);
+1. ~~子代理是否有自己的 socket~~ **已实测(2026-08-12,本会话)**:Workflow 派生的 agent 是独立 `claude` 进程(ps 可见 `--effort ultracode` 等旗标),各有自己的 `/tmp/cc-socks/<pid>.sock`;它们若加载 hooks 也会自注册。设计应对:条目含 `cmd` 字段供区分;SKILL.md 读取侧规则——同一项目出现多条目时优先交互主会话(cmd 无 `-p`/`--effort` 类派生旗标者),并把候选亮给用户,不替用户拍板。待补实测:派生进程是否真的触发 SessionStart hook(hook 落地后跑一个 workflow agent 观察注册表即可);
 2. hook stdin JSON 实际有哪些字段(session_id/cwd/source 的真实键名);
 3. hook 进程到 Claude Code 主进程的祖先链层数与形态;
 4. `.claude.json` 中账号邮箱的实际 JSON 路径(profile 与默认两种布局)。
