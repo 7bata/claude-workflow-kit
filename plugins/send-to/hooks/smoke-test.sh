@@ -13,6 +13,8 @@
 #   8) 孤儿条目:socket 文件仍在、但对应 pid 已死 → 被清扫
 #   9) CLAUDE_CONFIG_DIR 指向无 .claude.json 的目录时 account 为 "unknown",
 #      即便 HOME 下有 .claude.json 也不回落
+#  10) 停用标志 ~/.claude/.cc-session-registry-off 存在时 exit 0、不写文件、
+#      零 stdout(全局 opt-out,删除标志恢复)
 
 set -u
 
@@ -474,6 +476,41 @@ EOF
   rm -rf "$T"
 }
 
+test_off_flag_disables_registration() {
+  name="10-off-flag-disables-registration"
+  T=$(new_tmpdir)
+  SOCKS_DIR="$T/cc-socks"
+  REGISTRY_DIR="$T/cc-session-registry"
+  HOME_DIR="$T/home"
+  mkdir -p "$SOCKS_DIR" "$HOME_DIR/.claude"
+  FAKE_PID=76543
+  if command -v python3 >/dev/null 2>&1; then
+    python3 -c "
+import socket, sys
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.bind(sys.argv[1])
+" "$SOCKS_DIR/$FAKE_PID.sock"
+  else
+    fail "$name (无 python3,无法造 UDS 测试环境)"
+    return
+  fi
+  # 停用标志存在:即便 socket/pid 一切就绪也不得注册、不得清扫、零输出
+  : > "$HOME_DIR/.claude/.cc-session-registry-off"
+
+  STDOUT=$(printf '{"session_id":"sess-off","source":"startup"}' | \
+    CC_SOCKS_DIR="$SOCKS_DIR" CC_SESSION_REGISTRY_DIR="$REGISTRY_DIR" CC_SELF_PID="$FAKE_PID" HOME="$HOME_DIR" \
+    sh "$REGISTER_SH" 2>"$T/stderr.log")
+  RC=$?
+
+  OK=1
+  [ "$RC" -eq 0 ] || { OK=0; fail "$name (exit code = $RC, expected 0)"; }
+  [ -z "$STDOUT" ] || { OK=0; fail "$name (stdout 非空: $STDOUT)"; }
+  [ -e "$REGISTRY_DIR" ] && { OK=0; fail "$name (停用标志在,注册表目录仍被创建)"; }
+
+  [ "$OK" -eq 1 ] && pass "$name"
+  rm -rf "$T"
+}
+
 test_normal_registration
 test_registry_dir_autocreate
 test_stale_entry_cleanup
@@ -483,6 +520,7 @@ test_ancestor_chain_walk_hits_self_socket
 test_ancestor_chain_walk_exhausted
 test_orphan_entry_dead_pid_cleanup
 test_config_dir_no_fallback_to_home
+test_off_flag_disables_registration
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
