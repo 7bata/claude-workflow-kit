@@ -48,7 +48,7 @@
 
 ### 3.2 回声双档(替换现行"首发必须索回声"单一规则)
 
-- **注册表确证**(三条件同时满足:注册条目存在 + 对应 socket 存活 + 条目的项目/账号与用户所指目标对得上):直发**不必阻塞等回声**;首发仍自报家门(哪个项目/profile 的窗口),并附「若你不是 <目标>,请回我一声并忽略」作为零成本纠错邀请。投递状态汇报照旧只可说"已发送"(held 挂起风险与身份确证无关)。
+- **注册表确证**(三条件同时满足:注册条目存在 + 对应 socket 存在**且其 pid 进程存活** + 条目的项目/账号与用户所指目标对得上):直发**不必阻塞等回声**;首发仍自报家门(哪个项目/profile 的窗口),并附「若你不是 <目标>,请回我一声并忽略」作为零成本纠错邀请。投递状态汇报照旧只可说"已发送"(held 挂起风险与身份确证无关)。
 - **非确证**(排除法收窄、用户口头指认、L3 各来源):照旧强制索取回声,等不到回声不得当作已送达,该转文件交接就转。
 
 ### 3.3 身份注册表(SKILL.md 新增一节)
@@ -72,8 +72,8 @@
   | `cmd` | 自身 Claude 主进程的启动命令行(`ps -o command=` 对**自身祖先**取,属自我登记不属侦察),用于区分交互主会话与派生/headless 进程 | `"unknown"` |
   | `registered_at` | ISO8601 注册时间 | 必有(`date -u`) |
 
-- 有效性:条目仅当对应 socket 仍存在时有效;**读取侧必须先过滤**。
-- 清理:hook 每次运行顺手删除 socket 已消失的条目;整个目录可随时 `rm -rf`,无副作用(各会话下次 SessionStart 重建)。
+- 有效性:条目仅当「对应 socket 仍存在 **且其 pid 进程仍存活**(`kill -0` 级检查)」时有效;**读取侧必须先按此双判据过滤**。单看 socket 文件不够:claude 退出后 socket 会残留(实证:本机 29473.sock 已无对应进程),孤儿 socket + 单判据 = 幻影条目 + 假"已发送"。
+- 清理:hook 每次运行顺手删除「socket 已消失**或 pid 已死**」的条目;整个目录可随时 `rm -rf`,无副作用(各会话下次 SessionStart 重建)。
 - 性质声明(必须写进 SKILL.md,防未来执行者不敢用):**注册表是各会话自愿自报的名片,与 ListAgents 的注册同性质;读注册表 ≠ 侦察**。硬禁止针对的是"单方拿 pid 翻进程/终端替用户拍板",那条禁令原样有效。
 - 覆盖范围如实声明:只有装了本插件(或挂了注册 hook)的 profile 的会话才有条目;**没条目 ≠ 不存在**,走 L3。
 
@@ -83,18 +83,18 @@
 - `plugins/send-to/hooks/register.sh`(POSIX sh,macOS/Linux 兼容,`send-to-en` 同文件):
   1. **定位自身 pid**:从自身进程沿祖先链上溯(`ps -o ppid= -p`),找到第一个满足 `[ -S "$SOCKS_DIR/<pid>.sock" ]` 的祖先 pid;上溯步数设硬上限(如 10)防死循环;找不到 → 静默 `exit 0` 不写文件。
   2. **读 stdin JSON**(best-effort,sed/awk 提取 `session_id`、`cwd`、`source`;解析失败一律回落 `"unknown"`,cwd 回落 `$PWD`)。
-  3. **取账号**:依次尝试 `$CLAUDE_CONFIG_DIR/.claude.json`、`$HOME/.claude.json` 提取 `emailAddress` 首个值;失败 `"unknown"`。profile 取 `basename "$CLAUDE_CONFIG_DIR"`,未设置为 `"default"`。
+  3. **取账号**:`CLAUDE_CONFIG_DIR` 已设置时**只认** `$CLAUDE_CONFIG_DIR/.claude.json`(取不到写 `"unknown"`,**不回落** `$HOME`——回落会把 labs/long profile 的会话错标成 default 账号,错标 + 免回声直发 = 投错窗口不自知,危害大于 unknown);未设置时读 `$HOME/.claude.json`。路径处理必须耐空格(不许无引号 for-loop 展开)。profile 取 `basename "$CLAUDE_CONFIG_DIR"`,未设置为 `"default"`。
   4. **原子写**:mktemp 于注册表**同目录**内 → 写 JSON → `mv` 到 `<pid>.json`(幂等,重复运行覆盖刷新)。
-  5. **顺手清扫**:遍历注册表内 `*.json`,对应 socket 不存在则删除。
+  5. **顺手清扫**:遍历注册表内 `*.json`,「对应 socket 不存在**或 pid 进程已死**」则删除(双判据,防孤儿 socket 幻影条目)。
   6. **静默纪律**:**stdout 绝不输出任何内容**(SessionStart hook 的 stdout 会被注入会话上下文,speak-human 是刻意注入,本 hook 必须零输出);任何失败静默 `exit 0`,绝不影响会话启动。
 - 可测性:`CC_SOCKS_DIR`(默认 `/tmp/cc-socks`)、`CC_SESSION_REGISTRY_DIR`(默认 `/tmp/cc-session-registry`)、`CC_SELF_PID`(默认走祖先链)三个环境变量可覆盖,供 smoke 测试注入假环境。
-- **smoke 测试**:`plugins/send-to/hooks/smoke-test.sh`,临时目录内验证至少五例:① 正常注册(字段齐、JSON 可解析);② 注册表目录不存在时自动创建且 0700;③ 陈旧条目(socket 已删)被清扫;④ 定位不到自身 socket 时退出 0 且不写文件、无 stdout 输出;⑤ 重复运行幂等。TDD:先写 smoke 测试跑到失败,再写 register.sh。
+- **smoke 测试**:`plugins/send-to/hooks/smoke-test.sh`,临时目录内验证至少七例:① 正常注册(字段齐、JSON 可解析);② 注册表目录不存在时自动创建且 0700;③ 陈旧条目(socket 已删)被清扫;④ 定位不到自身 socket 时退出 0 且不写文件、无 stdout 输出;⑤ 重复运行幂等;⑥ 孤儿条目(socket 文件在、pid 已死)被清扫;⑦ `CLAUDE_CONFIG_DIR` 指向无 `.claude.json` 的目录时 account 为 `"unknown"`(即便 `$HOME/.claude.json` 存在也不回落)。TDD:先写 smoke 测试跑到失败,再写 register.sh。
 
 ### 3.5 实现前实测清单(不确定点)
 
 实现单元动手前先在本机实测,结论回填实现;拿不准一律写保守分支(字段缺 → `"unknown"`,流程不 fail):
 
-1. ~~子代理是否有自己的 socket~~ **已实测(2026-08-12,本会话)**:Workflow 派生的 agent 是独立 `claude` 进程(ps 可见 `--effort ultracode` 等旗标),各有自己的 `/tmp/cc-socks/<pid>.sock`;它们若加载 hooks 也会自注册。设计应对:条目含 `cmd` 字段供区分;SKILL.md 读取侧规则——同一项目出现多条目时优先交互主会话(cmd 无 `-p`/`--effort` 类派生旗标者),并把候选亮给用户,不替用户拍板。待补实测:派生进程是否真的触发 SessionStart hook(hook 落地后跑一个 workflow agent 观察注册表即可);
+1. ~~子代理是否有自己的 socket~~ **已实测(2026-08-12,本会话,两轮)**:Workflow 派生的 agent 是独立 `claude` 进程,各有自己的 `/tmp/cc-socks/<pid>.sock`。**旗标不可作硬判据**(终审反证:同机全部交互主会话的 cmd 同样带 `--effort ultracode`,与派生进程无差别;按"cmd 无 --effort"筛选会筛掉 100% 主会话)。第二轮实测:项目级 settings hook 就位后跑最小 workflow agent,注册表**未出现**派生进程条目——污染实测未复现。设计应对:`cmd` 仅作弱提示(带 `-p`/`--print` 的多为 headless 一次性进程,排序靠后),**绝不作筛除依据**;同一项目多条活条目一律把候选(项目、账号、启动时间、cmd)亮给用户挑,不替用户拍板;
 2. hook stdin JSON 实际有哪些字段(session_id/cwd/source 的真实键名);
 3. hook 进程到 Claude Code 主进程的祖先链层数与形态;
 4. `.claude.json` 中账号邮箱的实际 JSON 路径(profile 与默认两种布局)。
@@ -120,6 +120,7 @@
 | `plugins/send-to/hooks/hooks.json` + `register.sh` + `smoke-test.sh` | 新增,3.4 |
 | `plugins/send-to-en/hooks/`(同构三文件) | 新增 |
 | `plugins/send-to/.claude-plugin/plugin.json`、`plugins/send-to-en/.claude-plugin/plugin.json` | 版本+描述 |
+| `.claude-plugin/marketplace.json` | send-to / send-to-en 两条 description 换新口径(uds: 直发标准路径 + 身份注册表 + 四级阶梯),与 0.3.0 plugin.json 对齐 |
 | `README.zh-CN.md`、`README.md` | 3.7(send-to 节 + 目录树) |
 
 ## 5. merge 后外部同步(不在本分支内)
