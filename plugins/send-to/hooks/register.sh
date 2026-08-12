@@ -16,6 +16,10 @@
 SOCKS_DIR="${CC_SOCKS_DIR:-/tmp/cc-socks}"
 REGISTRY_DIR="${CC_SESSION_REGISTRY_DIR:-/tmp/cc-session-registry}"
 
+# 停用开关(全局 opt-out):touch ~/.claude/.cc-session-registry-off 即停用
+# 注册与清扫,删除该文件恢复。与 speak-human/auto-scaffold 的标志文件同款套路。
+[ -f "${HOME:-}/.claude/.cc-session-registry-off" ] && exit 0
+
 # ---------------------------------------------------------------
 # 1. 定位自身 pid:沿祖先链上溯,找第一个自身 socket 存在的祖先。
 #    上限 10 层防死循环。CC_SELF_PID 可直接覆盖(smoke 测试用)。
