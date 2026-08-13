@@ -6,7 +6,7 @@ argument-hint: "[站点URL] [登录态说明,可选]"
 
 # ui-sweep — UI 全量交互遍历
 
-SOP 截图前先把界面系统性点一遍,揪出「点了没反应」「点了报错」这类暗坑,再产 SOP 或回归验收——比人工肉眼过一遍快,比随机 monkey 测试有确定性覆盖保证。驱动是 [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser)(★40.5k,Apache-2.0,专为 AI agent 造的 Rust CLI:a11y 快照带元素引用、点击自带遮挡检测、`console`/`errors` 采集、confirm/prompt 显式接管、`state save/load` 登录态注入),外加自研 ~350 行遍历编排(`scripts/sweep.mjs`,自己接管 agent-browser 会话生命周期 + 逐击域名校验,见下方「域名边界是两层」)。2026-08-13 在 stella 项目实跑验证:10 屏 218 条结果记录(205 次实际点击),0 页面异常、0 console 报错,揪出 1 个真缺陷(看板「添加」空输入完全静默)。
+SOP 截图前先把界面系统性点一遍,揪出「点了没反应」「点了报错」这类暗坑,再产 SOP 或回归验收——比人工肉眼过一遍快,比随机 monkey 测试有确定性覆盖保证。驱动是 [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser)(★40.5k,Apache-2.0,专为 AI agent 造的 Rust CLI:a11y 快照带元素引用、点击自带遮挡检测、`console`/`errors` 采集、confirm/prompt 显式接管、`state save/load` 登录态注入),外加自研 ~350 行遍历编排(`scripts/sweep.mjs`,自己接管 agent-browser 会话生命周期 + 逐击域名校验,见下方「域名边界是两层」)。2026-08-13 在某内部 SPA 项目实跑验证:10 屏 218 条结果记录(205 次实际点击),0 页面异常、0 console 报错,揪出 1 个真缺陷(某「添加」类按钮在空输入时完全静默——既无提示也无变化)。
 
 ## 环境要求
 
@@ -37,7 +37,7 @@ SOP 截图前先把界面系统性点一遍,揪出「点了没反应」「点了
 
 ## 安全边界(硬规则)
 
-- **破坏性按钮只记不点**:引擎内置默认拦截名单(吊销/解散/删除/退出/logout/sign out/revoke/归档/archive/清除/clear/重置/reset/发送/send/保存/save/上传/upload 等中英正则),命中的元素只记入台账(`skipped-denylist`),绝不点击。项目可以通过 `sweep.config.mjs` 的 `DENY_EXTRA`(正则)**叠加**拦截范围,但没有任何配置路径能削减或覆盖这份默认名单——安全底线不可配置弱化。站点专属的噪音钮(例如 stella 的「Ask」按钮,不是破坏性动作但希望常年跳过)不进默认名单,用项目自己的 `DENY_EXTRA` 增补。
+- **破坏性按钮只记不点**:引擎内置默认拦截名单(吊销/解散/删除/退出/logout/sign out/revoke/归档/archive/清除/clear/重置/reset/发送/send/保存/save/上传/upload 等中英正则),命中的元素只记入台账(`skipped-denylist`),绝不点击。项目可以通过 `sweep.config.mjs` 的 `DENY_EXTRA`(正则)**叠加**拦截范围,但没有任何配置路径能削减或覆盖这份默认名单——安全底线不可配置弱化。站点专属的噪音钮(例如某个非破坏性、但希望常年跳过的入口按钮)不进默认名单,用项目自己的 `DENY_EXTRA` 增补。
 - **confirm/prompt 一律驳回**:每次点击后台账检查弹窗状态,只要检测到 `confirm`/`prompt`/`alert` 一律 `dismiss`,不产生真实写入。
 - **域名边界是两层**(0.27.0 实测,如实两层表述,不做单层的"圈死"承诺):
   1. `--allowed-domains <ALLOWED_DOMAINS>` 只约束 `agent-browser` 的**显式导航**(`open`/`back`/`forward` 这类命令直接指定 URL 的场景)。**点击跳转拦不住**——页面里 `<a href>` 默认行为、`location.href` 这类点击触发的同窗口跳转,不受这个 flag 约束,实测里点了就真跳走了。这个 flag 还只在浏览器进程**启动那一刻**生效:`state` 预载(先 `state load` 再跑遍历)、复用一个已经在跑的旧会话,都会让它对当前会话失效,因为后续命令换的值不会让已经启动的浏览器进程重新读取配置。
@@ -54,6 +54,6 @@ SOP 截图前先把界面系统性点一遍,揪出「点了没反应」「点了
 
 ## 出处
 
-- 实跑数据(出处:实跑台账 ledger.jsonl):2026-08-13 stella 项目实跑,10 屏 218 条结果记录(205 次实际点击,即 218 减去 11 条 skipped-denylist、减去 2 条 miss-not-found——这两类都没有真的发出点击)—— ok-changed 106 / dead 97 / dialog-dismissed 0 / click-error 2 / page-error 0 / skipped-denylist(拦截未点)11 / miss-not-found(定位丢失)2;其中 2 次命中 note-relocated-by-index(按位回落,附注不是独立分类,已计入以上对应分类)。当时的实跑版本还没有 `left-domain` 分类(本轮才补上,见「域名边界是两层」),因此实跑数据没有这一类的样本。0 页面异常、0 console 报错,揪出真缺陷 1 个(看板「添加」空输入完全静默)。
+- 实跑数据(出处:实跑台账 ledger.jsonl):2026-08-13 某内部 SPA 项目实跑,10 屏 218 条结果记录(205 次实际点击,即 218 减去 11 条 skipped-denylist、减去 2 条 miss-not-found——这两类都没有真的发出点击)—— ok-changed 106 / dead 97 / dialog-dismissed 0 / click-error 2 / page-error 0 / skipped-denylist(拦截未点)11 / miss-not-found(定位丢失)2;其中 2 次命中 note-relocated-by-index(按位回落,附注不是独立分类,已计入以上对应分类)。当时的实跑版本还没有 `left-domain` 分类(本轮才补上,见「域名边界是两层」),因此实跑数据没有这一类的样本。0 页面异常、0 console 报错,揪出真缺陷 1 个(某「添加」类按钮空输入时完全静默)。
 - 驱动:[vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser),0.27.0(headless Chrome for Testing 152)实测。
 - 调研依据:内部工具链调研(GitHub 候选对比:agent-browser vs playwright-mcp/chrome-devtools-mcp(MCP 形态,全量遍历下 token/时延成本不成立)vs browser-use(非确定性)vs crawlee(URL 爬虫,SPA 屏内状态逻辑仍需自写)vs gremlins.js(随机 monkey 测试,已停维护))。

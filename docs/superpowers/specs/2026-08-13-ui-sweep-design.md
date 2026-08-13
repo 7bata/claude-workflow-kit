@@ -2,11 +2,11 @@
 
 - 日期:2026-08-13
 - 状态:已获 Tony 确认(形态=独立双语 bonus 插件 + 通用化引擎 + sop-generate 前置指引;铺面=kit + dev-toolkit + huake 全铺)
-- 依据:stella 会话交接(2026-08-13)——调研 `docs/superpowers/research/2026-08-13-agent浏览器与UI遍历测试调研.md` 与实跑报告 `docs/reports/2026-08-13-UI全量交互遍历报告.md`(均在 stella 仓 wip/ui-sweep-sop;本机导出副本与抢救的脚本在会话 scratchpad `ui-sweep-rescue/`)
+- 依据:某内部 SPA 项目会话交接(2026-08-13)——调研 `docs/superpowers/research/2026-08-13-agent浏览器与UI遍历测试调研.md` 与实跑报告 `docs/reports/2026-08-13-UI全量交互遍历报告.md`(均在该项目仓 wip/ui-sweep-sop;本机导出副本与抢救的脚本在会话 scratchpad `ui-sweep-rescue/`)
 
 ## 1. 背景
 
-Tony 拍板:SOP 截图前先把全站交互按钮系统性全点一遍;工具链调研定了 vercel-labs/agent-browser(★40.5k,Apache-2.0,AI 专用 Rust CLI,自带 Chrome,a11y 快照带元素引用)做驱动 + 自研 ~160 行遍历编排;stella 实跑 10 屏 220 击验证可行(0 异常,揪出 1 真缺陷)。现沉淀为可复用 skill。
+Tony 拍板:SOP 截图前先把全站交互按钮系统性全点一遍;工具链调研定了 vercel-labs/agent-browser(★40.5k,Apache-2.0,AI 专用 Rust CLI,自带 Chrome,a11y 快照带元素引用)做驱动 + 自研 ~160 行遍历编排;某内部 SPA 项目实跑 10 屏 220 击验证可行(0 异常,揪出 1 真缺陷)。现沉淀为可复用 skill。
 
 ## 2. 形态与交付物(kit 仓,本分支)
 
@@ -17,7 +17,7 @@ Tony 拍板:SOP 截图前先把全站交互按钮系统性全点一遍;工具链
 | `plugins/ui-sweep/skills/ui-sweep/SKILL.md` | 中文版流程(见 §4) |
 | `plugins/ui-sweep/skills/ui-sweep/scripts/sweep.mjs` | 通用化遍历引擎(见 §3) |
 | `plugins/ui-sweep/skills/ui-sweep/scripts/export-state.mjs` | 登录态导出工具(照搬抢救副本,路径参数化检查) |
-| `plugins/ui-sweep/skills/ui-sweep/references/report-template.md` | 报告骨架:总量/真缺陷/假阳性定性/观察级/覆盖缺口(诚实记账)五节,照 stella 实跑报告结构 |
+| `plugins/ui-sweep/skills/ui-sweep/references/report-template.md` | 报告骨架:总量/真缺陷/假阳性定性/观察级/覆盖缺口(诚实记账)五节,照该项目实跑报告结构 |
 | `plugins/ui-sweep/.claude-plugin/plugin.json` | 0.1.0,描述含触发词与安全边界一句话 |
 | `plugins/ui-sweep-en/…` | 英文版同构(SKILL/报告模板同义重译;两个 scripts 与 zh 逐字节一致) |
 | `.claude-plugin/marketplace.json` | 登记 ui-sweep / ui-sweep-en 两条 |
@@ -28,9 +28,9 @@ Tony 拍板:SOP 截图前先把全站交互按钮系统性全点一遍;工具链
 
 ## 3. 引擎通用化(sweep.mjs,以抢救副本为基线)
 
-实跑版是 stella 专属(ROOT/SCREENS/语言基线硬编码)。改造为「通用引擎 + 项目配置」:
+实跑版是该项目专属(ROOT/SCREENS/语言基线硬编码)。改造为「通用引擎 + 项目配置」:
 
-1. **配置外置**:`node sweep.mjs <path>/sweep.config.mjs`,config 导出:`ROOT`(必填)、`SCREENS`(必填,`{id, path:[{css}|{text}], settleMs?}`)、`DENY_EXTRA`(可选正则,叠加默认拦截名单)、`ensureBaseline`(可选 async 钩子,替代 stella 的语言锁逻辑——语言/主题基线是项目相关的)、`OUT`(可选,默认 ./sweep-out)。缺必填项立即报错退出,不静默空跑。
+1. **配置外置**:`node sweep.mjs <path>/sweep.config.mjs`,config 导出:`ROOT`(必填)、`SCREENS`(必填,`{id, path:[{css}|{text}], settleMs?}`)、`DENY_EXTRA`(可选正则,叠加默认拦截名单)、`ensureBaseline`(可选 async 钩子,替代某项目的语言锁逻辑——语言/主题基线是项目相关的)、`OUT`(可选,默认 ./sweep-out)。缺必填项立即报错退出,不静默空跑。
 2. **默认拦截名单保留**(吊销/解散/删除/退出/logout/revoke/归档/清除/重置/发送/保存/上传等中英正则),config 只能增补不能削减——安全底线不可配置弱化。
 3. **指纹补 checkbox 勾选态**:现指纹 = url+元素数+文本长,盲区实证(在场共享开关未验证翻转);追加 `document.querySelectorAll('input:checked,[aria-checked="true"]').length`。
 4. **`--strict` 模式**:每击必恢复现场(治"同屏状态累积掩盖后续点击变化"的假阳性,实跑中 Agents 设置三个按钮因此误判 dead);默认关(全量跑慢约一倍),SKILL.md 写明取舍与建议(初跑全量用默认,对 dead 清单复核时用 --strict 重点跑)。
@@ -44,7 +44,7 @@ Tony 拍板:SOP 截图前先把全站交互按钮系统性全点一遍;工具链
 - **流程六步**:①依赖自检;②登录态注入(export-state.mjs 从真实浏览器 CDP 导出 cookies+localStorage 拼 storageState,`agent-browser state load` 吃——绝不碰口令明文,绝不把登录态文件入 git);③**屏清单编制**(唯一需要项目定制的部分:先开站点抓首屏快照,把每个"屏"= 从根 URL 出发的确定性恢复路径写进 sweep.config.mjs;SPA 的浮层/抽屉/页签各态算独立屏);④跑引擎(全量默认模式);⑤**结果判读**(六分类语义表 + 假阳性定性法:click-error 先查 dialog 台账——同步 prompt 堵塞是常客;dead 先想状态累积——用 --strict 复跑定性;当前态导航钮/被浮层盖住的副本判 dead 属正常;headless 下全屏/日期选择器 API 空转非产品问题);⑥按 references/report-template.md 产报告,真缺陷逐条真浏览器复核后才定罪。
 - **安全边界(硬规则)**:破坏性按钮只记不点(默认名单+项目增补);confirm/prompt 一律驳回,不产生真实写入;`--allowed-domains` 圈死目标域;只扫自家或已获授权的站点;登录态文件用完即删。**[2026-08-13 实现期修订]**:实测证伪「旗标圈死」——它只限显式导航,点击驱动跳转拦不住、旧会话/预载登录态会使其失效;最终实现为双层防护:旗标(尽力而为)+ 引擎逐击域名校验(出域记 `left-domain` 并当场恢复现场),会话生命周期由引擎接管(隔离 `--session ui-sweep`,STATE_FILE 进 config 由引擎在受限会话内加载),分类由六类扩为八类。
 - **已知局限**(诚实声明):checkbox 翻转仅指纹级验证;headless 环境部分浏览器 API 空转;canvas/自绘 UI 不在 a11y 快照里,本 skill 覆盖不到。
-- **出处**:调研与实跑报告(stella 仓路径)、agent-browser 仓库、2026-08-13 实跑数据(10 屏 220 击,分类分布)。
+- **出处**:调研与实跑报告(该项目仓路径)、agent-browser 仓库、2026-08-13 实跑数据(10 屏 220 击,分类分布)。
 
 ## 5. merge 后铺面(不在本分支;各走 wip → Tony 门禁)
 

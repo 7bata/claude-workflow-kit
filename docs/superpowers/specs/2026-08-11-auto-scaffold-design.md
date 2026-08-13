@@ -2,13 +2,13 @@
 
 日期:2026-08-11
 状态:已获用户逐节批准(触发机制、规则正文、Auto 模式、分发面矩阵、验收方案共四节,两轮确认)
-来源:stella 路线图窗口转达的用户指派——让"新建项目"总是自动铺脚手架,落 claude-workflow-kit,同步 stellark vibe / huake / 开源各面
+来源:该项目路线图会话转达的用户指派——让"新建项目"总是自动铺脚手架,落 claude-workflow-kit,同步 stellark vibe / huake / 开源各面
 
 ## 1. 背景与目标
 
 非工程用户(典型如 Will)纯 vibe coding:开会话说需求、AI 就干,脑中没有"项目=
 文件夹"的意识——不建文件夹、不敲 `/scaffold`、不管 git。结果项目没有 docs,
-stella 路线图(读各项目 docs/REQUIREMENTS、DECISIONS、PLAN、Progress 生成主管级
+某项目的路线图汇总模块(读各项目 docs/REQUIREMENTS、DECISIONS、PLAN、Progress 生成主管级
 路线图)无料可读。
 
 **目标**:把"认出新项目并铺设脚手架"做成**注入会话的 AI 行为**——AI 从用户的
@@ -18,8 +18,8 @@ CLAUDE.md 自带自维护闭环(每操作 → 补文档 + 原子 commit + push),
 
 **非目标**:
 - 存量缺 docs 项目的回填(另有窗口负责,本设计明确不顺手补铺);
-- 改变 DECISIONS / PLAN / Progress 三件模板的格式(stella 解析依赖现状格式;
-  若未来要改,先知会 stella 窗口);
+- 改变 DECISIONS / PLAN / Progress 三件模板的格式(该项目的路线图汇总模块解析依赖现状格式;
+  若未来要改,先知会该项目会话);
 - 改动现有手动 `/scaffold` 交互流程(Auto 模式是并列入口,手动流程一字不动)。
 
 ## 2. Prior art
@@ -139,4 +139,4 @@ Important #1/#4)。
 3. 冒烟与 evals 验收;
 4. 评审 + 用户确认后并入 main;
 5. 传播:stellark vibe(临时 clone)→ huake → codex README 片段;
-6. 回执 stella 窗口(doc 格式未动,可放心解析)。
+6. 回执该项目会话(doc 格式未动,可放心解析)。
