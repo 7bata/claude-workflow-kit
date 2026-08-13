@@ -27,14 +27,16 @@ ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档，不含进度，不读
 | 最新 spec 尚未实现（Progress 无对应实现记录） | 用 ultracode（Workflow 多代理编排）直接从该 spec 实现；该 spec 是否已获用户批准拿不准时，先问一句再开 |
 | spec 全部已实现（或还没有 spec），PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 用 superpowers:brainstorming 出 design spec（落 `docs/superpowers/specs/`），获批后直接 ultracode 实现——不走 writing-plans；spec 登记进 Spec 索引 |
 | PLAN.md 总体路线还是 `<!-- 待补 -->` | 先读 REQUIREMENTS.md「分期路线图」作输入，再用 superpowers:brainstorming 定分阶段路线图 |
-| 所有 Phase 都 ✅ | 项目按计划已完成；建议复盘或开新 Phase |
+| 所有 Phase 都 ✅，且没有游离在路线图外的待办 | 项目按计划已完成；建议复盘或开新 Phase |
+| 所有 Phase 都 ✅，但仍有 Backlog（未纳入任何 Phase 的登记项，常见于 MEETINGS.md 未勾选待办、或用户提过但没排进路线图的条目）未完成 | 先报告主路线已完成，再把 Backlog 按登记出现的顺序原样列出——**不擅自判断哪个更该先做、不替用户排优先级**，交给用户自己挑 |
 
-## 步骤 3：输出契约（按序四部分）
+## 步骤 3：输出契约（按序五部分）
 
 1. **当前位置** — 一两句：最近完成了什么，引用 Progress 最新条目的日期
 2. **下一步** — 任务名 + 第一步具体动作（到文件/命令级别）+ 出处（哪个文件哪一节）
 3. **随行注意** — 与下一步相关的已定决策 / 踩坑，来源：DECISIONS.md 最近条目 + Progress 变更日志，注明出处；没有则省略此节
 4. **未落计划的会议待办** — MEETINGS.md 最新一节里未勾选、且没进任何计划的待办，提醒用户决定去向；没有则省略此节
+5. **Backlog** — 所有 Phase 已完成但仍有未纳入路线图的登记项时，按登记出现的顺序原样列出，不替用户排优先级；没有则省略此节
 
 结尾问用户：现在开始吗？
 

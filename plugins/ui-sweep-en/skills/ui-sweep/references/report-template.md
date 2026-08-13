@@ -7,7 +7,7 @@
 
 ## Totals
 
-**<N> clicks. <M> page exceptions, <K> console errors.** Distribution: ok-changed <n1> / dead <n2> / denylisted-unclicked <n3> / click-error <n4> / relocated-by-index <n5> / miss-not-found <n6>.
+**<N> ledger records (<N2> actual clicks). <M> page exceptions, <K> console errors.** Distribution: ok-changed <n1> / dead <n2> / dialog-dismissed <n3> / click-error <n4> / page-error <n5> / denylisted-unclicked (skipped-denylist) <n6> / miss-not-found <n7> / left-domain-recovered (left-domain) <n8>. (<n9> of these were relocated-by-index (note-relocated-by-index) — an annotation, not a separate category, already counted under the categories above.)
 
 ## Real defects (<count>, fixed/pending)
 
@@ -36,3 +36,4 @@ Parts this pass did not cover, and why (don't dress it up as "full coverage"):
 - <N> items denylisted-unclicked (<list of button names>): destructive or would produce a real write, not clicked this pass.
 - <miss-not-found / screens not built>: <reason>.
 - <modules/upstream product UI out of scope>: <reason>.
+- <N> items left-domain-recovered (<list of element names>): the click navigated outside this pass's `ALLOWED_DOMAINS` and the engine forced a recovery on the spot, so this pass never actually verified that element's final state; if it's a legitimate in-product link to an upstream domain, add that domain to `ALLOWED_DOMAINS` and re-run to cover it.

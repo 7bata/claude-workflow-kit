@@ -7,7 +7,7 @@
 
 ## 总量
 
-**<N> 次点击。<M> 页面异常,<K> console 报错。** 分布:ok-changed <n1> / dead <n2> / 拦截未点 <n3> / click-error <n4> / 按位回落 <n5> / 定位丢失 <n6>。
+**<N> 条结果记录(<N2> 次实际点击)。<M> 页面异常,<K> console 报错。** 分布:ok-changed <n1> / dead <n2> / dialog-dismissed <n3> / click-error <n4> / page-error <n5> / 拦截未点(skipped-denylist)<n6> / 定位丢失(miss-not-found)<n7> / 出域已拉回(left-domain)<n8>。(其中 <n9> 次按位回落命中(note-relocated-by-index)——附注,不是独立分类,已计入以上对应分类。)
 
 ## 真缺陷(<数量> 个,已修/待修)
 
@@ -36,3 +36,4 @@
 - 拦截未点 <N> 项(<按钮名列表>):破坏性或产生真实写入,本轮不点。
 - <定位丢失/未成屏的部分>:<原因>。
 - <未纳入范围的模块/上游产品 UI>:<原因>。
+- 出域已拉回 <N> 项(<元素名列表>):点击后跑出了当次 `ALLOWED_DOMAINS`,已被引擎当场恢复现场,该元素本次遍历没有真正被验证到最终态;如果是站内正常跳转到某个上游域名,把该域名加进 `ALLOWED_DOMAINS` 再跑一轮即可覆盖。

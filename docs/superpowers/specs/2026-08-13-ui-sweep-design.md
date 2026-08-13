@@ -42,7 +42,7 @@ Tony 拍板:SOP 截图前先把全站交互按钮系统性全点一遍;工具链
 - frontmatter:name ui-sweep;description 含触发场景(SOP 截图前全量点一遍 / 改完一批 UI 做回归扫描 / "把所有按钮点一遍" / 交互冒烟);argument-hint `"[站点URL] [登录态说明,可选]"`。
 - **环境要求**:`npm i -g agent-browser`(自带 Chrome for Testing,无 Playwright 依赖;Apache-2.0);版本参考 0.27.0 实测。
 - **流程六步**:①依赖自检;②登录态注入(export-state.mjs 从真实浏览器 CDP 导出 cookies+localStorage 拼 storageState,`agent-browser state load` 吃——绝不碰口令明文,绝不把登录态文件入 git);③**屏清单编制**(唯一需要项目定制的部分:先开站点抓首屏快照,把每个"屏"= 从根 URL 出发的确定性恢复路径写进 sweep.config.mjs;SPA 的浮层/抽屉/页签各态算独立屏);④跑引擎(全量默认模式);⑤**结果判读**(六分类语义表 + 假阳性定性法:click-error 先查 dialog 台账——同步 prompt 堵塞是常客;dead 先想状态累积——用 --strict 复跑定性;当前态导航钮/被浮层盖住的副本判 dead 属正常;headless 下全屏/日期选择器 API 空转非产品问题);⑥按 references/report-template.md 产报告,真缺陷逐条真浏览器复核后才定罪。
-- **安全边界(硬规则)**:破坏性按钮只记不点(默认名单+项目增补);confirm/prompt 一律驳回,不产生真实写入;`--allowed-domains` 圈死目标域;只扫自家或已获授权的站点;登录态文件用完即删。
+- **安全边界(硬规则)**:破坏性按钮只记不点(默认名单+项目增补);confirm/prompt 一律驳回,不产生真实写入;`--allowed-domains` 圈死目标域;只扫自家或已获授权的站点;登录态文件用完即删。**[2026-08-13 实现期修订]**:实测证伪「旗标圈死」——它只限显式导航,点击驱动跳转拦不住、旧会话/预载登录态会使其失效;最终实现为双层防护:旗标(尽力而为)+ 引擎逐击域名校验(出域记 `left-domain` 并当场恢复现场),会话生命周期由引擎接管(隔离 `--session ui-sweep`,STATE_FILE 进 config 由引擎在受限会话内加载),分类由六类扩为八类。
 - **已知局限**(诚实声明):checkbox 翻转仅指纹级验证;headless 环境部分浏览器 API 空转;canvas/自绘 UI 不在 a11y 快照里,本 skill 覆盖不到。
 - **出处**:调研与实跑报告(stella 仓路径)、agent-browser 仓库、2026-08-13 实跑数据(10 屏 220 击,分类分布)。
 

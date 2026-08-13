@@ -27,14 +27,16 @@ ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress —
 | The latest spec is not yet implemented (Progress has no matching implementation record) | Use ultracode (Workflow multi-agent orchestration) to implement directly from that spec; if it's unclear whether the spec has been approved by the user, ask first before starting |
 | All specs are implemented (or there isn't one yet), and PLAN.md still has a Phase not marked ✅ | Run superpowers:brainstorming for the next Phase to produce a design spec (write it to `docs/superpowers/specs/`), then go straight to ultracode implementation once approved — skip writing-plans; register the spec in the Spec Index |
 | PLAN.md's Overall Roadmap is still `<!-- TBD -->` | First read REQUIREMENTS.md's "Phased Roadmap" as input, then use superpowers:brainstorming to define the phased roadmap |
-| All Phases are ✅ | The project is complete per plan; suggest a retrospective or starting a new Phase |
+| All Phases are ✅, and there's no action item left outside the roadmap | The project is complete per plan; suggest a retrospective or starting a new Phase |
+| All Phases are ✅, but there's still an unfinished Backlog (items not filed under any Phase — typically unchecked MEETINGS.md action items, or things the user mentioned but never scheduled into the roadmap) | First report that the main roadmap is done, then list the Backlog as-is in the order it was recorded — **don't judge which one matters more, don't prioritize on the user's behalf**; let them pick |
 
-## Step 3: Output contract (four parts, in order)
+## Step 3: Output contract (five parts, in order)
 
 1. **Where you are** — one or two sentences: what was most recently completed, citing the date of Progress's latest entry
 2. **Next step** — task name + the first concrete action (down to the file/command level) + source (which file, which section)
 3. **Watch-outs** — decisions already made / pitfalls relevant to the next step, sourced from: DECISIONS.md's most recent entries + the Progress changelog, with citations; omit this section if none
 4. **Meeting action items not yet in any plan** — unchecked action items from MEETINGS.md's latest section that haven't made it into any plan, prompting the user to decide where they go; omit this section if none
+5. **Backlog** — when all Phases are done but there are still items not filed under the roadmap, list them as-is in recorded order, without prioritizing on the user's behalf; omit this section if none
 
 End by asking the user: start now?
 
