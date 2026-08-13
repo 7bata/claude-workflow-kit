@@ -29,6 +29,37 @@
 
 - <观察一句话>——<为什么不定罪,建议的后续动作>。
 
+## 孤儿功能对账(未配 INVENTORY 时删除本节)
+
+- **清单规模**:INVENTORY 共 <A> 条(apis <A1> / routes <A2>),exempt <A3> 条(天然不可达,不参与覆盖率计算)。
+- **覆盖率**:可核查条目(inventory_auditable_count,= <A> 减 exempt <A3>)共 <A4> 条,实际命中(inventory_hit_count)<B> 条(<B>/<A4>)。
+- **总观测数**(`seen_count`,仅供诊断,不是覆盖率分子——它包含站内观测到的 API/路由(出域与第三方请求已排除),含未列入 INVENTORY 的条目):<S> 条。
+
+### unreachable(<C> 条)
+
+逐条列出 + 判读结论(引用上面四类判读指南,或坐实为真孤儿):
+
+- `<METHOD /path 或 /route>`:<判读结论——权限相关/数据状态相关/拦截名单相关/覆盖不全/真孤儿(三条件均已核对)>。
+
+(无 unreachable 条目时写「本轮未发现 unreachable 条目」,不要省略本节。)
+
+### broken-entry(<D> 条)
+
+逐条列出 + 状态码:
+
+- `<METHOD /path>`:状态码 <status>,<简要说明,如遍历时哪个元素触发>。
+
+(无 broken-entry 条目时写「本轮未发现 broken-entry 条目」。)
+
+### exempt 命中(<E> 条)
+
+- `<正则/条目>` 命中 <N> 次:<说明,如「webhook 端点,预期无 UI 入口」>。
+
+### 对账覆盖缺口(note-partial-coverage)
+
+- <哪些屏/条目因 restore-failed、miss-not-found 等原因未走完,相关 INVENTORY 条目标 note-partial-coverage,不计入 unreachable 结论;与下方「覆盖缺口(诚实记账)」一节对应条目同源,此处只补充"对 INVENTORY 结论的影响",不重复罗列原因细节>。
+- **`coverage_note`(台账 `orphan-audit` 记录字段,必须原样转述,不得省略、不得改写成摘要)**:<原样粘贴 ledger.jsonl 里那条 `type: 'orphan-audit'` 记录的 `coverage_note` 字符串>。若这里出现"网络采集失败/从未采集"一类警告,说明本轮 unreachable/broken-entry 结论不可信,报告正文必须原样带出这条警告,不能因为它读起来"扫兴"就悄悄压下去或简化成"覆盖基本完整"。
+
 ## 覆盖缺口(诚实记账)
 
 本轮遍历没有覆盖到的部分,以及原因(不要粉饰成"已全量覆盖"):
