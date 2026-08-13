@@ -54,6 +54,7 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
 3. Make sure code snippets / config examples in the docs match the actual code
 4. UTF-8 mojibake scan: `LC_ALL=C grep -l $'\xef\xbf\xbd' docs/*.md .claude/*.md`
 5. When a change affects `.env.example`, confirm the local `.env` (not in git) is synced too
+6. After a frontend/interaction change, run a ui-sweep (interaction smoke walkthrough); log real defects to the `docs/Progress.md` changelog; for destructive buttons outside the block list, extend the project's DENY_EXTRA first, then run it
 
 ## 4. Code Conventions
 
