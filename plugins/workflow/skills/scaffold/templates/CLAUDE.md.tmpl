@@ -44,6 +44,7 @@
 | 关键决策（选型 / 取舍 / 方案反转 / 绕行）| `docs/DECISIONS.md`（What/Why/Changes）+ `docs/Progress.md` |
 | 会议纪要 | `docs/MEETINGS.md`（原始归档）+ `docs/BUSINESS.md`（业务事实提炼）+ `docs/REQUIREMENTS.md`（产品需求提炼）+ `docs/REQUIREMENTS.md` 目标台账（需求类条目）|
 | 对话中出现的需求/期望/不满 | `docs/REQUIREMENTS.md` 目标台账（当轮，回一行确认）|
+| 造出可复用组件（通用件，非业务专属） | 组织的组件索引登记条目（核实真实路径后写）+ `docs/Progress.md` |
 
 **原则**：文档是单一事实源。代码和文档不一致时，先判断哪个对，再把另一个改齐。
 
@@ -54,7 +55,6 @@
 3. 确保文档里的代码片段 / 配置示例与实际代码一致
 4. UTF-8 乱码扫描：`LC_ALL=C grep -l $'\xef\xbf\xbd' docs/*.md .claude/*.md`
 5. 改动影响到 `.env.example` 时，确认本地 `.env`（不入 git）也同步过
-6. 前端/交互改动后跑一次 ui-sweep（交互冒烟走查），跑完在 `docs/Progress.md` 记一条走查记录（写明 `ui-sweep` 字样 + 日期 + 扫了几屏几击 + 结论，0 缺陷也要记）；真缺陷另按变更日志逐条记（现象/根因/修复）；拦截名单外的破坏性按钮用项目 DENY_EXTRA 增补后再跑
 
 ## 4. 代码约定
 
