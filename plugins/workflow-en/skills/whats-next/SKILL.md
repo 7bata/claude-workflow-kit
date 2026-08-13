@@ -34,7 +34,7 @@ ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress —
 
 1. **Where you are** — one or two sentences: what was most recently completed, citing the date of Progress's latest entry
 2. **Next step** — task name + the first concrete action (down to the file/command level) + source (which file, which section)
-3. **Watch-outs** — decisions already made / pitfalls relevant to the next step, sourced from: DECISIONS.md's most recent entries + the Progress changelog, with citations; if this batch touched UI and Progress has no ui-sweep record, note here that a follow-up interaction regression scan is recommended (omit and don't push if not applicable); omit this section if none
+3. **Watch-outs** — decisions already made / pitfalls relevant to the next step, sourced from: DECISIONS.md's most recent entries + the Progress changelog, with citations; omit this section if none
 4. **Meeting action items not yet in any plan** — unchecked action items from MEETINGS.md's latest section that haven't made it into any plan, prompting the user to decide where they go; items already logged in the Goal Ledger are not repeated here; omit this section if none
 5. **Unsettled goals** — entries in REQUIREMENTS.md's Goal Ledger with status `open`, listed one by one, with any pinned to the top if they've been outstanding for more than 7 days; only list Goal Ledger entries; omit this section if none
 
