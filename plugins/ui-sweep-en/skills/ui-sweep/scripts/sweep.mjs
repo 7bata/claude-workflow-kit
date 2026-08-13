@@ -237,7 +237,7 @@ async function initSession() {
 async function restore(screen) {
   ab(['open', ROOT]);
   await settle(2000);
-  // 项目相关的基线钩子(如 stella 的语言锁):由 config 的 ensureBaseline 提供,引擎本身不内置任何项目专属逻辑
+  // 项目相关的基线钩子(如某项目的语言锁):由 config 的 ensureBaseline 提供,引擎本身不内置任何项目专属逻辑
   if (typeof ensureBaseline === 'function') {
     await ensureBaseline({ ab, evalJs, settle });
   }
