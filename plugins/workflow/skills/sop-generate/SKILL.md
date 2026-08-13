@@ -1,7 +1,7 @@
 ---
 name: sop-generate
 description: 对任何已部署的内部 Web 应用生成带截图的中文业务 SOP(操作手册)。触发词:生成业务SOP、操作手册、sop-generate、给这个系统写个操作流程文档。注意与开发流程 SOP 区分——本 skill 产出的是"业务人员怎么用这个系统办公"的手册,不是代码/部署流程文档。
-argument-hint: [项目路径] [部署URL,可选,缺省从项目文档/env 推断]
+argument-hint: "[项目路径] [部署URL,可选,缺省从项目文档/env 推断]"
 ---
 
 # sop-generate — 业务 SOP 生成
