@@ -54,7 +54,7 @@
 3. 确保文档里的代码片段 / 配置示例与实际代码一致
 4. UTF-8 乱码扫描：`LC_ALL=C grep -l $'\xef\xbf\xbd' docs/*.md AGENTS.md`
 5. 改动影响到 `.env.example` 时，确认本地 `.env`（不入 git）也同步过
-6. 前端/交互改动后，装了 ui-sweep 的话跑一次（交互冒烟走查；ui-sweep 是普通 node 脚本，非 Claude Code 插件，Codex 侧同样可直接运行），真缺陷记进 `docs/Progress.md` 变更日志；拦截名单外的破坏性按钮用项目 DENY_EXTRA 增补后再跑
+6. 前端/交互改动后，装了 ui-sweep 的话跑一次（交互冒烟走查；该引擎是普通 node 脚本（sweep.mjs），不依赖 Claude Code 专属能力，Codex 侧同样可用），跑完在 `docs/Progress.md` 记一条走查记录（日期 + 扫了几屏几击 + 结论，0 缺陷也要记）；真缺陷另按变更日志逐条记（现象/根因/修复）；拦截名单外的破坏性按钮用项目 DENY_EXTRA 增补后再跑
 
 ## 4. 代码约定
 
