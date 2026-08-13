@@ -1,7 +1,7 @@
 {
   "name": "workflow-en",
   "version": "0.7.0",
-  "description": "Doc-driven multi-agent development workflow (Conductor/Executor/Reviewer three tiers): /scaffold lays down CLAUDE.md + an eight-doc set in place; /whats-next reads the docs and tells you what to do next; sop-generate generates a screenshot-backed business SOP for an already deployed web app; new sessions auto-recognize \"wants to build a new project\" and silently scaffold it (auto-scaffold, opt-out available)",
+  "description": "Doc-driven multi-agent development workflow (Conductor/Executor/Reviewer three tiers): /scaffold lays down CLAUDE.md + an eight-doc set in place; /whats-next reads the docs and tells you what to do next; sop-generate generates a screenshot-backed business SOP for an already deployed web app; new sessions auto-recognize \"wants to build a new project\" and silently scaffold it (auto-scaffold, opt-out available); the methodology carries a goal ledger (log requirements the same round so they never evaporate), four review disciplines (chained adversarial review / delta-only reports / neutral hardening wording / production red lines in the implementer prompt), internal-first research and component-index registration at wrap-up",
   "author": {
     "name": "Tony Jiang"
   },

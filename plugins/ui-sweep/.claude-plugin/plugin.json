@@ -1,7 +1,7 @@
 {
   "name": "ui-sweep",
   "version": "0.2.0",
-  "description": "中文版:SOP 截图前/改完一批 UI 后,把全站可交互元素系统性点一遍——agent-browser(Rust CLI,自带 Chrome,a11y 快照)驱动 + 通用化遍历引擎(config 外置、默认拦截名单只增不减、八分类记账)。安全边界:破坏性按钮只记不点、confirm/prompt 一律驳回、出域双层防护(--allowed-domains 限显式导航 + 引擎逐击域名校验,出域即拉回),只用于自家或已获授权的站点。",
+  "description": "中文版:SOP 截图前/改完一批 UI 后,把全站可交互元素系统性点一遍——agent-browser(Rust CLI,自带 Chrome,a11y 快照)驱动 + 通用化遍历引擎(config 外置、默认拦截名单只增不减、八分类记账 + 可选孤儿功能对账:代码清单 vs 遍历实际到达,查「功能实现了但前端没入口/入口打不通」)。安全边界:破坏性按钮只记不点、confirm/prompt 一律驳回、出域双层防护(--allowed-domains 限显式导航 + 引擎逐击域名校验,出域即拉回),只用于自家或已获授权的站点。",
   "author": {
     "name": "Tony Jiang"
   },

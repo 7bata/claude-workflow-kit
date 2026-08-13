@@ -7,12 +7,12 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）;方法论含目标台账(需求当轮落账防蒸发)、链式对抗评审与评审报差异、安全加固措辞规范、生产红线前置、调研内部先行"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）;方法论含目标台账(需求当轮落账防蒸发)、链式对抗评审与评审报差异、安全加固措辞规范、生产红线前置、调研内部先行;组件索引收尾登记与定期校对"
     },
     {
       "name": "workflow-en",
       "source": "./plugins/workflow-en",
-      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions; the methodology now includes a goal ledger (log requirements the same round so they never evaporate), chained adversarial review + delta-only review reports, neutral wording for hardening work, production red lines pushed to the implementer prompt, and internal-first research"
+      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions; the methodology now includes a goal ledger (log requirements the same round so they never evaporate), chained adversarial review + delta-only review reports, neutral wording for hardening work, production red lines pushed to the implementer prompt, and internal-first research; component-index registration at wrap-up plus periodic re-audit"
     },
     {
       "name": "speak-human",
@@ -44,5 +44,6 @@
       "source": "./plugins/ui-sweep-en",
       "description": "English version: before SOP screenshots or after a batch of UI changes, systematically click every interactive element on the site — driven by agent-browser plus a generalized traversal engine (externalized config, append-only default denylist, eight-category ledger) plus an orphan-feature audit (code inventory vs what the sweep actually reached — finds features shipped with no UI entry point, or entry points that no longer work); destructive buttons are logged not clicked, confirm/prompt always dismissed, two-layer domain guard (flag for explicit navigation + per-click hostname check pulls strays back)"
     }
-  ]
+  ],
+  "description": "文档驱动的 Claude Code 多代理开发工作流工具箱:方法论 prompt + 项目脚手架/进度导航/业务 SOP 生成、说人话提问纪律、跨会话消息转达、UI 全量交互走查与孤儿功能对账。"
 }

@@ -12,7 +12,7 @@ argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话�
 
 - Claude Code v2.1.224+,macOS/Linux(Windows 原生不支持)。会话里 `/list-agents` 不认识 = 该会话没有此功能。
 - 相邻命令:`/list-agents`(别名 `/peers`)查看可达会话;`/rename` 给会话起名(起过名才能 `claude --resume <名字>`)。发消息本身没有内置斜杠命令,这正是本 skill 存在的原因。
-- **跨会话发现按 profile 隔离;投递不按账号隔离**(2026-08-10 三次修订,受控实验定谳):每个会话只在自己 profile 的 `sessions/` 目录写注册文件,ListAgents 只读本 profile 的注册表,所以不同 profile 的窗口互相**不可见**。投递层面:**`SendMessage` 带显式地址 `uds:/tmp/cc-socks/<pid>.sock` 可跨登录账号直达,且无需互相可见**——受控实验(2026-08-10,Tony 主持):labs@stellark.io 窗口 ↔ tonyjiang13@gmail.com 窗口,双方确证不同登录账号、互不在对方 ListAgents,显式地址双向投递均成功并互收回声。(此前 2026-08-08 的「不可发」定论与 2026-08-09 的混杂样本均已被此实验取代;实验方法保留在此:双方账号确证不同 + 双向回声,今后翻案照此标准。)会话在启动时即注册(可见通常在几十秒内),与它发没发过消息无关。
+- **跨会话发现按 profile 隔离;投递不按账号隔离**(2026-08-10 三次修订,受控实验定谳):每个会话只在自己 profile 的 `sessions/` 目录写注册文件,ListAgents 只读本 profile 的注册表,所以不同 profile 的窗口互相**不可见**。投递层面:**`SendMessage` 带显式地址 `uds:/tmp/cc-socks/<pid>.sock` 可跨登录账号直达,且无需互相可见**——受控实验(2026-08-10,Tony 主持):账号 A 的窗口 ↔ 账号 B 的窗口,双方确证不同登录账号、互不在对方 ListAgents,显式地址双向投递均成功并互收回声。(此前 2026-08-08 的「不可发」定论与 2026-08-09 的混杂样本均已被此实验取代;实验方法保留在此:双方账号确证不同 + 双向回声,今后翻案照此标准。)会话在启动时即注册(可见通常在几十秒内),与它发没发过消息无关。
 - **发现通道有三条,投递通道只有一条**:发现——`ListAgents`(本 profile 可见 peer)、身份注册表 `/tmp/cc-session-registry/`(跨 profile 自愿自报的名片,见下方「身份注册表」一节)、`/tmp/cc-socks/` 目录清单(兜底,只有 pid + mtime)。投递——`SendMessage` 一条,含按名字与按 `uds:` 地址两种形态。不许由你动用任何别的手段把内容送进对方会话——绕开 SendMessage 手写对方 socket、动对方 profile 的注册/会话文件或身份注册表条目、切 CLAUDE_CONFIG_DIR 起中继会话、自行 `claude --resume` 接管对方、tmux/screen 往对方终端注键,全在禁止之列,技术上可行也不行。SendMessage 带 uds: 地址是官方通道的合法形态,不在禁止之列。
 
 ## 步骤

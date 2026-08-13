@@ -1,7 +1,7 @@
 {
   "name": "ui-sweep-en",
   "version": "0.2.0",
-  "description": "English version: before SOP screenshots or after a batch of UI changes, systematically click every interactive element on the site — driven by agent-browser (Rust CLI, bundled Chrome, a11y snapshots) plus a generalized traversal engine (externalized config, an append-only default denylist, eight-category ledger). Safety boundary: destructive buttons are logged, never clicked; confirm/prompt dialogs are always dismissed; two-layer domain guard (--allowed-domains for explicit navigation + per-click hostname check, off-domain clicks pulled back on the spot); only for sites you own or are authorized to test.",
+  "description": "English version: before SOP screenshots or after a batch of UI changes, systematically click every interactive element on the site — driven by agent-browser (Rust CLI, bundled Chrome, a11y snapshots) plus a generalized traversal engine (externalized config, an append-only default denylist, eight-category ledger, plus an optional orphan-feature audit: code inventory vs what the sweep actually reached, finding features with no UI entry point or a broken one). Safety boundary: destructive buttons are logged, never clicked; confirm/prompt dialogs are always dismissed; two-layer domain guard (--allowed-domains for explicit navigation + per-click hostname check, off-domain clicks pulled back on the spot); only for sites you own or are authorized to test.",
   "author": {
     "name": "Tony Jiang"
   },
