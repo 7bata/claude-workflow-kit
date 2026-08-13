@@ -65,6 +65,19 @@
 /plugin install send-to-en@claude-workflow-kit   # 英文版(二选一,别都装)
 ```
 
+## 附赠插件:ui-sweep
+
+SOP 截图前,或改完一批 UI 后做回归扫描,把全站可交互元素系统性点一遍——`vercel-labs/agent-browser`(Rust CLI,自带 Chrome for Testing,a11y 快照带元素引用)驱动 + 自研通用化遍历引擎:登录态注入 → 按项目 `sweep.config.mjs` 编制的屏清单逐屏跑 → 每屏恢复现场、逐元素点击观察、八分类记账(状态变化 / 无反应 / 弹窗被驳回 / 点击异常 / 页面异常 / 拦截名单)→ 产出 JSONL 台账 + 每屏截图 + 报告。
+
+- **配置外置**:`node sweep.mjs <path>/sweep.config.mjs` 吃项目的 `ROOT`/`SCREENS`(必填)+ `DENY_EXTRA`/`ensureBaseline`/`OUT`(可选),缺必填项立即报错退出,不静默空跑。
+- **安全边界**:默认拦截名单(吊销/删除/退出/logout/revoke/归档/清除/重置/发送/保存/上传等)项目只能通过 `DENY_EXTRA` 叠加、不能削减;破坏性按钮只记不点;`confirm`/`prompt` 一律驳回,不产生真实写入;出域防护双层:`--allowed-domains` 限显式导航(点击驱动的跳转拦不住,引擎已实测并接管会话生命周期),可靠层是引擎逐击域名校验——出域记 `left-domain` 并当场拉回;只用于自家或已获授权的站点。
+- **`--strict` 模式**:每击必恢复现场,治"同屏状态累积掩盖后续点击变化"的假阳性;默认关(全量跑慢约一倍),初跑用默认、对 dead 清单复核用 `--strict`。
+
+```
+/plugin install ui-sweep@claude-workflow-kit      # 中文版
+/plugin install ui-sweep-en@claude-workflow-kit   # 英文版(二选一,别都装)
+```
+
 ## 附赠插件:Codex CLI 版工作流
 
 同一套文档驱动工作流,面向 OpenAI Codex CLI 的移植版:`plugins/workflow-codex/`(打包成 `.codex-plugin/plugin.json`,不是 Claude Code 插件——按你的 Codex CLI 版本对应的 skill/插件加载机制安装)。它以 `AGENTS.md` 取代 `.claude/CLAUDE.md`,共五个 skill:
@@ -278,8 +291,9 @@ docs 八件套各自的职责:
    | 最新 spec 尚未实现 | 用 ultracode 直接从该 spec 实现;spec 是否已获批准拿不准时先问一句 |
    | spec 全部已实现,PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 走 brainstorming 出新 spec → ultracode(不走 writing-plans),spec 登记进 Spec 索引 |
    | PLAN.md 路线还是待补 | 先读 REQUIREMENTS.md 的分期路线图作输入,用 brainstorming 定分阶段路线 |
-   | 所有 Phase 都 ✅ | 项目按计划完成;建议复盘或开新 Phase |
-4. **输出四部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略);④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略)。结尾问:现在开始吗?
+   | 所有 Phase 都 ✅,且没有游离在路线图外的待办 | 项目按计划完成;建议复盘或开新 Phase |
+   | 所有 Phase 都 ✅,但仍有 Backlog(未纳入任何 Phase 的登记项,常见于 MEETINGS.md 未勾选待办、或用户提过但没排进路线图的条目)未完成 | 先报告主路线已完成,再把 Backlog 按登记出现的顺序原样列出——不擅自判断哪个更该先做、不替用户排优先级,交给用户自己挑 |
+4. **输出五部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略);④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略);⑤ Backlog(所有 Phase 已完成但仍有未纳入路线图的登记项时,按登记出现的顺序原样列出,不替用户排优先级;没有则省略)。结尾问:现在开始吗?
 5. 文档之间矛盾(Progress 说完成但 spec 无实现记录之类)→ 明确指出矛盾及双方出处,建议先核对再动工,**不默默择一**;缺 `PLAN.md`/`Progress.md` 说明不是本工作流的项目,建议先走第六节铺脚手架。
 ```
 
@@ -291,7 +305,7 @@ claude-workflow-kit/
 ├── README.zh-CN.md                  # 本文件:方法论 + 安装 + 工作流 prompt
 ├── LICENSE                          # MIT
 ├── .claude-plugin/
-│   └── marketplace.json             # 插件市场清单(注册六个插件)
+│   └── marketplace.json             # 插件市场清单(注册八个插件)
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
@@ -324,7 +338,14 @@ claude-workflow-kit/
     │   ├── .claude-plugin/plugin.json
     │   ├── hooks/                   # SessionStart 注册 hook:把本会话身份写进共享身份注册表
     │   └── skills/send-to/SKILL.md  # 目标模糊匹配 + 消息自包含硬规则 + 投递状态如实汇报
-    └── send-to-en/                  # 英文版 send-to 插件(结构同 send-to)
+    ├── send-to-en/                  # 英文版 send-to 插件(结构同 send-to)
+    ├── ui-sweep/                    # 中文版 ui-sweep 插件:agent-browser 驱动的 UI 全量交互遍历
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/ui-sweep/
+    │       ├── SKILL.md             # 环境自检→登录态注入→屏清单编制→跑引擎→结果判读→产报告
+    │       ├── scripts/             # sweep.mjs(通用化遍历引擎)+ export-state.mjs(登录态导出)
+    │       └── references/          # report-template.md(报告骨架)
+    └── ui-sweep-en/                 # 英文版 ui-sweep 插件(结构同 ui-sweep,scripts 与中文版逐字节一致)
 ```
 
 ## License

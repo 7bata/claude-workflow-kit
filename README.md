@@ -64,6 +64,19 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 /plugin install send-to@claude-workflow-kit      # Chinese version (install one, not both)
 ```
 
+## Bonus plugin: ui-sweep
+
+Before SOP screenshots, or as a regression sweep after a batch of UI changes, systematically click every interactive element on the site — driven by `vercel-labs/agent-browser` (a Rust CLI with bundled Chrome for Testing, a11y snapshots with element references) plus a self-built generalized traversal engine: inject login state → walk the screen list defined in the project's `sweep.config.mjs` → per screen, restore the baseline state, click each element in turn and observe, log to a eight-category ledger (state changed / no reaction / dialog dismissed / click error / page error / denylisted) → emit a JSONL ledger, a screenshot per screen, and a report.
+
+- **Externalized config**: `node sweep.mjs <path>/sweep.config.mjs` reads the project's `ROOT`/`SCREENS` (required) plus `DENY_EXTRA`/`ensureBaseline`/`OUT` (optional); missing required fields fail fast instead of silently running an empty sweep.
+- **Safety boundary**: the default denylist (revoke/dissolve/delete/log out/logout/archive/clear/reset/send/save/upload, etc.) can only be appended to via `DENY_EXTRA`, never trimmed by a project; destructive buttons are logged, never clicked; `confirm`/`prompt` dialogs are always dismissed, never producing a real write; two-layer domain guard: `--allowed-domains` restricts explicit navigation only (click-driven jumps get through — empirically verified, so the engine takes over session lifecycle), while the reliable layer is the engine's per-click hostname check — leaving the domain is logged as `left-domain` and the scene is restored on the spot; only for sites you own or are authorized to test.
+- **`--strict` mode**: restores the baseline state after every single click, fixing the false-positive where accumulated on-screen state masks a later click's effect; off by default (full sweeps run roughly 2x slower with it on) — use the default mode for first passes, and `--strict` to re-verify a `dead` list.
+
+```
+/plugin install ui-sweep-en@claude-workflow-kit   # English version
+/plugin install ui-sweep@claude-workflow-kit      # Chinese version (install one, not both)
+```
+
 ## Bonus plugin: Workflow Kit for Codex CLI
 
 The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugins/workflow-codex/` (packaged as a `.codex-plugin/plugin.json`, not a Claude Code plugin — install it through whatever skill/plugin mechanism your Codex CLI build uses). It targets `AGENTS.md` instead of `.claude/CLAUDE.md` and ships **five** skills:
@@ -277,8 +290,9 @@ When the user says "what's next / where am I", and the project root has a `docs/
    | The latest spec isn't implemented yet | Implement directly from that spec with ultracode; if unsure whether the spec has been approved, ask first |
    | All specs implemented, but PLAN.md still has un-✅ Phases | Run brainstorming for the next Phase to produce a new spec → ultracode (skip writing-plans), register the spec in the Spec Index |
    | PLAN.md's roadmap is still TBD | Read the Phased Roadmap in REQUIREMENTS.md as input first, use brainstorming to define the phased roadmap |
-   | All Phases are ✅ | The project is complete as planned; suggest a retrospective or starting a new Phase |
-4. **Output four parts**: ① Where you are (what was most recently completed, citing the date of the latest Progress entry); ② Next step (task name + the first action down to the file/command level + its source); ③ Watch-outs (decisions and pitfalls from DECISIONS/Progress in the same domain as the next step, with sources cited; omit if none); ④ Meeting action items not yet in any plan (unchecked items in the latest MEETINGS section that haven't entered any plan yet, prompting the user to decide where they go; omit if none). End by asking: start now?
+   | All Phases are ✅, and there's no action item left outside the roadmap | The project is complete as planned; suggest a retrospective or starting a new Phase |
+   | All Phases are ✅, but there's still an unfinished Backlog (items not filed under any Phase — typically unchecked MEETINGS.md action items, or things the user mentioned but never scheduled into the roadmap) | First report that the main roadmap is done, then list the Backlog as-is in the order it was recorded — don't judge which one matters more, don't prioritize on the user's behalf |
+4. **Output five parts**: ① Where you are (what was most recently completed, citing the date of the latest Progress entry); ② Next step (task name + the first action down to the file/command level + its source); ③ Watch-outs (decisions and pitfalls from DECISIONS/Progress in the same domain as the next step, with sources cited; omit if none); ④ Meeting action items not yet in any plan (unchecked items in the latest MEETINGS section that haven't entered any plan yet, prompting the user to decide where they go; omit if none); ⑤ Backlog (when all Phases are done but items remain outside the roadmap, list them as-is in recorded order, without prioritizing on the user's behalf; omit if none). End by asking: start now?
 5. If the docs contradict each other (e.g. Progress says done but the spec has no implementation record) → clearly point out the contradiction and both sides' sources, and suggest reconciling before proceeding — **never silently pick one**; if `PLAN.md`/`Progress.md` are missing, that means this isn't a project under this workflow — suggest running Section 6's scaffolding first.
 ```
 
@@ -290,7 +304,7 @@ claude-workflow-kit/
 ├── README.zh-CN.md                  # Chinese README: methodology + install + workflow prompt
 ├── LICENSE                          # MIT
 ├── .claude-plugin/
-│   └── marketplace.json             # Plugin marketplace manifest
+│   └── marketplace.json             # Plugin marketplace manifest (registers eight plugins)
 └── plugins/
     ├── workflow/                     # Chinese-output plugin
     │   ├── .claude-plugin/plugin.json
@@ -327,7 +341,14 @@ claude-workflow-kit/
     │   ├── .claude-plugin/plugin.json
     │   ├── hooks/                    # SessionStart registration hook: writes this session's identity to the shared registry
     │   └── skills/send-to/SKILL.md   # fuzzy target matching + self-contained message rules + honest delivery reporting
-    └── send-to-en/                   # English send-to plugin (same layout)
+    ├── send-to-en/                   # English send-to plugin (same layout)
+    ├── ui-sweep/                     # Chinese ui-sweep plugin: agent-browser-driven full UI interaction sweep
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/ui-sweep/
+    │       ├── SKILL.md              # env self-check → login-state injection → screen inventory → run the engine → read results → write the report
+    │       ├── scripts/              # sweep.mjs (generalized traversal engine) + export-state.mjs (login-state export)
+    │       └── references/           # report-template.md (report skeleton)
+    └── ui-sweep-en/                  # English ui-sweep plugin (same layout; scripts byte-identical to the Chinese version)
 ```
 
 ## License

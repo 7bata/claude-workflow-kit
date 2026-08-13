@@ -51,6 +51,7 @@ Hard rules (apply throughout; violating any means redoing the work):
 
 ### 3. Traverse and screenshot
 
+- **Suggested pre-step**: if the `ui-sweep` plugin is installed, run a full-site interaction sweep first (systematically clicking every interactive element per screen) before the batch of screenshots — it surfaces interaction bugs early, so you don't unknowingly document a broken UI state. If it's not installed, skip this step; the rest of the process is unaffected.
 - Screenshot each page/feature in turn, storing to `docs/sop-images/<page-slug>/` (use the page's route name for the slug — stick to ASCII; non-ASCII filenames get mangled by some tools).
 - **Key operations** (form submissions, report exports, triggering batch jobs — anything with a side effect or a state change) get **before/after** screenshot pairs, filenames suffixed `-before` / `-after`.
 - Alongside each screenshot, jot down one sentence summarizing the accessibility summary's key points for that page/state (used in Step 4 for copywriting — no need to keep the full summary verbatim).
