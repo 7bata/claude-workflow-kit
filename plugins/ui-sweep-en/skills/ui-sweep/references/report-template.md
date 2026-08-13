@@ -29,6 +29,37 @@ Not enough to indict, but worth recording for later verification or product deci
 
 - <one-line observation> — <why it's not indicted, suggested follow-up>.
 
+## Orphan-feature reconciliation (drop this section when `INVENTORY` isn't configured)
+
+- **Inventory size**: INVENTORY has <A> entries total (apis <A1> / routes <A2>), exempt <A3> (inherently unreachable, excluded from the coverage rate).
+- **Coverage rate**: auditable entries (`inventory_auditable_count`, = <A> minus exempt <A3>) total <A4>; the traversal actually hit (`inventory_hit_count`) <B> of them (<B>/<A4>).
+- **Total observed** (`seen_count`, diagnostic only — not the coverage numerator; it includes every in-domain API/route observed (out-of-domain and third-party requests excluded), including ones not listed in INVENTORY): <S> entries.
+
+### unreachable (<C> entries)
+
+List each one, with a triage verdict (referencing the four-way triage guide above, or confirmed as a real orphan):
+
+- `<METHOD /path or /route>`: <triage verdict — permission-related / data-state-related / denylist-related / coverage-related / real orphan (all three conditions checked)>.
+
+(If there are no unreachable entries, write "No unreachable entries found in this pass" — don't omit this section.)
+
+### broken-entry (<D> entries)
+
+List each one, with the status code:
+
+- `<METHOD /path>`: status <status>, <brief note, e.g. which element triggered it during the traversal>.
+
+(If there are no broken-entry entries, write "No broken-entry entries found in this pass.")
+
+### exempt matches (<E> entries)
+
+- `<regex/entry>` matched <N> times: <explanation, e.g. "webhook endpoint, expected to have no UI entry point">.
+
+### Reconciliation coverage gaps (note-partial-coverage)
+
+- <which screens/entries didn't finish due to restore-failed, miss-not-found, etc.; the corresponding INVENTORY entries are tagged note-partial-coverage and excluded from the unreachable conclusion; this maps to the matching entries in "Coverage gaps (an honest accounting)" below — this line only adds "the impact on the INVENTORY conclusion", it doesn't repeat the underlying reasons>.
+- **`coverage_note` (the ledger's `orphan-audit` record field — must be carried over verbatim, never dropped or paraphrased down to a summary)**: <paste the `coverage_note` string from that run's `type: 'orphan-audit'` ledger.jsonl record, unmodified>. If it carries a "network collection failed / never ran" warning, the unreachable/broken-entry conclusions for this pass are not trustworthy — the report body must surface that warning as-is, not quietly suppress it or soften it into "coverage was mostly complete" because it reads as bad news.
+
 ## Coverage gaps (an honest accounting)
 
 Parts this pass did not cover, and why (don't dress it up as "full coverage"):
