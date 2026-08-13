@@ -53,7 +53,7 @@
 | `plugins/workflow{,-en}/skills/whats-next/SKILL.md`、`plugins/workflow-codex/skills/whats-next/SKILL.md` | 2.3 第 3 点 |
 | `plugins/workflow{,-en}/skills/scaffold/SKILL.md` | 落盘清单对 REQUIREMENTS 的描述提及目标台账节(一句) |
 | 本机 `~/.claude/CLAUDE.md` | 主对话亲自做,个性化措辞(登记硬规则 + 直通流程对账/销账句 + /goal 粘合句,带日期戳) |
-| dev-toolkit / huake(merge 后另走 wip+门禁) | stellark-scaffold 模板(REQUIREMENTS.tmpl+CLAUDE.tmpl)+ stellark-whats-next / 对应件同构 |
+| 内部工具包仓 / 内网工作站(merge 后另走 wip+门禁) | stellark-scaffold 模板(REQUIREMENTS.tmpl+CLAUDE.tmpl)+ stellark-whats-next / 对应件同构 |
 
 ## 4. 验收条款
 

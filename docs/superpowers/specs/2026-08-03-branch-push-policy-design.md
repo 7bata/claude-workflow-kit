@@ -6,7 +6,7 @@
 
 1. **分支即推**:日常开发一律在 feature/wip 分支进行;**每次 commit 后立即 push 当前分支到远端,无需确认**——这就是实时异地备份。worktree 流程(superpowers:using-git-worktrees)天然满足"每任务一分支";在主 checkout 上做散活时,动手前先切/建 wip 分支。
 2. **main 门禁**:确认点从 push 挪到**并入默认分支**。merge 进 main(或直接在 main 上 commit)必须先获用户确认;确认后 push main + 删除已合并的远端 feature 分支。
-3. **无远端兜底**:仓库没有 remote(或分支没有 upstream)时,首次 commit 后提醒用户建远端(内部项目指向 gitlab.stellark.io,个人备份可用 StellarkTony 组),避免"自动 push"静默失效。
+3. **无远端兜底**:仓库没有 remote(或分支没有 upstream)时,首次 commit 后提醒用户建远端(内部项目推内部 GitLab,个人项目可推到内部 GitLab 上的个人备份组),避免"自动 push"静默失效。
 
 安全依据:各项目 CI 已核实 test 任何分支都跑、build/deploy 仅默认分支触发,分支 push 不会误部署。
 
@@ -26,8 +26,8 @@
 | 位置 | 内容 |
 |---|---|
 | `claude-workflow-kit/plugins/workflow` + `workflow-en` | CLAUDE.md.tmpl(中英)、SKILL.md 若提及 push |
-| `Platform/dev-toolkit-engineer`(stellark-scaffold 等) | CLAUDE.md.tmpl + 各 skill 中 push 相关措辞 |
-| `Platform/dev-toolkit`(vibe 版 starters + skills) | starter 模板与 stellark-commit 等 skill 的 push 措辞 |
+| 内部工具包仓(engineer 版,stellark-scaffold 等) | CLAUDE.md.tmpl + 各 skill 中 push 相关措辞 |
+| 内部工具包仓(vibe 版 starters + skills) | starter 模板与 stellark-commit 等 skill 的 push 措辞 |
 | `~/.claude/CLAUDE.md`(用户全局规则) | 新增 5 行「Git push 策略」小节,使**非 scaffold 项目**的会话也遵守新策略 |
 
 ### 3. 与 superpowers 上游 skill 的衔接(只写衔接规则,不改上游插件)

@@ -2,7 +2,7 @@
 
 日期:2026-08-11
 状态:已获用户逐节批准(触发机制、规则正文、Auto 模式、分发面矩阵、验收方案共四节,两轮确认)
-来源:该项目路线图会话转达的用户指派——让"新建项目"总是自动铺脚手架,落 claude-workflow-kit,同步 stellark vibe / huake / 开源各面
+来源:该项目路线图会话转达的用户指派——让"新建项目"总是自动铺脚手架,落 claude-workflow-kit,同步 内部工具包仓(vibe 版) / 内网工作站 / 开源各面
 
 ## 1. 背景与目标
 
@@ -113,8 +113,8 @@ Important #1/#4)。
 |---|---|
 | 开源 zh `plugins/workflow/` | 新增 hooks 三件(hooks.json / inject.sh / auto-scaffold.md);scaffold SKILL.md 加 Auto 模式节 + description 扩词;plugin.json 版本升、description 提自动铺设;marketplace.json 同步 |
 | 开源 en `plugins/workflow-en/` | 同上全套英文版;**双语两份 README 都要加节 + 目录树**(历史上英文 README 漏更被评审打回,列入验收清单) |
-| stellark vibe `dev-toolkit-vibe`(plugins/vibe/) | 同款 hook;规则正文中执行器换为 `/stellark-setup` 静默路径:slug 当 `$ARGUMENTS` 传入,其余字段沿用其 schema 默认值;stellark-setup 加 auto 模式小节(语言选择之外不发任何问题)。vibe 仓本机无 checkout:临时 clone,动手前先 fetch 快进(CI 有 [auto-bump] 提交)。共享 skill 只进 vibe 不进 engineer(叠装规则) |
-| huake `claude-toolkit-engineer` | 同款 hook + scaffold Auto 节;README「包含的 N 个 skill」计数与表格、plugin.json description 同步 |
+| 内部工具包仓(vibe 版,plugins/vibe/) | 同款 hook;规则正文中执行器换为 `/stellark-setup` 静默路径:slug 当 `$ARGUMENTS` 传入,其余字段沿用其 schema 默认值;stellark-setup 加 auto 模式小节(语言选择之外不发任何问题)。vibe 仓本机无 checkout:临时 clone,动手前先 fetch 快进(CI 有 [auto-bump] 提交)。共享 skill 只进 vibe 不进 engineer(叠装规则) |
+| 内网工作站 · 内部工具包仓(engineer 版) | 同款 hook + scaffold Auto 节;README「包含的 N 个 skill」计数与表格、plugin.json description 同步 |
 | codex `plugins/workflow-codex/` | **不做自动触发**(Codex CLI 无 SessionStart hook 机制);README 注明原因,附一段可手动粘进全局 AGENTS.md 的规则片段供 opt-in |
 
 ## 7. 验收方案
@@ -138,5 +138,5 @@ Important #1/#4)。
 2. 开源 en 镜像 + 双语 README;
 3. 冒烟与 evals 验收;
 4. 评审 + 用户确认后并入 main;
-5. 传播:stellark vibe(临时 clone)→ huake → codex README 片段;
+5. 传播:内部工具包仓(vibe 版)(临时 clone)→ 内网工作站 → codex README 片段;
 6. 回执该项目会话(doc 格式未动,可放心解析)。
