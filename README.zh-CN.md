@@ -65,6 +65,19 @@
 /plugin install send-to-en@claude-workflow-kit   # 英文版(二选一,别都装)
 ```
 
+## 附赠插件:ui-sweep
+
+SOP 截图前,或改完一批 UI 后做回归扫描,把全站可交互元素系统性点一遍——`vercel-labs/agent-browser`(Rust CLI,自带 Chrome for Testing,a11y 快照带元素引用)驱动 + 自研通用化遍历引擎:登录态注入 → 按项目 `sweep.config.mjs` 编制的屏清单逐屏跑 → 每屏恢复现场、逐元素点击观察、六分类记账(状态变化 / 无反应 / 弹窗被驳回 / 点击异常 / 页面异常 / 拦截名单)→ 产出 JSONL 台账 + 每屏截图 + 报告。
+
+- **配置外置**:`node sweep.mjs <path>/sweep.config.mjs` 吃项目的 `ROOT`/`SCREENS`(必填)+ `DENY_EXTRA`/`ensureBaseline`/`OUT`(可选),缺必填项立即报错退出,不静默空跑。
+- **安全边界**:默认拦截名单(吊销/删除/退出/logout/revoke/归档/清除/重置/发送/保存/上传等)项目只能通过 `DENY_EXTRA` 叠加、不能削减;破坏性按钮只记不点;`confirm`/`prompt` 一律驳回,不产生真实写入;`--allowed-domains` 圈死目标域;只用于自家或已获授权的站点。
+- **`--strict` 模式**:每击必恢复现场,治"同屏状态累积掩盖后续点击变化"的假阳性;默认关(全量跑慢约一倍),初跑用默认、对 dead 清单复核用 `--strict`。
+
+```
+/plugin install ui-sweep@claude-workflow-kit      # 中文版
+/plugin install ui-sweep-en@claude-workflow-kit   # 英文版(二选一,别都装)
+```
+
 ## 附赠插件:Codex CLI 版工作流
 
 同一套文档驱动工作流,面向 OpenAI Codex CLI 的移植版:`plugins/workflow-codex/`(打包成 `.codex-plugin/plugin.json`,不是 Claude Code 插件——按你的 Codex CLI 版本对应的 skill/插件加载机制安装)。它以 `AGENTS.md` 取代 `.claude/CLAUDE.md`,共五个 skill:
@@ -291,7 +304,7 @@ claude-workflow-kit/
 ├── README.zh-CN.md                  # 本文件:方法论 + 安装 + 工作流 prompt
 ├── LICENSE                          # MIT
 ├── .claude-plugin/
-│   └── marketplace.json             # 插件市场清单(注册六个插件)
+│   └── marketplace.json             # 插件市场清单(注册八个插件)
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
@@ -324,7 +337,14 @@ claude-workflow-kit/
     │   ├── .claude-plugin/plugin.json
     │   ├── hooks/                   # SessionStart 注册 hook:把本会话身份写进共享身份注册表
     │   └── skills/send-to/SKILL.md  # 目标模糊匹配 + 消息自包含硬规则 + 投递状态如实汇报
-    └── send-to-en/                  # 英文版 send-to 插件(结构同 send-to)
+    ├── send-to-en/                  # 英文版 send-to 插件(结构同 send-to)
+    ├── ui-sweep/                    # 中文版 ui-sweep 插件:agent-browser 驱动的 UI 全量交互遍历
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/ui-sweep/
+    │       ├── SKILL.md             # 环境自检→登录态注入→屏清单编制→跑引擎→结果判读→产报告
+    │       ├── scripts/             # sweep.mjs(通用化遍历引擎)+ export-state.mjs(登录态导出)
+    │       └── references/          # report-template.md(报告骨架)
+    └── ui-sweep-en/                 # 英文版 ui-sweep 插件(结构同 ui-sweep,scripts 与中文版逐字节一致)
 ```
 
 ## License

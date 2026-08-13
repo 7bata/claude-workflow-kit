@@ -33,6 +33,16 @@
       "name": "send-to-en",
       "source": "./plugins/send-to-en",
       "description": "English version: /send-to <session-name> relays a message to another Claude Code session on this machine — fuzzy name matching, list-on-ambiguity, self-contained messages, honest held-delivery reporting; cross-profile windows are mutually invisible but reachable via a direct uds: address (the standard path), a SessionStart registration hook translates the socket list into an identity registry for recognition, a four-tier target-finding ladder, file handoff as the final fallback (needs Claude Code v2.1.224+, macOS/Linux)"
+    },
+    {
+      "name": "ui-sweep",
+      "source": "./plugins/ui-sweep",
+      "description": "中文版:SOP 截图前/改完一批 UI 后,把全站可交互元素系统性点一遍——agent-browser 驱动 + 通用化遍历引擎(config 外置、默认拦截名单只增不减、六分类记账);破坏性按钮只记不点、confirm/prompt 一律驳回、--allowed-domains 圈死目标域"
+    },
+    {
+      "name": "ui-sweep-en",
+      "source": "./plugins/ui-sweep-en",
+      "description": "English version: before SOP screenshots or after a batch of UI changes, systematically click every interactive element on the site — driven by agent-browser plus a generalized traversal engine (externalized config, append-only default denylist, six-category ledger); destructive buttons are logged not clicked, confirm/prompt always dismissed, --allowed-domains locks the target domain"
     }
   ]
 }
