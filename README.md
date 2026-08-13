@@ -278,6 +278,7 @@ Any requirement, expectation, or complaint the user expresses in conversation �
 - **New product/new project: research is mandatory**, no "should we research" decision step.
 - **Larger features: Claude's judgment call** (signals: needs a new subsystem or standalone module, the domain clearly has mature open-source options, expected effort is large; ask the user if unsure).
 - **Timing**: after brainstorming intent is clear, before proposing candidate solutions.
+- **Step 0: internal first (a hard step)**: check **your own organization** for reusable building blocks first — a component index, existing projects/modules on internal code hosting (e.g. a self-hosted GitLab); internal hits are presented **side by side** with external open-source candidates for the user to decide — never silently preferred or excluded just for being internal. If the internal index is unavailable, record that honestly and continue with external research without blocking.
 - **Method**: research mature open-source implementations on GitHub (use a dedicated research skill if one exists; otherwise use web/GitHub search to achieve equivalent research).
 - **Output**: the research conclusion (adopt/self-host directly, fork and customize, build in-house + reusable components) must be presented as one of the formal candidate solutions, and captured in the spec's "Prior art" section.
 - Small tweaks don't trigger this; skip if the user explicitly says "no need to research".
