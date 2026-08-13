@@ -9,9 +9,10 @@ Contains two parts:
 1. **A workflow prompt** (below in this README) — drop it into your `~/.claude/CLAUDE.md` to define the model division of labor, the tier table, and the main workflow
 2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides three executable commands:
    - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the eight-doc set + `.gitignore` + `README.md`)
-   - Plus a standing capability: **auto-scaffold** — new sessions auto-recognize "the user wants to build something new" and silently create the folder + git repo + scaffolding (on by default, opt-out available; see the "Auto-scaffolding new projects" section below)
    - `/whats-next`: read the docs to figure out where the project stands and what to do next
    - `/sop-generate`: generate a screenshot-backed business SOP (operating manual) for an already-deployed web app
+   - **Goal ledger**: every requirement you voice in conversation gets logged the same round into the inbox section of `docs/REQUIREMENTS.md`; brainstorming reconciles against it, wrap-up settles it, `/whats-next` reports what's still open — so requirements stop evaporating between batches
+   - Plus a standing capability: **auto-scaffold** — new sessions auto-recognize "the user wants to build something new" and silently create the folder + git repo + scaffolding (on by default, opt-out available; see the "Auto-scaffolding new projects" section below)
 
 ## Install
 
@@ -71,6 +72,7 @@ Before SOP screenshots, or as a regression sweep after a batch of UI changes, sy
 - **Externalized config**: `node sweep.mjs <path>/sweep.config.mjs` reads the project's `ROOT`/`SCREENS` (required) plus `DENY_EXTRA`/`ensureBaseline`/`OUT` (optional); missing required fields fail fast instead of silently running an empty sweep.
 - **Safety boundary**: the default denylist (revoke/dissolve/delete/log out/logout/archive/clear/reset/send/save/upload, etc.) can only be appended to via `DENY_EXTRA`, never trimmed by a project; destructive buttons are logged, never clicked; `confirm`/`prompt` dialogs are always dismissed, never producing a real write; two-layer domain guard: `--allowed-domains` restricts explicit navigation only (click-driven jumps get through — empirically verified, so the engine takes over session lifecycle), while the reliable layer is the engine's per-click hostname check — leaving the domain is logged as `left-domain` and the scene is restored on the spot; only for sites you own or are authorized to test.
 - **`--strict` mode**: restores the baseline state after every single click, fixing the false-positive where accumulated on-screen state masks a later click's effect; off by default (full sweeps run roughly 2x slower with it on) — use the default mode for first passes, and `--strict` to re-verify a `dead` list.
+- **Orphan-feature audit (optional)**: a sweep can only find "there's a button and clicking it does nothing"; it can't find "the feature shipped but the frontend has no entry point at all" — that takes an audit. Give the config an `INVENTORY` (backend API + frontend route lists, generated on the spot by Claude for your stack) and the engine collects the requests actually triggered during the sweep, diffs them against the inventory, and reports `unreachable` (probably no entry point) / `broken-entry` (entry exists but returns 4xx/5xx) / `exempt` (webhooks and friends, expected to have no UI entry) — with four families of false-positive triage guidance (permissions / data state / denylist / incomplete coverage) and a three-condition test for a real orphan. **With no `INVENTORY` configured the whole audit stays silent and behaviour is byte-for-byte what it was before.**
 
 ```
 /plugin install ui-sweep-en@claude-workflow-kit   # English version

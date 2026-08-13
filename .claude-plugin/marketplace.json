@@ -7,12 +7,12 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）;方法论含目标台账(需求当轮落账防蒸发)、链式对抗评审与评审报差异、安全加固措辞规范、生产红线前置、调研内部先行"
     },
     {
       "name": "workflow-en",
       "source": "./plugins/workflow-en",
-      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions (auto-scaffold)"
+      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions; the methodology now includes a goal ledger (log requirements the same round so they never evaporate), chained adversarial review + delta-only review reports, neutral wording for hardening work, production red lines pushed to the implementer prompt, and internal-first research"
     },
     {
       "name": "speak-human",
@@ -37,12 +37,12 @@
     {
       "name": "ui-sweep",
       "source": "./plugins/ui-sweep",
-      "description": "中文版:SOP 截图前/改完一批 UI 后,把全站可交互元素系统性点一遍——agent-browser 驱动 + 通用化遍历引擎(config 外置、默认拦截名单只增不减、八分类记账);破坏性按钮只记不点、confirm/prompt 一律驳回、出域双层防护(旗标限显式导航+逐击域名校验拉回)"
+      "description": "中文版:SOP 截图前/改完一批 UI 后,把全站可交互元素系统性点一遍——agent-browser 驱动 + 通用化遍历引擎(config 外置、默认拦截名单只增不减、八分类记账)+ 孤儿功能对账(代码清单 vs 遍历实际到达,查「功能实现了但前端没入口/入口打不通」);破坏性按钮只记不点、confirm/prompt 一律驳回、出域双层防护(旗标限显式导航+逐击域名校验拉回)"
     },
     {
       "name": "ui-sweep-en",
       "source": "./plugins/ui-sweep-en",
-      "description": "English version: before SOP screenshots or after a batch of UI changes, systematically click every interactive element on the site — driven by agent-browser plus a generalized traversal engine (externalized config, append-only default denylist, eight-category ledger); destructive buttons are logged not clicked, confirm/prompt always dismissed, two-layer domain guard (flag for explicit navigation + per-click hostname check pulls strays back)"
+      "description": "English version: before SOP screenshots or after a batch of UI changes, systematically click every interactive element on the site — driven by agent-browser plus a generalized traversal engine (externalized config, append-only default denylist, eight-category ledger) plus an orphan-feature audit (code inventory vs what the sweep actually reached — finds features shipped with no UI entry point, or entry points that no longer work); destructive buttons are logged not clicked, confirm/prompt always dismissed, two-layer domain guard (flag for explicit navigation + per-click hostname check pulls strays back)"
     }
   ]
 }

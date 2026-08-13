@@ -11,6 +11,7 @@
    - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 八件套 + `.gitignore` + `README.md`)
    - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
    - `/sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP(操作手册)
+   - **目标台账**:对话里说过的需求当轮落进 `docs/REQUIREMENTS.md` 的收件箱节,brainstorming 开工对账、收尾销账、`/whats-next` 报未销账项——治「说过的需求做着做着就忘了」
    - 外加一个常驻能力:**auto-scaffold**——新会话开局自动认出"用户要做个新东西",无声建目录 + git 仓 + 脚手架(默认开启,可 opt-out;见下方「新项目自动铺设」一节)
 
 ## 安装
@@ -72,6 +73,7 @@ SOP 截图前,或改完一批 UI 后做回归扫描,把全站可交互元素系�
 - **配置外置**:`node sweep.mjs <path>/sweep.config.mjs` 吃项目的 `ROOT`/`SCREENS`(必填)+ `DENY_EXTRA`/`ensureBaseline`/`OUT`(可选),缺必填项立即报错退出,不静默空跑。
 - **安全边界**:默认拦截名单(吊销/删除/退出/logout/revoke/归档/清除/重置/发送/保存/上传等)项目只能通过 `DENY_EXTRA` 叠加、不能削减;破坏性按钮只记不点;`confirm`/`prompt` 一律驳回,不产生真实写入;出域防护双层:`--allowed-domains` 限显式导航(点击驱动的跳转拦不住,引擎已实测并接管会话生命周期),可靠层是引擎逐击域名校验——出域记 `left-domain` 并当场拉回;只用于自家或已获授权的站点。
 - **`--strict` 模式**:每击必恢复现场,治"同屏状态累积掩盖后续点击变化"的假阳性;默认关(全量跑慢约一倍),初跑用默认、对 dead 清单复核用 `--strict`。
+- **孤儿功能对账(可选)**:遍历只能查「有按钮点了没反应」,查不到「功能实现了但前端根本没入口」——后者要靠对账。config 里给 `INVENTORY`(后端 API + 前端路由清单,由 Claude 按项目技术栈现场生成)后,引擎在遍历中采集实际触发的请求,与清单求差集,产出 `unreachable`(疑似没入口)/ `broken-entry`(入口在但 4xx/5xx)/ `exempt`(webhook 等预期无入口)三类结论;配四类假阳性判读指南(权限/数据状态/拦截名单/覆盖不全)与真孤儿三条件。**不配 `INVENTORY` 时此功能静默关闭,行为与不开完全一致。**
 
 ```
 /plugin install ui-sweep@claude-workflow-kit      # 中文版
