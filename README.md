@@ -142,7 +142,7 @@ Responsibilities of each file in the eight-doc set:
 
 | File | Responsibility |
 |---|---|
-| `docs/REQUIREMENTS.md` | Product requirements, **single source of truth** — change requirements here first |
+| `docs/REQUIREMENTS.md` | Product requirements, **single source of truth** — change requirements here first; contains the "Goal Ledger (inbox)" section collecting requirements that surface in conversations/meetings |
 | `docs/BUSINESS.md` | Business profile: business facts (how things were done before the system, business rules) — change business rules here first |
 | `docs/PLAN.md` | Phased roadmap + Phase status (✅) + Spec Index; holds only the index, not the full text |
 | `docs/Progress.md` | Module status overview table + changelog (newest first) |
@@ -225,7 +225,7 @@ When the user says "new project / initialize project / set up scaffolding", lay 
    - **The eight-doc set**:
      - `PLAN.md` — Overall Roadmap, each Phase's status (title carries ✅ = done), Spec Index
      - `Progress.md` — top half: module status overview table (pending/doing/done); bottom half: changelog (**newest first**)
-     - `REQUIREMENTS.md` — Product Positioning, Target Users, Phased Roadmap, Confirmed Decisions (fill in with real content from intake wherever possible)
+     - `REQUIREMENTS.md` — Product Positioning, Target Users, Phased Roadmap, Confirmed Decisions (fill in with real content from intake wherever possible) + the Goal Ledger (inbox) section
      - `BUSINESS.md` — business profile: how things were done before the system, business rules, input/output sample registry (fill in with what the 7-slot checklist collected)
      - `ARCHITECTURE.md` — architecture design; `DEPLOYMENT.md` — deployment plan
      - `DECISIONS.md` — decision records, each with What/Why/Changes, **newest first** (the tech-stack baseline is the first entry)
@@ -255,6 +255,10 @@ For pure vibe-coding users who never type `/scaffold` and have no mental model o
 ### 7a. Wording conventions for security-hardening work
 
 For security/hardening work — specs, dispatch prompts, code comments, commit messages — always describe **what the system does** in neutral engineering language (input validation, rate limiting, session expiry, permission tightening), not "what/whom it defends against". If a threat scenario genuinely needs to be recorded, put it in human-facing project docs (`DECISIONS.md` / `BUSINESS.md`), not in dispatch prompts or code comments. Reason: adversarially-framed messages can get an entire message blocked by content-safety classifiers, forcing a spec rewrite or a model switch — a pitfall hit repeatedly across real sessions. This is wording engineering, not concealment: the same hardening action is expressed just as completely when described as "system behavior".
+
+### 7b. Log requirements to the ledger the same round (goal-ledger logging rule)
+
+Any requirement, expectation, or complaint the user expresses in conversation — even a single sentence — must be logged into the "goal ledger" in `docs/REQUIREMENTS.md` **the same round** (date + verbatim quote + source), followed by a one-line reply "Logged to the goal ledger." When unsure whether something counts as a requirement, log it as `open` anyway — better to over-log than to miss one; **failing to log it counts as not having heard it, and is forbidden.** Requirement-type items from meeting notes and user feedback likewise land in the ledger first and get promoted later; action items (things to do) still go to PLAN/spec, not the ledger.
 
 ## 8. Do GitHub research first for new products / major features
 

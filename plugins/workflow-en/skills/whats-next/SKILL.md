@@ -35,8 +35,8 @@ ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress —
 1. **Where you are** — one or two sentences: what was most recently completed, citing the date of Progress's latest entry
 2. **Next step** — task name + the first concrete action (down to the file/command level) + source (which file, which section)
 3. **Watch-outs** — decisions already made / pitfalls relevant to the next step, sourced from: DECISIONS.md's most recent entries + the Progress changelog, with citations; omit this section if none
-4. **Meeting action items not yet in any plan** — unchecked action items from MEETINGS.md's latest section that haven't made it into any plan, prompting the user to decide where they go; omit this section if none
-5. **Unsettled goals** — entries in REQUIREMENTS.md's Goal Ledger with status `open`, listed one by one, with any pinned to the top if they've been outstanding for more than 7 days; omit this section if none
+4. **Meeting action items not yet in any plan** — unchecked action items from MEETINGS.md's latest section that haven't made it into any plan, prompting the user to decide where they go; items already logged in the Goal Ledger are not repeated here; omit this section if none
+5. **Unsettled goals** — entries in REQUIREMENTS.md's Goal Ledger with status `open`, listed one by one, with any pinned to the top if they've been outstanding for more than 7 days; only list Goal Ledger entries; omit this section if none
 
 End by asking the user: start now?
 
@@ -45,3 +45,4 @@ End by asking the user: start now?
 - `docs/PLAN.md` or `docs/Progress.md` doesn't exist → this isn't a /scaffold project. State which file is missing, suggest running `/scaffold` first, and don't guess the next step
 - Progress (overview table or changelog) contradicts the spec's implementation status (says done but no implementation record, or vice versa) → explicitly point out the contradiction and both sides' sources, suggest cross-checking before proceeding, don't silently pick one
 - DECISIONS.md or MEETINGS.md doesn't exist → don't error, just skip the corresponding step (older projects may not have them)
+- REQUIREMENTS.md doesn't exist, or has no Goal Ledger section → skip part 5, don't error (common for existing/legacy projects)
