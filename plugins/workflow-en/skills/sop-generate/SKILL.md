@@ -1,7 +1,7 @@
 ---
 name: sop-generate
-description: Generate a screenshot-backed business SOP (operating manual) for any deployed internal web app. Trigger phrases: generate business SOP, operating manual, sop-generate, write an operating procedure doc for this system. Distinguish this from a development-process SOP — this skill produces a manual for "how business staff operate this system," not a code/deployment procedure doc.
-argument-hint: [project path] [deployed URL, optional — inferred from project docs/env if omitted]
+description: 'Generate a screenshot-backed business SOP (operating manual) for any deployed internal web app. Trigger phrases: generate business SOP, operating manual, sop-generate, write an operating procedure doc for this system. Distinguish this from a development-process SOP — this skill produces a manual for "how business staff operate this system," not a code/deployment procedure doc.'
+argument-hint: "[project path] [deployed URL, optional — inferred from project docs/env if omitted]"
 ---
 
 # sop-generate — Business SOP Generation

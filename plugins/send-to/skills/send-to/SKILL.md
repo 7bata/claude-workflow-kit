@@ -1,7 +1,7 @@
 ---
 name: send-to
 description: Use when 用户输入 /send-to <会话名> [内容],要求"把这个转告/同步给本机另一个 Claude Code 会话""告诉隔壁那个窗口/终端",或抱怨"另一个窗口在 /list-agents 里看不到、消息发不过去"时。
-argument-hint: [目标会话名] [要转达的内容,留空则取当前对话里刚发生的事]
+argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话里刚发生的事]"
 ---
 
 # send-to — 把消息转达给本机另一个 Claude Code 会话

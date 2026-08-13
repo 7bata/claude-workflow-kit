@@ -1,7 +1,7 @@
 ---
 name: send-to
 description: Use when the user types /send-to <session-name> [content], asks to relay/forward something to another Claude Code session on this machine ("tell the other window/terminal about this"), or complains that another window doesn't show up in /list-agents or that messages aren't getting through.
-argument-hint: [target session name] [what to relay; omit to use what just happened in this conversation]
+argument-hint: "[target session name] [what to relay; omit to use what just happened in this conversation]"
 ---
 
 # send-to — relay a message to another Claude Code session on this machine
