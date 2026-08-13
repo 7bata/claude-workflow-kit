@@ -136,7 +136,7 @@ Template path mapping: `templates/docs/X.md.tmpl` → `docs/X.md`; `templates/gi
 
 **Pre-filling content** (don't just substitute placeholders — fill in real content wherever possible):
 
-- `docs/REQUIREMENTS.md`: fill in as much real content as possible from what intake distilled (Product Positioning, Target Users & Roles, Phased Roadmap, Confirmed Decisions); leave a TBD comment for anything that can't be filled in
+- `docs/REQUIREMENTS.md`: fill in as much real content as possible from what intake distilled (Product Positioning, Target Users & Roles, Phased Roadmap, Confirmed Decisions); leave a TBD comment for anything that can't be filled in; the template ships with a "Goal Ledger (Inbox)" section — leave the table empty at scaffold time, no follow-up needed
 - `docs/BUSINESS.md`: fill in each section with what the 7-slot checklist collected (goal & current process, inputs/outputs, processing flow, business hard rules, human review, …); leave the template's own TBD comment for any slot that can't be filled
 - `docs/MEETINGS.md`: if intake came from meeting notes, archive the raw notes as the first section; otherwise keep the empty skeleton
 - `docs/DECISIONS.md`: the template comes with a "Go baseline" first entry; if Step 3 produced other significant decisions (e.g. rationale for choosing SQLite), append a What/Why/Changes entry for each

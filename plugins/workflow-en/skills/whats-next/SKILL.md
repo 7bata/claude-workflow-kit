@@ -17,8 +17,9 @@ Read the plan and progress docs laid down by /scaffold, and tell the user what t
 3. The latest design spec — the latest `docs/superpowers/specs/<date>-<topic>-design.md` pointed to by the Spec Index (if the index doesn't have it, Glob that directory and take the newest by date) — cross-check against Progress.md to judge whether it's already implemented
 4. `docs/DECISIONS.md` — **newest first**, read the 2-3 most recent entries: any decision in the same domain as the next step must go into "Watch-outs"
 5. `docs/MEETINGS.md` — only look at the **latest section**'s "Action Items": entries that are unchecked and don't appear in any plan go into part 4 of the output
+6. `docs/REQUIREMENTS.md`'s "Goal Ledger" — entries with status `open`, listed one by one in part 5 of the output
 
-ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress — don't read them; REQUIREMENTS.md is only read for its "Phased Roadmap" when step 2's third row matches.
+ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress — don't read them; REQUIREMENTS.md's "Phased Roadmap" is only read when step 2's third row matches; its "Goal Ledger" is always read per item 6 above.
 
 ## Step 2: Locate the next step (check in order, stop at the first match)
 
@@ -29,12 +30,13 @@ ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress —
 | PLAN.md's Overall Roadmap is still `<!-- TBD -->` | First read REQUIREMENTS.md's "Phased Roadmap" as input, then use superpowers:brainstorming to define the phased roadmap |
 | All Phases are ✅ | The project is complete per plan; suggest a retrospective or starting a new Phase |
 
-## Step 3: Output contract (four parts, in order)
+## Step 3: Output contract (five parts, in order)
 
 1. **Where you are** — one or two sentences: what was most recently completed, citing the date of Progress's latest entry
 2. **Next step** — task name + the first concrete action (down to the file/command level) + source (which file, which section)
 3. **Watch-outs** — decisions already made / pitfalls relevant to the next step, sourced from: DECISIONS.md's most recent entries + the Progress changelog, with citations; omit this section if none
 4. **Meeting action items not yet in any plan** — unchecked action items from MEETINGS.md's latest section that haven't made it into any plan, prompting the user to decide where they go; omit this section if none
+5. **Unsettled goals** — entries in REQUIREMENTS.md's Goal Ledger with status `open`, listed one by one, with any pinned to the top if they've been outstanding for more than 7 days; omit this section if none
 
 End by asking the user: start now?
 
