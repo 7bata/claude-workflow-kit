@@ -17,7 +17,7 @@
 ### 1.3 版本分叉现状(2026-08-12 md5 核实)
 
 - **本机三个 profile**(`~/.claude/skills/`、`~/.claude-profiles/labs/skills/`、`~/.claude-profiles/long/skills/` 下的 `send-to/SKILL.md`)内容完全一致,为**新版基线**:含 2026-08-10 受控实验定谳(uds 直发跨账号可达)与「未列出 socket 的直发」节。
-- **kit 仓中英双版**与 **huake 仓副本**三者一致,为**旧版**(2026-08-08「跨账号不可发」口径,无直发节)。
+- **kit 仓中英双版**与 **内网工作站仓副本**三者一致,为**旧版**(2026-08-08「跨账号不可发」口径,无直发节)。
 - 结论:本次改造**以本机新版为基线**重写,不在 kit 旧版上打补丁;kit 中文版为源,英文版全文同义重译。
 
 ## 2. 目标与非目标
@@ -127,7 +127,7 @@
 
 1. **本机三个 profile** 的 `skills/send-to/SKILL.md` ← kit 中文终稿(三份现为同一内容,同步后仍保持一致)。
 2. **本机注册 hook**:裸 skill 目录装不了 hook → 向三个 profile 的 `settings.json` 各挂一条 SessionStart hook,指向共享脚本(建议 `~/.claude/hooks/cc-session-register.sh`,内容同 register.sh)。**动 settings.json 前逐份向 Tony 确认**。
-3. **huake 仓** `claude-toolkit-engineer`:send-to SKILL.md 整文件替换为 kit 中文终稿(其当前副本与 kit 旧版逐字节一致,整替换安全);其 `hooks/hooks.json` **JSON 合并**追加第三条 hook(该文件已有 speak-human 与 auto-scaffold 两条注入,绝不整文件覆盖);新增 register.sh。走其自身 wip → Tony 确认 → merge 流程。
+3. **内网工作站仓**(内部工具包仓 engineer 版):send-to SKILL.md 整文件替换为 kit 中文终稿(其当前副本与 kit 旧版逐字节一致,整替换安全);其 `hooks/hooks.json` **JSON 合并**追加第三条 hook(该文件已有 speak-human 与 auto-scaffold 两条注入,绝不整文件覆盖);新增 register.sh。走其自身 wip → Tony 确认 → merge 流程。
 
 ## 6. 验收条款
 

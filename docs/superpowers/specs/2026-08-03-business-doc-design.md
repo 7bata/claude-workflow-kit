@@ -1,6 +1,6 @@
 # scaffold 新增 BUSINESS.md(业务档案)— Design Spec
 
-> 2026-08-03 ｜ 状态:已获批 ｜ 背景:华科四项目交接暴露的缺口——七件套里 REQUIREMENTS 管"要做什么"、DECISIONS 管"过程中怎么决策",但**"做这个系统之前业务长什么样、为什么值得做"没有家**。这恰是交接时最缺的叙事,也是生成业务 SOP 的原料。
+> 2026-08-03 ｜ 状态:已获批 ｜ 背景:某批四个内部项目交接暴露的缺口——七件套里 REQUIREMENTS 管"要做什么"、DECISIONS 管"过程中怎么决策",但**"做这个系统之前业务长什么样、为什么值得做"没有家**。这恰是交接时最缺的叙事,也是生成业务 SOP 的原料。
 
 ## 决定
 
@@ -46,7 +46,7 @@
 |---|---|
 | `claude-workflow-kit/plugins/workflow`(开源中文) | 通用措辞 |
 | `claude-workflow-kit/plugins/workflow-en`(开源英文) | 英文翻译,结构一致 |
-| `Platform/dev-toolkit-engineer` stellark-scaffold | 可引用内部《SOP-系统需求采集手册》作为 intake 指引 |
+| 内部工具包仓(engineer 版)stellark-scaffold | 可引用内部《SOP-系统需求采集手册》作为 intake 指引 |
 | kit 根 README.md / README.zh-CN.md | 提及"七件套"处改"八件套"并列出 BUSINESS |
 
 ### 5. 与其他 spec 的衔接(实现时序约束)

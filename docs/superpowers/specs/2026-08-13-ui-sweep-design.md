@@ -1,7 +1,7 @@
 # ui-sweep:UI 全量交互遍历 skill — Design Spec
 
 - 日期:2026-08-13
-- 状态:已获 Tony 确认(形态=独立双语 bonus 插件 + 通用化引擎 + sop-generate 前置指引;铺面=kit + dev-toolkit + huake 全铺)
+- 状态:已获 Tony 确认(形态=独立双语 bonus 插件 + 通用化引擎 + sop-generate 前置指引;铺面=kit + 内部工具包仓 + 内网工作站 全铺)
 - 依据:某内部 SPA 项目会话交接(2026-08-13)——调研 `docs/superpowers/research/2026-08-13-agent浏览器与UI遍历测试调研.md` 与实跑报告 `docs/reports/2026-08-13-UI全量交互遍历报告.md`(均在该项目仓 wip/ui-sweep-sop;本机导出副本与抢救的脚本在会话 scratchpad `ui-sweep-rescue/`)
 
 ## 1. 背景
@@ -48,8 +48,8 @@ Tony 拍板:SOP 截图前先把全站交互按钮系统性全点一遍;工具链
 
 ## 5. merge 后铺面(不在本分支;各走 wip → Tony 门禁)
 
-1. **dev-toolkit**(stellark):`plugins/dev-toolkit/skills/ui-sweep/` ← kit 中文版整目录;README 27→28 表加行;其 sop-generate 加同款指引;plugin.json 1.0.x → 1.1.0(加 skill 属 minor)+ description 提及。
-2. **huake**(claude-toolkit-engineer):同上;⚠️ README 有「包含的 N 个 skill」计数,表格行与计数同步改;plugin.json 0.10.x → 0.11.0。
+1. **内部工具包仓**(stellark 主线):`<内部工具包仓>/skills/ui-sweep/` ← kit 中文版整目录;README 27→28 表加行;其 sop-generate 加同款指引;plugin.json 1.0.x → 1.1.0(加 skill 属 minor)+ description 提及。
+2. **内网工作站**(内部工具包仓 engineer 版):同上;⚠️ README 有「包含的 N 个 skill」计数,表格行与计数同步改;plugin.json 0.10.x → 0.11.0。
 3. 本机个人 skills 目录(三 profile 软链)是否放副本:不放——个人面用 kit 插件本体即可,避免第四份血统(与 send-to 的裸 skill 历史包袱不同,新 skill 不再制造)。
 
 ## 6. 验收条款

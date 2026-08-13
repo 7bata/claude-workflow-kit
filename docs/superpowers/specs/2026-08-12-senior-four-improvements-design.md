@@ -2,11 +2,11 @@
 
 - 日期:2026-08-12
 - 状态:已获 Tony 逐节确认(2026-08-12 会话内:载体范围、落地形态、设计骨架三轮均选"照此定")
-- 依据:senior 190 场会话语料分析(`~/Proj/Stellark/Projects/stellark-benchmark/data/analysis/senior-usage-analysis.md` 第六节),经 Tony 拍板反向抄进 kit;交接任务书 `/tmp/send-to-handoff-claude-workflow-kit.md` 任务 A
+- 依据:senior 190 场会话语料分析(`<内部路径>/senior-usage-analysis.md` 第六节),经 Tony 拍板反向抄进 kit;交接任务书 `/tmp/send-to-handoff-claude-workflow-kit.md` 任务 A
 
 ## 1. 背景与目标
 
-对 senior 使用 Claude Code 的 190 场会话分析发现四条 kit 尚未覆盖、实战验证有效的纪律。本 spec 把四点植入 kit 的全部 Claude 系与 Codex 系载体,并同步本机与 huake 面(stellark 面随 vibe/engineer 合并另行立项,本轮不动——Tony 2026-08-12 拍板)。
+对 senior 使用 Claude Code 的 190 场会话分析发现四条 kit 尚未覆盖、实战验证有效的纪律。本 spec 把四点植入 kit 的全部 Claude 系与 Codex 系载体,并同步本机与内网工作站面(stellark 面随 vibe/engineer 合并另行立项,本轮不动——Tony 2026-08-12 拍板)。
 
 四点内容(已拍板,不再论证):
 
@@ -21,7 +21,7 @@
 - **双语同构**:README.zh-CN.md 与 README.md 的工作流 prompt 段结构一致,中英同点位植入。
 - **codex 面同步**,适配其口径:无 model/effort 档位旋钮、主对话亲自验收、并行靠 parallel-do。
 - **本机 `~/.claude/CLAUDE.md` 保持个性化措辞**(带日期戳校准、session-report 复盘风格),不拿 README 措辞覆盖。
-- **huake 仓按对应段落适配植入**,不整文件替换其 Stellark 定制模板。
+- **内网工作站仓按对应段落适配植入**,不整文件替换其 Stellark 定制模板。
 
 ## 3. 规范文本(canonical,中文版;英文版照此同义翻译)
 
@@ -90,7 +90,7 @@ parallel-do SKILL.md 两处:
 - 「Brainstorming → Ultracode 直通流程」第 2 点:实现 prompt 清单加生产红线/FORBIDDEN FILES;评审描述加"报差异不报摘要"与链式选项。
 - 新增顶层小节「## 安全加固类工作的措辞规范(2026-08-12)」,内容同 3.4,措辞按本机风格(可注明出处日期)。
 
-### 3.8 huake 仓 `claude-toolkit-engineer`(merge 后同步,走其自身 wip→确认→merge 流程)
+### 3.8 内网工作站仓(内部工具包仓 engineer 版,merge 后同步,走其自身 wip→确认→merge 流程)
 
 - 其 scaffold 的 CLAUDE.md.tmpl:找到评审/多代理分工对应段,按 3.5 同义植入;无对应段则在其计划/文档约定节新增。实现时先读其实际结构再定插入点,**不整文件替换**。
 - 安全措辞条同步植入。
@@ -107,7 +107,7 @@ parallel-do SKILL.md 两处:
 | `plugins/workflow-codex/skills/scaffold/templates/AGENTS.md.tmpl` | 3.6 |
 | `plugins/workflow-codex/skills/parallel-do/SKILL.md` | 3.6 |
 
-本机与 huake 面(3.7 / 3.8)在本分支 merge 进 main 后执行,不在本分支内。
+本机与内网工作站面(3.7 / 3.8)在本分支 merge 进 main 后执行,不在本分支内。
 
 ## 5. 验收条款
 

@@ -85,4 +85,4 @@ export const INVENTORY = {
 
 - 分支 `wip/ui-sweep-orphan-check`(kit),commit 即推;
 - ultracode:U1 引擎(sonnet/medium,TDD 先写 smoke)∥ U2 SKILL zh + 报告模板(sonnet/medium)→ U3 en 同步(sonnet/medium);逐单元 opus/medium 评审;终审 opus/high;
-- merge 前 Tony 门禁;随后按既有流程铺 dev-toolkit / huake 两面。
+- merge 前 Tony 门禁;随后按既有流程铺内部工具包仓 / 内网工作站 两面。

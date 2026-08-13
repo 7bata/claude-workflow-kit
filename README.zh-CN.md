@@ -7,10 +7,11 @@
 包含两部分:
 
 1. **一段工作流 prompt**(本 README 下方)——放进你的 `~/.claude/CLAUDE.md`,定义模型分工、档位表和主流程
-2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供三个可执行命令:
+2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供三个可执行命令,外加两项能力:
    - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 八件套 + `.gitignore` + `README.md`)
    - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
    - `/sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP(操作手册)
+   - **目标台账**:对话里说过的需求当轮落进 `docs/REQUIREMENTS.md` 的收件箱节,brainstorming 开工对账、收尾销账、`/whats-next` 报未销账项——治「说过的需求做着做着就忘了」
    - 外加一个常驻能力:**auto-scaffold**——新会话开局自动认出"用户要做个新东西",无声建目录 + git 仓 + 脚手架(默认开启,可 opt-out;见下方「新项目自动铺设」一节)
 
 ## 安装
@@ -55,7 +56,7 @@
 
 `/send-to 会话名 要转达的内容` —— 把消息转达给本机另一个 Claude Code 会话,基于跨会话消息功能(Claude Code v2.1.224+,macOS/Linux;发消息本身没有内置斜杠命令,这正是本插件存在的原因)。它定死了几件事:
 
-- **会话名模糊匹配**:自动生成的会话名多是「目录名-两位后缀」(如 `hapi-ec`),只输 "hapi" 也能对上;零命中或多个命中时把在线会话列表亮出来问你,不替你猜。
+- **会话名模糊匹配**:自动生成的会话名多是「目录名-两位后缀」(如 `myapp-ec`),只输 "myapp" 也能对上;零命中或多个命中时把在线会话列表亮出来问你,不替你猜。
 - **消息强制自包含**:对方会话没有你这边的任何上下文,转达必须带上背景、实质内容(分支、提交、路径)和期望动作,禁止"按我们刚才说的"。
 - **如实汇报投递状态**:"已发送"不会被吹成"对方已收到";两个会话权限模式不一致时消息会在对方端挂起等批准,skill 会把挂起状态如实转告。
 - **跨 profile 不可见但可直发,身份注册表认人**:跨会话发现按 profile 隔离(每个会话只在自己 profile 的注册表登记)——另一个 profile 开的窗口在 `ListAgents` 里互相看不见,但 `SendMessage` 带显式 `uds:` 地址可跨账号直达(2026-08-10 受控实验定谳),不再是边角料式的最后手段。为解决"看到 socket 也认不出是谁"的窘境,`send-to` 插件的 SessionStart hook 会把本会话身份(项目名、账号、profile、启动时间、启动命令行)自愿注册进共享的身份注册表,零命中时先读注册表按四级阶梯(`ListAgents` → 身份注册表直发 → 现行地址来源阶梯 → 文件交接)找目标,能唯一认出目标就直发不必绕弯。**这条 hook 要在每个 profile 都装并生效,才能注册该 profile 的会话**——少装一个 profile,那个 profile 的窗口就只能靠地址阶梯或文件交接被找到。注册默认开启,`touch ~/.claude/.cc-session-registry-off` 即全局停用(删除该文件恢复)。文件交接降级(自包含交接文件 + 一行粘贴指令,由用户亲手贴进目标窗口)退回真正的最后兜底,只在四级阶梯全部落空时触发。
@@ -67,11 +68,12 @@
 
 ## 附赠插件:ui-sweep
 
-SOP 截图前,或改完一批 UI 后做回归扫描,把全站可交互元素系统性点一遍——`vercel-labs/agent-browser`(Rust CLI,自带 Chrome for Testing,a11y 快照带元素引用)驱动 + 自研通用化遍历引擎:登录态注入 → 按项目 `sweep.config.mjs` 编制的屏清单逐屏跑 → 每屏恢复现场、逐元素点击观察、八分类记账(状态变化 / 无反应 / 弹窗被驳回 / 点击异常 / 页面异常 / 拦截名单)→ 产出 JSONL 台账 + 每屏截图 + 报告。
+SOP 截图前,或改完一批 UI 后做回归扫描,把全站可交互元素系统性点一遍——`vercel-labs/agent-browser`(Rust CLI,自带 Chrome for Testing,a11y 快照带元素引用)驱动 + 自研通用化遍历引擎:登录态注入 → 按项目 `sweep.config.mjs` 编制的屏清单逐屏跑 → 每屏恢复现场、逐元素点击观察、八分类记账(状态变化 / 无反应 / 弹窗被驳回 / 点击异常 / 页面异常 / 拦截名单 / 定位丢失 / 出域拉回)→ 产出 JSONL 台账 + 每屏截图 + 报告。
 
 - **配置外置**:`node sweep.mjs <path>/sweep.config.mjs` 吃项目的 `ROOT`/`SCREENS`(必填)+ `DENY_EXTRA`/`ensureBaseline`/`OUT`(可选),缺必填项立即报错退出,不静默空跑。
 - **安全边界**:默认拦截名单(吊销/删除/退出/logout/revoke/归档/清除/重置/发送/保存/上传等)项目只能通过 `DENY_EXTRA` 叠加、不能削减;破坏性按钮只记不点;`confirm`/`prompt` 一律驳回,不产生真实写入;出域防护双层:`--allowed-domains` 限显式导航(点击驱动的跳转拦不住,引擎已实测并接管会话生命周期),可靠层是引擎逐击域名校验——出域记 `left-domain` 并当场拉回;只用于自家或已获授权的站点。
 - **`--strict` 模式**:每击必恢复现场,治"同屏状态累积掩盖后续点击变化"的假阳性;默认关(全量跑慢约一倍),初跑用默认、对 dead 清单复核用 `--strict`。
+- **孤儿功能对账(可选)**:遍历只能查「有按钮点了没反应」,查不到「功能实现了但前端根本没入口」——后者要靠对账。config 里给 `INVENTORY`(后端 API + 前端路由清单,由 Claude 按项目技术栈现场生成)后,引擎在遍历中采集实际触发的请求,与清单求差集,产出 `unreachable`(疑似没入口)/ `broken-entry`(入口在但 4xx/5xx)/ `exempt`(webhook 等预期无入口)三类结论;配四类假阳性判读指南(权限/数据状态/拦截名单/覆盖不全)与真孤儿三条件。**不配 `INVENTORY` 时此功能静默关闭,行为与不开完全一致。**
 
 ```
 /plugin install ui-sweep@claude-workflow-kit      # 中文版
@@ -262,7 +264,7 @@ docs 八件套各自的职责:
 2. spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权:**不等待批准、不问"是否开始实现"、不 invoke superpowers:writing-plans、不产出实现计划文档**,自动立即进入实现(用户中途主动喊停则照常停下)。
 3. 需要隔离时先建 worktree(superpowers:using-git-worktrees,或 Workflow agent 的 `isolation: 'worktree'`)。
 4. Workflow 编排实现:先输出 3~5 行**开工摘要**(拆了几个单元、各自 model/effort 档位、预估规模),**不等待确认直接开跑**——摘要只是给用户一个看得见的打断窗口。开工摘要末尾附一行现成可贴的目标命令:`/goal "完成 <批次/spec 名>" until "<spec 验收条款要点或本批覆盖的台账条目>全部满足"`——`/goal` 是 Claude Code 会话级内置命令(每轮自动评估完成条件,防长会话做着做着跑偏),不跨会话,跨批次的持久性靠目标台账。随后按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则 + **生产红线与文件所有权**——FORBIDDEN FILES(本单元不许碰的文件/目录点名列出)、绝不重启共享服务、绝不读写生产数据、禁止 force push 与任何丢弃改动的历史改写、只改分给本单元的文件)→ 每单元完成即派评审 agent(`opus`)验证裁决,评审除核对实现外必须核对**测试本身**(是否覆盖 spec 对应验收条款、是否只测 happy path),测试弱视同打回,被打回的单元重跑时测试与实现分开派两个 agent → 主对话汇总修复。评审报告一律**报差异不报摘要**:只报与上一轮、与其他票不同的新发现与推翻项,禁止"检查了一遍没问题"式复述;无新发现就写明"无新发现"并列出复核过的检查点。评审编排按任务选:验收裁决用平行多镜头票,诊断/根因/排障用链式接力(每轮 prompt 附上一轮结论与被否决的假设,连续两轮无新发现才收,见三.2)。
-5. 实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅),同时销账目标台账——本批覆盖到的条目状态改 done 并附证据(commit/截图/spec 条款),把实现过程中新冒出的目标登记进台账。本批若造出了**别的项目能拿去用的成型件**(通用中间件/数据管线/LLM 客户端/部署模板/解析器等,非业务专属逻辑),收尾时登记进你组织的组件索引(§八 第 0 步查的那份;没有就从一份 YAML 清单起步,字段建议 slug/name/capability/repo/path/how_to_integrate/maturity/since/used_by),**必须核实真实路径后才写**,登记完推回索引所在仓。这与「第 0 步内部先行」构成闭环:一个管查、这个管造——索引只有人查没人写,三个月后就会退化成过期清单。
+5. 本批改动涉及 UI(前端页面/交互)时,进 code review 前先跑一次 ui-sweep 做交互回归扫描(全站可交互元素系统性点一遍),把 dead(点了没反应)/page-error/left-domain 清单带进验收;真缺陷逐条真浏览器复核后才定罪,假阳性(状态累积、同步 prompt 堵塞、当前态按钮)按 skill 的判读指南定性。纯后端/文档批次跳过。实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅),同时销账目标台账——本批覆盖到的条目状态改 done 并附证据(commit/截图/spec 条款),把实现过程中新冒出的目标登记进台账。本批若造出了**别的项目能拿去用的成型件**(通用中间件/数据管线/LLM 客户端/部署模板/解析器等,非业务专属逻辑),收尾时登记进你组织的组件索引(§八 第 0 步查的那份;没有就从一份 YAML 清单起步,字段建议 slug/name/capability/repo/path/how_to_integrate/maturity/since/used_by),**必须核实真实路径后才写**,登记完推回索引所在仓。这与「第 0 步内部先行」构成闭环:一个管查、这个管造——索引只有人查没人写,三个月后就会退化成过期清单。
 6. 本流程覆盖 brainstorming SKILL.md 中「结束后唯一可 invoke 的是 writing-plans」的规定;subagent-driven-development / executing-plans 因不再有 plan 文档而失去入口,属预期,不必绕路满足。
 7. 用户明确点名要 writing-plans / subagent-driven / inline / 并行分派时,按点名的方式执行。
 
@@ -298,7 +300,7 @@ docs 八件套各自的职责:
    | spec 全部已实现,PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 走 brainstorming 出新 spec → ultracode(不走 writing-plans),spec 登记进 Spec 索引 |
    | PLAN.md 路线还是待补 | 先读 REQUIREMENTS.md 的分期路线图作输入,用 brainstorming 定分阶段路线 |
    | 所有 Phase 都 ✅ | 项目按计划完成;建议复盘或开新 Phase |
-4. **输出五部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略);④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略);⑤ 未销账目标(REQUIREMENTS.md 目标台账里状态为 open 的条目逐条列出,挂账超 7 天的置顶标注;没有则省略)。结尾问:现在开始吗?
+4. **输出五部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略;若最近一批改动动过 UI 且 Progress 里没有 ui-sweep 走查记录,在此提示一句:建议补跑一次交互回归扫描,没有则省略、不强推));④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略);⑤ 未销账目标(REQUIREMENTS.md 目标台账里状态为 open 的条目逐条列出,挂账超 7 天的置顶标注;没有则省略)。结尾问:现在开始吗?
 5. 文档之间矛盾(Progress 说完成但 spec 无实现记录之类)→ 明确指出矛盾及双方出处,建议先核对再动工,**不默默择一**;缺 `PLAN.md`/`Progress.md` 说明不是本工作流的项目,建议先走第六节铺脚手架。
 ```
 

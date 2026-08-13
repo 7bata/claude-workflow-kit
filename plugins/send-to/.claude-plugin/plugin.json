@@ -1,8 +1,16 @@
 {
   "name": "send-to",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "中文版:/send-to <会话名> 把消息转达给本机另一个 Claude Code 会话——会话名前缀/子串模糊匹配,多个或零个命中亮列表让用户挑,消息强制自包含,[ref] 确认照抄重发,发送后如实汇报挂起状态;跨 profile 窗口发现互不可见但 uds: 地址可直发(标准路径),配 SessionStart 注册 hook 把 socket 清单翻译成身份注册表(默认开,touch ~/.claude/.cc-session-registry-off 全局停用),四级找目标阶梯,文件交接降级为最后兜底。基于跨会话消息功能(Claude Code v2.1.224+,macOS/Linux)",
-  "author": { "name": "Tony Jiang" },
+  "author": {
+    "name": "Tony Jiang"
+  },
   "homepage": "https://github.com/7bata/claude-workflow-kit",
-  "keywords": ["claude-code", "cross-session-messaging", "sendmessage", "listagents", "skills"]
+  "keywords": [
+    "claude-code",
+    "cross-session-messaging",
+    "sendmessage",
+    "listagents",
+    "skills"
+  ]
 }
