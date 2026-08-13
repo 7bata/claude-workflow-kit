@@ -156,7 +156,7 @@ docs 八件套各自的职责:
 
 | 文件 | 职责 |
 |---|---|
-| `docs/REQUIREMENTS.md` | 产品需求,**唯一真相源**,需求变化先改这里 |
+| `docs/REQUIREMENTS.md` | 产品需求,**唯一真相源**,需求变化先改这里;含「目标台账(收件箱)」节,收对话/会议里冒出的需求 |
 | `docs/BUSINESS.md` | 业务档案:业务事实(系统出现之前怎么做、业务规则),业务规则变化先改这里 |
 | `docs/PLAN.md` | 分阶段路线图 + Phase 状态(✅)+ Spec 索引,只装索引不装正文 |
 | `docs/Progress.md` | 模块状态总览表 + 变更日志(最新在上) |
@@ -239,7 +239,7 @@ docs 八件套各自的职责:
    - **docs 八件套**:
      - `PLAN.md` — 总体路线、各 Phase 状态(标题带 ✅ = 完成)、Spec 索引
      - `Progress.md` — 上半部模块状态总览表(pending/doing/done),下半部变更日志(**最新在上**)
-     - `REQUIREMENTS.md` — 产品定位、目标用户、分期路线图、已确认决策(用 intake 内容能填实就填实)
+     - `REQUIREMENTS.md` — 产品定位、目标用户、分期路线图、已确认决策(用 intake 内容能填实就填实)+ 目标台账(收件箱)节
      - `BUSINESS.md` — 业务档案:系统出现之前怎么做、业务规则、输入输出样本登记(用 7 格追问收集的内容填实)
      - `ARCHITECTURE.md` — 架构设计;`DEPLOYMENT.md` — 部署方案
      - `DECISIONS.md` — 决策记录,每条 What/Why/Changes,**最新在上**(技术栈基线是首条)
@@ -258,17 +258,21 @@ docs 八件套各自的职责:
 
 ## 七、主流程:Brainstorming → Spec → Ultracode 直通
 
-1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。
+1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。开工前先读 `docs/REQUIREMENTS.md` 目标台账里状态为 open 的未销账项,把与本次相关的列给用户;spec 须含「目标覆盖声明」——本次覆盖台账哪几条、明确不覆盖哪几条及原因。
 2. spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权:**不等待批准、不问"是否开始实现"、不 invoke superpowers:writing-plans、不产出实现计划文档**,自动立即进入实现(用户中途主动喊停则照常停下)。
 3. 需要隔离时先建 worktree(superpowers:using-git-worktrees,或 Workflow agent 的 `isolation: 'worktree'`)。
-4. Workflow 编排实现:先输出 3~5 行**开工摘要**(拆了几个单元、各自 model/effort 档位、预估规模),**不等待确认直接开跑**——摘要只是给用户一个看得见的打断窗口。随后按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则 + **生产红线与文件所有权**——FORBIDDEN FILES(本单元不许碰的文件/目录点名列出)、绝不重启共享服务、绝不读写生产数据、禁止 force push 与任何丢弃改动的历史改写、只改分给本单元的文件)→ 每单元完成即派评审 agent(`opus`)验证裁决,评审除核对实现外必须核对**测试本身**(是否覆盖 spec 对应验收条款、是否只测 happy path),测试弱视同打回,被打回的单元重跑时测试与实现分开派两个 agent → 主对话汇总修复。评审报告一律**报差异不报摘要**:只报与上一轮、与其他票不同的新发现与推翻项,禁止"检查了一遍没问题"式复述;无新发现就写明"无新发现"并列出复核过的检查点。评审编排按任务选:验收裁决用平行多镜头票,诊断/根因/排障用链式接力(每轮 prompt 附上一轮结论与被否决的假设,连续两轮无新发现才收,见三.2)。
-5. 实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅)。
+4. Workflow 编排实现:先输出 3~5 行**开工摘要**(拆了几个单元、各自 model/effort 档位、预估规模),**不等待确认直接开跑**——摘要只是给用户一个看得见的打断窗口。开工摘要末尾附一行现成可贴的目标命令:`/goal "完成 <批次/spec 名>" until "<spec 验收条款要点或本批覆盖的台账条目>全部满足"`——`/goal` 是 Claude Code 会话级内置命令(每轮自动评估完成条件,防长会话做着做着跑偏),不跨会话,跨批次的持久性靠目标台账。随后按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则 + **生产红线与文件所有权**——FORBIDDEN FILES(本单元不许碰的文件/目录点名列出)、绝不重启共享服务、绝不读写生产数据、禁止 force push 与任何丢弃改动的历史改写、只改分给本单元的文件)→ 每单元完成即派评审 agent(`opus`)验证裁决,评审除核对实现外必须核对**测试本身**(是否覆盖 spec 对应验收条款、是否只测 happy path),测试弱视同打回,被打回的单元重跑时测试与实现分开派两个 agent → 主对话汇总修复。评审报告一律**报差异不报摘要**:只报与上一轮、与其他票不同的新发现与推翻项,禁止"检查了一遍没问题"式复述;无新发现就写明"无新发现"并列出复核过的检查点。评审编排按任务选:验收裁决用平行多镜头票,诊断/根因/排障用链式接力(每轮 prompt 附上一轮结论与被否决的假设,连续两轮无新发现才收,见三.2)。
+5. 实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅),同时销账目标台账——本批覆盖到的条目状态改 done 并附证据(commit/截图/spec 条款),把实现过程中新冒出的目标登记进台账。
 6. 本流程覆盖 brainstorming SKILL.md 中「结束后唯一可 invoke 的是 writing-plans」的规定;subagent-driven-development / executing-plans 因不再有 plan 文档而失去入口,属预期,不必绕路满足。
 7. 用户明确点名要 writing-plans / subagent-driven / inline / 并行分派时,按点名的方式执行。
 
 ### 七之一、安全加固类工作的措辞规范
 
 安全/加固类的 spec、派工 prompt、代码注释、commit message,一律用中性工程语言描述**系统做什么**——输入校验、频率限制、会话过期、权限收紧——而不是"防什么人、挡什么行为"。确需记录威胁场景时,写进面向人的项目文档(`DECISIONS.md` / `BUSINESS.md`),不进派工 prompt 与代码注释。原因:带对抗性叙述的消息可能被内容安全分类器整条拦截,导致 spec 回炉重写、被迫换模型——这是多场真实会话反复踩中的坑。这是措辞工程,不是隐瞒:同一个加固动作,按"系统行为"描述同样表达得完整。
+
+### 七之二、需求当轮落账(目标台账登记规则)
+
+对话中用户表达的需求、期望或不满——哪怕只有一句话——**当轮**登记进 `docs/REQUIREMENTS.md` 的「目标台账」(日期+原话+出处),并回一行「已记入目标台账」。拿不准算不算需求就按 open 登记,宁滥勿漏;**不登记视同没听见,禁止**。会议纪要、用户反馈里的需求类条目同样先落台账再升格;行动项(要做的事)照旧进 PLAN/spec,不入台账。
 
 ## 八、新产品/大功能先做 GitHub 调研
 
@@ -284,16 +288,15 @@ docs 八件套各自的职责:
 用户说"下一步干什么 / 我到哪了",且项目根目录有 `docs/PLAN.md` 时:
 
 1. **文档是唯一依据**,不为回答这个问题遍历代码库;只在文档间矛盾需核对时才抽查代码。
-2. 读:`PLAN.md`(路线 + Phase 状态 + Spec 索引)→ `Progress.md`(状态表 + 最近 2~3 条日志)→ 最新 spec(对照 Progress 判断是否已实现)→ `DECISIONS.md` 最近 2~3 条 → `MEETINGS.md` 最新一节的待办。
+2. 读:`PLAN.md`(路线 + Phase 状态 + Spec 索引)→ `Progress.md`(状态表 + 最近 2~3 条日志)→ 最新 spec(对照 Progress 判断是否已实现)→ `DECISIONS.md` 最近 2~3 条 → `MEETINGS.md` 最新一节的待办 → `REQUIREMENTS.md` 目标台账里状态为 open 的未销账项。
 3. **按序判断,命中即停**:
    | 状态 | 下一步 |
    |---|---|
    | 最新 spec 尚未实现 | 用 ultracode 直接从该 spec 实现;spec 是否已获批准拿不准时先问一句 |
    | spec 全部已实现,PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 走 brainstorming 出新 spec → ultracode(不走 writing-plans),spec 登记进 Spec 索引 |
    | PLAN.md 路线还是待补 | 先读 REQUIREMENTS.md 的分期路线图作输入,用 brainstorming 定分阶段路线 |
-   | 所有 Phase 都 ✅,且没有游离在路线图外的待办 | 项目按计划完成;建议复盘或开新 Phase |
-   | 所有 Phase 都 ✅,但仍有 Backlog(未纳入任何 Phase 的登记项,常见于 MEETINGS.md 未勾选待办、或用户提过但没排进路线图的条目)未完成 | 先报告主路线已完成,再把 Backlog 按登记出现的顺序原样列出——不擅自判断哪个更该先做、不替用户排优先级,交给用户自己挑 |
-4. **输出五部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略);④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略);⑤ Backlog(所有 Phase 已完成但仍有未纳入路线图的登记项时,按登记出现的顺序原样列出,不替用户排优先级;没有则省略)。结尾问:现在开始吗?
+   | 所有 Phase 都 ✅ | 项目按计划完成;建议复盘或开新 Phase |
+4. **输出五部分**:① 当前位置(最近完成了什么,引 Progress 最新条目日期);② 下一步(任务名 + 到文件/命令级的第一步动作 + 出处);③ 随行注意(DECISIONS/Progress 里与下一步同域的决策与踩坑,注明出处;没有则省略);④ 未落计划的会议待办(MEETINGS 最新一节里未勾选且没进任何计划的,提醒用户决定去向;没有则省略);⑤ 未销账目标(REQUIREMENTS.md 目标台账里状态为 open 的条目逐条列出,挂账超 7 天的置顶标注;没有则省略)。结尾问:现在开始吗?
 5. 文档之间矛盾(Progress 说完成但 spec 无实现记录之类)→ 明确指出矛盾及双方出处,建议先核对再动工,**不默默择一**;缺 `PLAN.md`/`Progress.md` 说明不是本工作流的项目,建议先走第六节铺脚手架。
 ```
 

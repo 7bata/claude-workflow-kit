@@ -17,8 +17,9 @@ allowed-tools: Read, Glob, Grep
 3. 最新 design spec — Spec 索引指向的最新一条 `docs/superpowers/specs/<日期>-<主题>-design.md`（索引没有就 Glob 该目录取日期最新）— 对照 Progress.md 判断是否已实现
 4. `docs/DECISIONS.md` — **最新在上**，读最近 2~3 条：与下一步同域的决策必须进「随行注意」
 5. `docs/MEETINGS.md` — 只看**最新一节**的「待办」：未勾选、且没出现在任何计划里的条目，进输出第 4 部分
+6. `docs/REQUIREMENTS.md` 「目标台账」— 状态为 open 的未销账项，逐条进输出第 5 部分
 
-ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档，不含进度，不读；REQUIREMENTS.md 只在步骤 2 第三行命中时读其「分期路线图」。
+ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档，不含进度，不读；REQUIREMENTS.md 的「分期路线图」只在步骤 2 第三行命中时读，「目标台账」按上面第 6 项每次都读。
 
 ## 步骤 2：定位下一步（按序判断，命中即停）
 
@@ -27,16 +28,15 @@ ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档，不含进度，不读
 | 最新 spec 尚未实现（Progress 无对应实现记录） | 用 ultracode（Workflow 多代理编排）直接从该 spec 实现；该 spec 是否已获用户批准拿不准时，先问一句再开 |
 | spec 全部已实现（或还没有 spec），PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 用 superpowers:brainstorming 出 design spec（落 `docs/superpowers/specs/`），获批后直接 ultracode 实现——不走 writing-plans；spec 登记进 Spec 索引 |
 | PLAN.md 总体路线还是 `<!-- 待补 -->` | 先读 REQUIREMENTS.md「分期路线图」作输入，再用 superpowers:brainstorming 定分阶段路线图 |
-| 所有 Phase 都 ✅，且没有游离在路线图外的待办 | 项目按计划已完成；建议复盘或开新 Phase |
-| 所有 Phase 都 ✅，但仍有 Backlog（未纳入任何 Phase 的登记项，常见于 MEETINGS.md 未勾选待办、或用户提过但没排进路线图的条目）未完成 | 先报告主路线已完成，再把 Backlog 按登记出现的顺序原样列出——**不擅自判断哪个更该先做、不替用户排优先级**，交给用户自己挑 |
+| 所有 Phase 都 ✅ | 项目按计划已完成；建议复盘或开新 Phase |
 
 ## 步骤 3：输出契约（按序五部分）
 
 1. **当前位置** — 一两句：最近完成了什么，引用 Progress 最新条目的日期
 2. **下一步** — 任务名 + 第一步具体动作（到文件/命令级别）+ 出处（哪个文件哪一节）
 3. **随行注意** — 与下一步相关的已定决策 / 踩坑，来源：DECISIONS.md 最近条目 + Progress 变更日志，注明出处；没有则省略此节
-4. **未落计划的会议待办** — MEETINGS.md 最新一节里未勾选、且没进任何计划的待办，提醒用户决定去向；没有则省略此节
-5. **Backlog** — 所有 Phase 已完成但仍有未纳入路线图的登记项时，按登记出现的顺序原样列出，不替用户排优先级；没有则省略此节
+4. **未落计划的会议待办** — MEETINGS.md 最新一节里未勾选、且没进任何计划的待办，提醒用户决定去向；已登记进目标台账的条目不在此重复列；没有则省略此节
+5. **未销账目标** — REQUIREMENTS.md 目标台账里状态为 open 的条目逐条列出，挂账超 7 天的置顶标注；只列台账条目；没有则省略此节
 
 结尾问用户：现在开始吗？
 
@@ -45,3 +45,4 @@ ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档，不含进度，不读
 - `docs/PLAN.md` 或 `docs/Progress.md` 不存在 → 这不是 /scaffold 项目。说明缺哪个文件，建议先跑 `/scaffold`，不要猜下一步
 - Progress（总览表或日志）与 spec 实现状态矛盾（说完成但无实现记录，或反之）→ 明确指出矛盾及双方出处，建议先核对再动工，不要默默择一
 - DECISIONS.md 或 MEETINGS.md 不存在 → 不报错，跳过对应步骤即可（老项目可能没有）
+- REQUIREMENTS.md 不存在或没有目标台账节 → 跳过第⑤部分，不报错（存量项目常态）
