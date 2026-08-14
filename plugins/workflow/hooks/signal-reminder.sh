@@ -122,5 +122,5 @@ if [ -f "$inbox" ]; then
   esac
 fi
 
-printf '上一条用户消息疑似含 %s 信号,按当轮落账规则处理(DECISIONS.inbox 现有 %s 条待消化)\n' "$kind" "$pending"
+printf '上一条用户消息疑似含 %s 信号——若确为决策/需求,按当轮落账规则处理;若只是日常表述,忽略本提示即可(高召回低精度的软提醒,误报属预期)。DECISIONS.inbox 现有 %s 条待消化\n' "$kind" "$pending"
 exit 0
