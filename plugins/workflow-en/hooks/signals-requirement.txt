@@ -1,0 +1,19 @@
+I want .{0,15}(to export|to sync|to roll ?back)( ?)(a |an |the )?.{0,20}(feature|button|API|field|module|option|toggle|page|endpoint|report|data|deployment)
+I want it to (work|run) offline$
+I want .{0,10}(support for|to support) .{0,15}(feature|export|import|offline|batch|search|filter|config|API|field|sync|deploy|rollback|validation|mode)
+I want to add a .{0,15}(search|feature|module|field|API|validation|button|toggle|box|bar|page|entry point)
+I want it to automatically .{0,10}(do|complete|generate|handle|run|deploy|test|back ?up|sync)
+make sure it can .{0,10}(auto|batch|export|import|work offline|rollback|search|filter|undo)( ?)
+it'd be best to add a .{0,15}(search|feature|module|field|API|validation|button|toggle|box|bar|page|entry point)
+it'd be best to (make it|turn it into) a .{0,15}(feature|toggle|config|option|page|API|table|report)
+it'd be best to support .{0,15}(multi-language|offline|batch|export|import|rollback|customization|configuration)
+make sure (the feature|the requirement|the task|the module|this) (gets|is) (finished|completed|done)
+(this feature|the requirement|the task|the module|this) must (get|be) (finished|completed|done)$
+needs to be done properly$
+don't forget to add .{0,15}(a mechanism|a feature|a field|validation|a module|an API|a test|docs|logging|retry logic)
+must support .{0,20}(multi-language|offline|batch export|export|import|rollback|.{0,10}(feature|module|API|field|option|parameter|validation|language|mode|platform|export|import))
+need(s)? to add .{0,15}(a feature|a field|a module|an API|an option|a parameter|validation|a button|a toggle|export|batch|rollback|retry logic|a permission|a test|docs)
+add (in )?(one more )?feature( in)?(,? then)?$
+requirement to add .{0,15}(a feature|a permission|a field|validation|a check)
+need to add .{0,15}(a mechanism|a feature|retry logic|validation|a field|a module|an API)
+must have .{0,20}(a .{0,12}(plan|mechanism|feature|flow)|an .{0,12}(API|entry point))

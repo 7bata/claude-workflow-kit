@@ -7,12 +7,12 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）;方法论含目标台账(需求当轮落账防蒸发)、链式对抗评审与评审报差异、安全加固措辞规范、生产红线前置、调研内部先行;组件索引收尾登记与定期校对"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）；docs-capture 三层 hook 自动把问答框拍板存入 DECISIONS.inbox、按信号词提醒决策/需求未落档、commit 前门禁催消化;方法论含目标台账(需求当轮落账防蒸发)、链式对抗评审与评审报差异、安全加固措辞规范、生产红线前置、调研内部先行;组件索引收尾登记与定期校对"
     },
     {
       "name": "workflow-en",
       "source": "./plugins/workflow-en",
-      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions; the methodology now includes a goal ledger (log requirements the same round so they never evaporate), chained adversarial review + delta-only review reports, neutral wording for hardening work, production red lines pushed to the implementer prompt, and internal-first research; component-index registration at wrap-up plus periodic re-audit"
+      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions; docs-capture — three hook layers auto-log AskUserQuestion decisions to DECISIONS.inbox, nudge on decision/requirement signal words, and gate commits until the inbox is triaged; the methodology now includes a goal ledger (log requirements the same round so they never evaporate), chained adversarial review + delta-only review reports, neutral wording for hardening work, production red lines pushed to the implementer prompt, and internal-first research; component-index registration at wrap-up plus periodic re-audit"
     },
     {
       "name": "speak-human",

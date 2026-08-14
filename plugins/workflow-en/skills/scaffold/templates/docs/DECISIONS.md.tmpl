@@ -1,6 +1,6 @@
 # Decision Log — {{PROJECT_NAME}}
 
-> Maintained automatically. For key decisions (technology choices, trade-offs, plan reversals, workarounds), Claude appends a structured record at commit time, newest first.
+> A hook auto-logs AskUserQuestion decisions to `DECISIONS.inbox.md` (raw, untriaged drafts) as they happen; the commit gate reminds when the inbox has undigested drafts. Claude then triages: key decisions (technology choices, trade-offs, plan reversals, workarounds) get distilled into the structured records below, newest first; requirement-shaped entries move to the `REQUIREMENTS.md` goal inbox; noise is discarded.
 > Entry format: `## Date - type(scope): title` + **What / Why / Changes**, with optional **Known limitation / Out of scope / Deferred**.
 > Type reference: arch (architecture) / decision (product or technical trade-off) / feat / fix. Numbering cross-references `REQUIREMENTS.md`'s "Confirmed Decisions" in both directions.
 
