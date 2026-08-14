@@ -42,4 +42,4 @@
 - [目标台账](superpowers/specs/2026-08-13-goal-ledger-design.md) — REQUIREMENTS 收件箱节 + 三对账点 + /goal 粘合
 - [ui-sweep UI 全量交互遍历](superpowers/specs/2026-08-13-ui-sweep-design.md) — agent-browser 驱动 + 通用化遍历引擎
 - [ui-sweep 孤儿功能对账](superpowers/specs/2026-08-13-ui-sweep-orphan-check-design.md) — 代码清单 vs 遍历实际到达求差集
-- [docs-capture 决策/文档采集三层 hook](superpowers/specs/2026-08-14-docs-capture-hooks-design.md) — AskUserQuestion 拍板自动记入 inbox + 信号词软提醒 + commit 门禁催消化;本次仅 kit(github)面交付,stellark/huake/本机三面待接入
+- [docs-capture 决策/文档采集三层 hook](superpowers/specs/2026-08-14-docs-capture-hooks-design.md) — AskUserQuestion 拍板自动记入 inbox + 信号词软提醒 + commit 门禁催消化;四面已交付(kit wip 分支 / dev-toolkit 1.3.0 wip / claude-toolkit-engineer 0.15.0 wip / 本机 settings.json,三仓待 Tony 门禁并 main)

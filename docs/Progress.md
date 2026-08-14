@@ -19,9 +19,16 @@
 | README 仓库结构树漏 `docs/` 与 `.agents/`;`speak-human-en` 标注「结构同 speak-human」但实际无 `evals/` | 2026-08-13 发布把关 | 低 |
 | 内部版 CI 令牌 `dev-toolkit-ci-bot` **2027-04-20 到期**,到期后 auto-bump 会再次全红 | 2026-08-13 修 auto-bump 时建 | 到期前 |
 | Phase 4 方向未定 | — | 待规划 |
-| docs-capture 三层 hook 未并入 stellark dev-toolkit / huake claude-toolkit-engineer / 本机 `~/.claude/hooks`(spec §8 U4~U6) | 2026-08-14 docs-capture | 高 |
+| 本机 docs-capture 双重注册风险:dev-toolkit 1.3.0 插件版将来在本机拉取后,与 settings.json 直接注册二存一(dev-toolkit README 已写注意) | 2026-08-14 U6 评审 | 拉取插件版时 |
+| docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-08-14 — docs-capture 四面落地收口(U2~U6)+ 层 2 五轮定案
+
+- **四面交付**:workflow-en 英文面(词表/判例全英文化+弯引号 U+2019 归一化)、stellark dev-toolkit 1.3.0(hooks.json 纯增段,凭据拦截逐字未动,opus/high 评审核过)、huake claude-toolkit-engineer 0.15.0(含 scaffold 模板同步)、本机 settings.json 注册(备份比对仅差新增三段)。三仓均 wip 分支已推,待门禁并 main。
+- **层 2 词表五轮攻防定案**:两轮实现拟合失败 → 判例/实现分权 + 按子句切分处方 → 集外召回 22/22 满分但对抗性生活句误报触词表法天花板 → Tony 拍板"高召回软提醒":提示语自带免疫说明,验收标准改"领域内误报可忽略"入 spec。教训沉淀:启发式单元判例与实现第一轮就要分 agent 所有权,终审必做集外实测。
+- 修复过程顺带收口:capture 多选含逗号 label 误判、commit-gate 词法位置匹配与 POSIX 化、branch upstream 错位(dev-toolkit wip 曾指向 origin/main,裸 push 可能绕过门禁)。
 
 ### 2026-08-14 — docs-capture 决策/文档采集三层 hook,kit(github)面(0.7.0 → 0.8.0)
 
