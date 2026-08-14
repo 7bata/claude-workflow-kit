@@ -1,0 +1,16 @@
+that's settled(,? then)?$
+(that's|it's) final,? no more (changes|discussion)?$
+decided(,? then)?$
+(the )?final (answer|decision|call)(,? then)?$
+we'll (go with|use) (this|that|it)(,? then)?$
+we'll (go with|use) (the )?([A-Za-z]+ )?(plan|option|proposal|approach|design)(,? then)?$
+let's go with (this|that)( one)?(,? then)?$
+let's just go with (this|that|it)(,? then)?$
+going with (this|that|it)(,? then)?$
+finalize (this|the) (design|proposal|draft|layout)(,? then)?$
+final(ly)? (chose|selected|picked)( is)? .{0,20}(plan|version|direction|framework|library|stack)(,? then)?$
+lock(ing)? in (this|the) (plan|proposal)(,? then)?$
+decided,? let's (do it|go with it) that way(,? then)?$
+(the )?plan is (chosen|selected|decided)$
+selected plan [A-Za-z][A-Za-z0-9.-]*( as (the )?.{0,15})?$
+selected as (the )?(final|baseline|preferred) .{0,15}$

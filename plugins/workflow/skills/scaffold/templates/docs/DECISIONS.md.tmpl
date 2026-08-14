@@ -1,6 +1,6 @@
 # Decision Log — {{PROJECT_NAME}}
 
-> 自动维护。关键决策（选型、取舍、方案反转、绕行方案）在 commit 时由 Claude 追加结构化记录，最新在上。
+> 问答框（AskUserQuestion）拍板由 hook 自动记入 `DECISIONS.inbox.md`（原始草稿，未整理）；commit 门禁在 inbox 有未消化草稿时提醒；Claude 消化时把关键决策（选型、取舍、方案反转、绕行方案）提炼为下方结构化记录，最新在上，需求类条目转入 `REQUIREMENTS.md` 目标台账，噪音丢弃。
 > 条目格式：`## 日期 - 类型(域): 标题` + **What / Why / Changes**，可选 **Known limitation / Out of scope / Deferred**。
 > 类型参考：arch（架构）/ decision（产品或技术取舍）/ feat / fix。与 `REQUIREMENTS.md`「已确认决策」的编号互相回指。
 

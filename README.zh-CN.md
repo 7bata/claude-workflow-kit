@@ -7,11 +7,12 @@
 包含两部分:
 
 1. **一段工作流 prompt**(本 README 下方)——放进你的 `~/.claude/CLAUDE.md`,定义模型分工、档位表和主流程
-2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供三个可执行命令,外加两项能力:
+2. **一个 Claude Code 插件**(`plugins/workflow/`)——提供三个可执行命令,外加三项能力:
    - `/scaffold`:在项目里就地铺设方法论脚手架(`.claude/CLAUDE.md` + docs 八件套 + `.gitignore` + `README.md`)
    - `/whats-next`:读文档判断项目进行到哪了、下一步该干什么
    - `/sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP(操作手册)
    - **目标台账**:对话里说过的需求当轮落进 `docs/REQUIREMENTS.md` 的收件箱节,brainstorming 开工对账、收尾销账、`/whats-next` 报未销账项——治「说过的需求做着做着就忘了」
+   - **docs-capture**:三条常驻 hook 让决策日志不再靠自觉——问答框每次拍板确定性落进 `docs/DECISIONS.inbox.md`,自由文本的决策/需求措辞触发软提醒,commit 门禁催消化草稿(见下方「docs-capture」一节)
    - 外加一个常驻能力:**auto-scaffold**——新会话开局自动认出"用户要做个新东西",无声建目录 + git 仓 + 脚手架(默认开启,可 opt-out;见下方「新项目自动铺设」一节)
 
 ## 安装
@@ -134,6 +135,7 @@ git commit --allow-empty -m probe && git reset --hard HEAD~1
 - **spec 落哪**:Codex 侧没有 superpowers 插件,design spec 落 `docs/specs/YYYY-MM-DD-<主题>-design.md`,不用下面 Claude 版口径的 `docs/superpowers/specs/`
 - **并行实现靠谁**:spec 定稿后的并行实现由 `parallel-do` 承担,不是下面的 ultracode / Workflow 多代理编排工具
 - **改技术栈基线改哪**:改 `plugins/workflow-codex/skills/scaffold/SKILL.md` 与其 `templates/`,不是下面「自定义技术栈基线」指向的 `plugins/workflow/`
+- **没有 docs-capture hooks**:六之二描述的决策/需求三层捕获(`AskUserQuestion` → `DECISIONS.inbox.md`、信号词提醒、commit 门禁)未移植到这里——依赖 Claude Code 的 hooks 机制,Codex CLI 没有。纪律照旧成立(决策/需求落档别蒸发),Codex 这边靠约定维持,不靠自动化。
 
 ## 使用方式(项目生命周期)
 
@@ -258,6 +260,20 @@ docs 八件套各自的职责:
 - **opt-out 后仍可手动触发**:`touch` 关闭标志只是关掉自动静默建项目;`/scaffold` 命令本身照常可用,手动敲或按描述触发都不受影响。
 - **已有 git 仓内不注入**:会话所在目录已在 git 仓内时,hook 不再注入本规则(判定条件 2 本就不会触发,省上下文)。
 
+### 六之二、决策/需求随口一说别蒸发(docs-capture)
+
+问答框拍板、随口提的需求,对话一翻页就容易消失——这是一套三层 hook,层层兜底,每层补上一层漏不到的地方:
+
+1. **层 1 确定性捕获**(`PostToolUse`,matcher `AskUserQuestion`):脚手架项目内每次 `AskUserQuestion` 问答框选了选项或填了自由文本,hook 就把原始问答逐字追加进 `docs/DECISIONS.inbox.md`——不摘要、不判断,原文照存,不给转述留漏损空间。目录外(无 `docs/` 的非方法论项目)静默不动。
+2. **层 2 信号提醒**(`UserPromptSubmit`,设计上宁滥勿漏):按决策词表/需求词表(`signals-decision.txt` / `signals-requirement.txt`)扫每句输入;第三份词表 `signals-veto.txt` 存疑问/未定语气(吗、要不要、还没定),同子句内命中即压制——遇到误报要调教的就是这个文件。命中就提醒"这句像是决策/需求,建议落档",不拦截。故意选高召回而非高准确率——这层是软提醒,不是门禁,误触发的代价只是一行噪音,不是卡住输入。
+3. **层 3 commit 门禁**(`PreToolUse`,matcher:Bash 命令含 `git commit`):`git commit` 放行前查两条——①`docs/DECISIONS.inbox.md` 是否还有未消化草稿(`## ` 级条目);②本次 staged 改动是否碰了源码却没碰 `docs/Progress.md`。任一条命中就警告。放行判据是「同一份 staged 内容警一次,不是永久警」:对 staged diff 取哈希,与上次警告的哈希比对——内容不变时首次拦截、原样重跑即放行(并不真的检查 inbox 是否已被消化,原样重跑本身就是清警的动作)。
+
+三层合起来把"用户说了一嘴、对话翻篇就没了"变成"总归落在盘里、commit 前必被看一眼"——层 1 保底捕获,层 2 补住 `AskUserQuestion` 框以外的口头表达,层 3 是发布前最后一道闸。
+
+- **关闭**:三层共用一个总开关——`touch ~/.claude/.docs-capture-off` 即三层全部静默(没有逐层单独关的开关);评测隔离场景把 env var `DOCS_CAPTURE_EVALS_HERMETIC` 设成任意非空值。各层在缺依赖时各自静默退化(比如缺 `jq` 会直接 exit,不报错)。
+- **只消化不代笔**:`docs/DECISIONS.inbox.md` 是原始缓冲区,不是事实源——见 `CLAUDE.md.tmpl` 的「文档同步规则」表:决策提炼进 `docs/DECISIONS.md`,需求类条目转入 `docs/REQUIREMENTS.md` 目标台账,噪音直接删除。
+- **不移植进 workflow-codex**:Codex CLI 没有承载这三层的 hooks 机制;"落档别蒸发"的纪律照旧成立,只是在 Codex 那边靠约定维持,不靠自动化(见「附赠插件:Codex CLI 版工作流」一节的对应说明)。
+
 ## 七、主流程:Brainstorming → Spec → Ultracode 直通
 
 1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。开工前先读 `docs/REQUIREMENTS.md` 目标台账里状态为 open 的未销账项,把与本次相关的列给用户;spec 须含「目标覆盖声明」——本次覆盖台账哪几条、明确不覆盖哪几条及原因。
@@ -316,7 +332,7 @@ claude-workflow-kit/
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
-    │   ├── hooks/                   # auto-scaffold 常驻规则:hooks.json + inject.sh + auto-scaffold.md
+    │   ├── hooks/                   # auto-scaffold 常驻规则(hooks.json + inject.sh + auto-scaffold.md)+ docs-capture(capture-decisions.sh、signal-reminder.sh、commit-gate.sh、signals-decision.txt、signals-requirement.txt、signals-veto.txt、docs-capture-smoke-test.sh)
     │   ├── evals/                   # auto-scaffold 判定 evals:cases.jsonl + run_evals.py + rubric.md + .gitignore(out/、__pycache__/)
     │   └── skills/
     │       ├── scaffold/            # /scaffold:SKILL.md(含 Auto 模式节)+ templates/(11 个模板)

@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.7.0;含目标台账、四点评审纪律、调研内部先行、组件索引三入口 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.8.0;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面) |
 | workflow-codex(Codex CLI 移植版) | done | 0.6.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.4.1 / 0.3.1;evals 34 条真实失败案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -19,8 +19,27 @@
 | README 仓库结构树漏 `docs/` 与 `.agents/`;`speak-human-en` 标注「结构同 speak-human」但实际无 `evals/` | 2026-08-13 发布把关 | 低 |
 | 内部版 CI 令牌 `dev-toolkit-ci-bot` **2027-04-20 到期**,到期后 auto-bump 会再次全红 | 2026-08-13 修 auto-bump 时建 | 到期前 |
 | Phase 4 方向未定 | — | 待规划 |
+| 本机 docs-capture 双重注册风险:dev-toolkit 1.3.0 插件版将来在本机拉取后,与 settings.json 直接注册二存一(dev-toolkit README 已写注意) | 2026-08-14 U6 评审 | 拉取插件版时 |
+| docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-08-14 — docs-capture 四面落地收口(U2~U6)+ 层 2 五轮定案
+
+- **四面交付**:workflow-en 英文面(词表/判例全英文化+弯引号 U+2019 归一化)、stellark dev-toolkit 1.3.0(hooks.json 纯增段,凭据拦截逐字未动,opus/high 评审核过)、huake claude-toolkit-engineer 0.15.0(含 scaffold 模板同步)、本机 settings.json 注册(备份比对仅差新增三段)。三仓均 wip 分支已推,待门禁并 main。
+- **层 2 词表五轮攻防定案**:两轮实现拟合失败 → 判例/实现分权 + 按子句切分处方 → 集外召回 22/22 满分但对抗性生活句误报触词表法天花板 → Tony 拍板"高召回软提醒":提示语自带免疫说明,验收标准改"领域内误报可忽略"入 spec。教训沉淀:启发式单元判例与实现第一轮就要分 agent 所有权,终审必做集外实测。
+- 修复过程顺带收口:capture 多选含逗号 label 误判、commit-gate 词法位置匹配与 POSIX 化、branch upstream 错位(dev-toolkit wip 曾指向 origin/main,裸 push 可能绕过门禁)。
+
+### 2026-08-14 — docs-capture 决策/文档采集三层 hook,kit(github)面(0.7.0 → 0.8.0)
+
+治 stella 符合度审计发现的"写入侧零自动化"——DECISIONS/PLAN/Progress 全靠 Claude 自觉更新,失真会经 stella portfolio 每 10 分钟轮询自动扩散成对外错误。
+
+- **层 1 确定性捕获**:`AskUserQuestion` 问答框拍板由 `PostToolUse` hook 逐字追加进 `docs/DECISIONS.inbox.md`,不摘要不判断,数据不丢。
+- **层 2 信号提醒**:`UserPromptSubmit` hook 按决策词表/需求词表命中即软提醒,高召回设计(2026-08-14 五轮拍板改验收标准为「套内判例全绿 + 软件语境内误报可忽略」,不再追杀跳出软件语境的对抗句)。
+- **层 3 commit 门禁**:`PreToolUse`(matcher: Bash 含 `git commit`)两项检查——inbox 有未消化草稿 / staged 含源码但未见 `docs/Progress.md` 更新;对 staged 内容取哈希,首警二放(同一份内容原样重跑即放行,不做"真的消化过"的语义校验)。
+- `CLAUDE.md.tmpl` 文档同步规则表补一行 inbox 消化分流;`DECISIONS.md.tmpl` 头部如实改写为 inbox 流程说明(两语言)。
+- 双语 README 加 docs-capture 节;`workflow-codex` 注明不移植(无 hooks 机制,纪律照旧靠约定)。
+- **本次仅交付 kit(github)面**(spec §8 U1~U3);stellark dev-toolkit / huake claude-toolkit-engineer / 本机 `~/.claude/hooks` 三面并入见 spec §8 U4~U6,已登 Progress 待办与 REQUIREMENTS 台账。
 
 ### 2026-08-13 — 首次发布 v2026.08.13(tag + GitHub Release)
 

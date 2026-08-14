@@ -12,6 +12,44 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/capture-decisions.sh\"",
+            "timeout": 5,
+            "statusMessage": "采集拍板问答进 DECISIONS.inbox..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/signal-reminder.sh\"",
+            "timeout": 5,
+            "statusMessage": "检查决策/需求信号..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/commit-gate.sh\"",
+            "timeout": 5,
+            "statusMessage": "检查 commit 前 docs 消化状态..."
+          }
+        ]
+      }
     ]
   }
 }

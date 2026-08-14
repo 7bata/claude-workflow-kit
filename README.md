@@ -7,11 +7,12 @@ A documentation-driven multi-agent development workflow for Claude Code: **Condu
 Contains two parts:
 
 1. **A workflow prompt** (below in this README) — drop it into your `~/.claude/CLAUDE.md` to define the model division of labor, the tier table, and the main workflow
-2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides three executable commands plus two capabilities:
+2. **A Claude Code plugin** (`plugins/workflow-en/`) — provides three executable commands plus three capabilities:
    - `/scaffold`: lay down the methodology scaffolding in place in your project (`.claude/CLAUDE.md` + the eight-doc set + `.gitignore` + `README.md`)
    - `/whats-next`: read the docs to figure out where the project stands and what to do next
    - `/sop-generate`: generate a screenshot-backed business SOP (operating manual) for an already-deployed web app
    - **Goal ledger**: every requirement you voice in conversation gets logged the same round into the inbox section of `docs/REQUIREMENTS.md`; brainstorming reconciles against it, wrap-up settles it, `/whats-next` reports what's still open — so requirements stop evaporating between batches
+   - **docs-capture**: three standing hooks that keep the decision log honest — every AskUserQuestion answer is deterministically captured into `docs/DECISIONS.inbox.md`, free-text decision/requirement phrasing triggers a soft reminder, and a commit gate nudges you to digest pending drafts (see the "docs-capture" section below)
    - Plus a standing capability: **auto-scaffold** — new sessions auto-recognize "the user wants to build something new" and silently create the folder + git repo + scaffolding (on by default, opt-out available; see the "Auto-scaffolding new projects" section below)
 
 ## Install
@@ -133,6 +134,7 @@ git commit --allow-empty -m probe && git reset --hard HEAD~1
 - **Where specs live**: Codex has no superpowers plugin, so design specs live at `docs/specs/YYYY-MM-DD-<topic>-design.md`, not the Claude-side `docs/superpowers/specs/` used below
 - **Who drives parallel implementation**: once a spec is finalized, `parallel-do` handles the parallel implementation, not the ultracode / Workflow multi-agent orchestration tool below
 - **Where to edit the tech-stack baseline**: edit `plugins/workflow-codex/skills/scaffold/SKILL.md` and its `templates/`, not `plugins/workflow-en/` as the "Customizing the tech-stack baseline" section below points to
+- **No docs-capture hooks**: the three-layer decision/requirement capture described in Section 6b (`AskUserQuestion` → `DECISIONS.inbox.md`, signal-word reminders, commit-time gate) is not ported here — it depends on Claude Code's hooks mechanism, which Codex CLI doesn't have. The discipline still stands (log decisions and requirements before they evaporate); on the Codex side it's enforced by convention, not automation.
 
 ## Usage (project lifecycle)
 
@@ -257,6 +259,20 @@ For pure vibe-coding users who never type `/scaffold` and have no mental model o
 - **Still triggerable manually after opt-out**: touching the off-flag only disables silent auto-creation; the `/scaffold` command itself still works, whether typed manually or triggered by its own description.
 - **No injection inside an existing git repo**: when the session's directory is already inside a git repo, the hook stops injecting this rule (condition 2 could never trigger anyway, so this saves context).
 
+### 6b. Capturing decisions and requirements before they evaporate (docs-capture)
+
+Verbal sign-offs and requirements said in passing tend to disappear once the conversation moves on — this is a three-layer hook mechanism that keeps them from being lost between sessions, layered so each catches what the previous layer misses:
+
+1. **Layer 1 — deterministic capture** (`PostToolUse`, matcher `AskUserQuestion`): every time the user picks an option or types free text in an `AskUserQuestion` prompt inside a scaffolded project, a hook appends the raw Q&A verbatim to `docs/DECISIONS.inbox.md` — no summarizing, no judgment call, so nothing is lost to paraphrase. Silent outside project directories that have `docs/`.
+2. **Layer 2 — signal reminder** (`UserPromptSubmit`, high-recall by design): scans each prompt you type against a decision-word list and a requirement-word list (`signals-decision.txt` / `signals-requirement.txt`); a third list, `signals-veto.txt`, holds question/undecided phrasings ("maybe", "not sure", "should we") that suppress a hit within the same clause — that's the file to tune if you see false positives. On a hit it nudges "this looks like a decision/requirement — worth logging" without blocking. Deliberately high-recall, not high-precision — it's a soft reminder layer, not a gate, so a false positive just costs a line of noise, not a blocked prompt.
+3. **Layer 3 — commit gate** (`PreToolUse`, matcher: Bash commands containing `git commit`): before letting a `git commit` through, the hook checks (a) whether `docs/DECISIONS.inbox.md` still has undigested drafts (`## `-level entries), and (b) whether the staged change touches source files without touching `docs/Progress.md`. Either condition warns. The warn is "once per staged content, not once ever": it hashes the staged diff and compares against the last-warned hash; the same staged content is blocked the first time and let through if you rerun the identical commit unchanged (it does not verify the inbox was actually triaged — re-running the same commit as-is is what clears it).
+
+Together the three layers turn "the user said it once and it vanished" into "it's on disk somewhere, and commit time forces a look" — Layer 1 guarantees capture, Layer 2 catches what happens outside an `AskUserQuestion` box, Layer 3 is the last-chance gate before it ships.
+
+- **Turning it off**: all three layers share one kill switch — touch `~/.claude/.docs-capture-off` and every layer goes silent (there's no per-layer opt-out); for hermetic eval runs, set env var `DOCS_CAPTURE_EVALS_HERMETIC` to any non-empty value. Each layer also degrades independently on missing deps (e.g. no `jq` makes the scripts exit silently rather than error).
+- **Triage, not free-form editing**: `docs/DECISIONS.inbox.md` is a raw buffer, not the source of truth — see the "文档同步规则" / doc-sync table in `CLAUDE.md.tmpl`: decisions get distilled into `docs/DECISIONS.md`, requirement-shaped entries move into the `docs/REQUIREMENTS.md` goal ledger, noise gets discarded.
+- **Not ported to workflow-codex**: Codex CLI has no hooks mechanism to host these three layers on; the discipline (log it before it evaporates) still applies there, it's just enforced by convention, not automation (see the `workflow-codex` note in Section "Bonus plugin: Workflow Kit for Codex CLI").
+
 ## 7. Main workflow: Brainstorming → Spec → Ultracode straight-through
 
 1. All creative work starts with superpowers:brainstorming, writing the design spec to `docs/superpowers/specs/<date>-<topic>-design.md` and registering it in the Spec Index of `docs/PLAN.md`. Before starting, read the `docs/REQUIREMENTS.md` goal ledger for items still in `open` state and list the ones relevant to this round for the user; the spec must include a "**goal coverage statement**" — which ledger items this round covers, and which it explicitly does not, with reasons.
@@ -315,7 +331,7 @@ claude-workflow-kit/
 └── plugins/
     ├── workflow/                     # Chinese-output plugin
     │   ├── .claude-plugin/plugin.json
-    │   ├── hooks/                    # auto-scaffold standing rule: hooks.json + inject.sh + auto-scaffold.md
+    │   ├── hooks/                    # auto-scaffold standing rule (hooks.json + inject.sh + auto-scaffold.md) + docs-capture (capture-decisions.sh, signal-reminder.sh, commit-gate.sh, signals-decision.txt, signals-requirement.txt, signals-veto.txt, docs-capture-smoke-test.sh)
     │   ├── evals/                    # auto-scaffold trigger evals: cases.jsonl + run_evals.py + rubric.md + .gitignore (out/, __pycache__/)
     │   └── skills/
     │       ├── scaffold/             # /scaffold: SKILL.md (with Auto mode section) + templates/ (11 templates)
