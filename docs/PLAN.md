@@ -16,7 +16,7 @@
 
 ### Phase 2 — 说话与协作纪律 ✅
 
-`speak-human`(提问自检清单 P1~P9 + 表达纪律 S1~S3,带 evals)· `send-to`(跨会话消息转达)· auto-scaffold 常驻能力。
+`speak-human`(提问自检清单 P1~P9 + 表达纪律 S1~S4,带 evals)· `send-to`(跨会话消息转达)· auto-scaffold 常驻能力。
 
 ### Phase 3 — 防漏机制 ✅(2026-08-13)
 
