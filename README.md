@@ -50,7 +50,7 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 
 - **On demand**: trigger with `/speak-human` in any session.
 - **Always on**: `touch ~/.claude/.speak-human-always` — a SessionStart hook injects the rules into every session automatically; delete the file to turn it off.
-- **Evals included** (`plugins/speak-human/evals/`): 33 sanitized real failure cases (25 verified + 8 unverified) + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
+- **Evals included** (`plugins/speak-human/evals/`): 37 sanitized real failure cases (29 verified + 8 unverified) + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
 
 ## Bonus plugin: send-to
 
@@ -88,7 +88,7 @@ The same documentation-driven workflow, ported for the OpenAI Codex CLI: `plugin
 - `whats-next`: read the docs to figure out what to do next
 - `sop-generate`: generate a screenshot-backed business SOP for an already-deployed web app
 - `parallel-do`: split a step into independent subtasks and fan them out to parallel Codex subagents — this one is Codex-only, standing in for Claude Code's native multi-agent orchestration tool
-- `speak-human`: makes Codex follow the same say-it-like-a-human discipline for asking and speaking — a port of the same P1–P9/S1–S3 rules from the "Bonus plugin: speak-human" section below, with always-on persistence reworked to write into `~/.codex/AGENTS.md` (see the "always-on install" section at the end of that skill file for the script)
+- `speak-human`: makes Codex follow the same say-it-like-a-human discipline for asking and speaking — a port of the same P1–P9/S1–S4 rules from the "Bonus plugin: speak-human" section below, with always-on persistence reworked to write into `~/.codex/AGENTS.md` (see the "always-on install" section at the end of that skill file for the script)
 
 `workflow-codex` does **not** auto-trigger scaffolding on install the way the Claude Code version does — Codex CLI has no session-start hook mechanism, so installing the plugin alone won't make it recognize "I want to build a new thing" and lay down scaffolding automatically. To get that behavior, opt in manually by following the "Auto mode and always-on install (optional)" section at the end of the `scaffold` skill file: it walks you through writing the trigger rule into `~/.codex/AGENTS.md` (idempotent install/uninstall scripts included, safe to re-run).
 
@@ -356,7 +356,7 @@ claude-workflow-kit/
     │       └── speak-human/          # ported say-it-like-a-human discipline, persists via ~/.codex/AGENTS.md
     ├── speak-human/                  # Chinese speak-human plugin
     │   ├── .claude-plugin/plugin.json
-    │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P9 + speaking discipline S1–S3
+    │   ├── skills/speak-human/SKILL.md   # asking discipline P1–P9 + speaking discipline S1–S4
     │   ├── hooks/                    # SessionStart hook, flag-file gated always-on
     │   └── evals/                    # 33 sanitized cases + rubric + baseline-vs-skill runner
     ├── speak-human-en/               # English speak-human plugin (same layout)

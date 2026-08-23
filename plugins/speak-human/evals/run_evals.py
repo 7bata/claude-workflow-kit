@@ -5,7 +5,7 @@
   1. 用 `claude -p` 非交互生成一版「不带 skill」的改造提问（只给案例情境）；
   2. 再用 `claude -p` 生成一版「带 skill」的改造提问（案例情境 + 注入 SKILL.md 正文）；
   3. 用 `claude -p` 当 judge，按 evals/rubric.md 逐条给两版打分（pass/fail/n/a）；
-  4. 汇总各条款（P1~P9、S1~S3）通过率与总通过率，基线 vs 带 skill 对比。
+  4. 汇总各条款（P1~P9、S1~S4）通过率与总通过率，基线 vs 带 skill 对比。
 
 用法:
     python3 evals/run_evals.py [--limit N] [--timeout SEC]
@@ -43,7 +43,7 @@ DEFAULT_RUBRIC_PATH = REPO_DIR / "evals" / "rubric.md"
 DEFAULT_SKILL_PATH = REPO_DIR / "skills" / "speak-human" / "SKILL.md"
 DEFAULT_OUT_DIR = REPO_DIR / "evals" / "out"
 
-ALL_RULES = [f"P{i}" for i in range(1, 10)] + [f"S{i}" for i in range(1, 4)]
+ALL_RULES = [f"P{i}" for i in range(1, 10)] + [f"S{i}" for i in range(1, 5)]
 DEFAULT_TIMEOUT = 120.0
 VERSIONS = ("baseline", "skill")
 
@@ -249,7 +249,7 @@ def build_judge_prompt(case: dict, rubric_text: str, question_text: str) -> str:
         )
     return (
         "你是评分裁判。请依据下面的评分标准（rubric）对「改造后的提问」逐条判断"
-        " P1~P9、S1~S3。\n\n"
+        " P1~P9、S1~S4。\n\n"
         f"{rubric_text}\n\n"
         f"本案例的 rules_tested（强制判 pass/fail，禁止判 n/a）：{forced}\n"
         f"{case_type_note}\n"
@@ -258,7 +258,7 @@ def build_judge_prompt(case: dict, rubric_text: str, question_text: str) -> str:
         "-----\n"
         f"{question_text}\n"
         "-----\n\n"
-        "请只输出一个 JSON 对象，key 是你判分的条款（P1..P9, S1..S3 中的若干个），"
+        "请只输出一个 JSON 对象，key 是你判分的条款（P1..P9, S1..S4 中的若干个），"
         'value 是 "pass" / "fail" / "n/a" 之一。rules_tested 列出的条款必须出现在这个'
         "对象里且值只能是 pass 或 fail。不要输出任何 JSON 之外的文字。"
     )

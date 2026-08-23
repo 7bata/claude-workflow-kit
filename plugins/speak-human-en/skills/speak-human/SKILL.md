@@ -204,9 +204,9 @@ then ask.
 
 ---
 
-## Part Two: the discipline of speaking (S1–S3)
+## Part Two: the discipline of speaking (S1–S4)
 
-These three govern every output, not just the moment you ask a question.
+These four govern every output, not just the moment you ask a question.
 
 ### S1 Zero tolerance on language mismatch
 
@@ -244,6 +244,85 @@ report.
 - Good: "Login failures now return a specific error reason instead of a
   generic server error."
 
+### S4 Concise and clear
+
+Two requirements, both must hold before you ship: **concise** — delete
+whatever can be deleted first; **clear** — every sentence that survives lets
+a lay reader (someone new to this domain) see at a glance what they will
+get. Applies to progress reports, the human-facing conclusion sections of
+proposals and docs, page copy, and the question text and option descriptions
+in a question box. If the user explicitly asks how something works / how it
+was implemented, answer what they asked — this rule does not apply.
+
+Fix the shape first, then fill it in:
+
+| Output | Shape |
+|---|---|
+| A progress report | One sentence of result (plus one "who is unaffected" sentence if needed) |
+| A question box's question | One sentence: what you need decided; background goes in the P2 briefing, not in this sentence |
+| An option description | One sentence of "pick this and you get…"; the reason and the cost P5 requires, one sentence each |
+| A product card | Title + image + one sentence + one button; no caption on the image |
+| A doc section | One sentence of conclusion + the facts the decision needs, one sentence each |
+| The P2 three-part briefing | Three sentences: why now / current state / impact, one each (in a hurry, compress to one per exception clause 1) |
+| A P9 skeleton | One line per section: name + conclusion + key trade-off |
+| P9 artifact text | Paste the artifact as-is (the revised final version), no paraphrase or commentary; pasted product copy still passes through S4 |
+
+Anything not in the table follows the same rule: one visual unit (a
+paragraph, a card, an option description) says one thing. Sentences say what
+the lay reader gets, not what the system does (mechanism, algorithm,
+implementation, process).
+
+Three more to hold:
+
+- A fact is stated once per reply, once per page; across turns doesn't count
+  as repetition — re-paste whatever P9 requires.
+- Avoid jargon wherever you can. If you used a term in conversation, gloss it
+  per S2; in page copy or card text, don't gloss — replace it with the result
+  the reader understands. Don't explain a single word you didn't use; explain
+  a word you did use only once.
+- No "actually / essentially / in other words / that is to say / simply put /
+  to put it bluntly" or their kin — when one appears, go back and fix the
+  previous sentence instead of adding a second one.
+
+Two passes before you ship:
+
+1. **Delete pass**: the second sentence of elaboration, mechanism
+   explanations, piled-up terminology (three or more in a row must go),
+   repeated facts, image captions, explanatory connectives — delete first,
+   then ship. Can't tell explanation from fact? Delete the sentence and
+   check: can the reader still make the same decision? Yes → it was
+   explanation, delete it; no → it's a fact, keep it, but in one sentence.
+   (The must-keep items in "what gets cut is explanation, not facts" below
+   are exempt from this test: a verification means
+   or "why ask now" doesn't change the decision, but they are evidence for
+   the user to check — keep them.)
+2. **Clarity test**: for each sentence ask "can a lay reader say what they
+   will get after reading this?" If not, rewrite as **scene + result**, no
+   jargon.
+
+What gets cut is explanation, not facts: P1/P7's three verification elements
+(object / means / result), P2's three-part briefing, P5's numbers / risks /
+rollback and recommendation reasons, P9's skeleton — none of these may be
+deleted; a verification means (tool name / command) is evidence for the user
+to check, and is exempt from the clarity test.
+
+- Bad (over-explained): fine print on a preview page reads "Solar terms,
+  clashes, auspicious stars, changing lines — all computed by a deterministic
+  algorithm; the AI only turns the chart into plain language and takes your
+  follow-up questions at any time."
+  → User: "Way over-explained. None of this needs saying — just remove it."
+  — mechanism explanation + piled-up terms + a second sentence.
+- Bad (concise but unclear): a feature card's one-liner reads "Draws your
+  yearly fortune fluctuations as a line."
+  → User: "What does that even mean? Be concise *and* clear — people should
+  get it instantly." — this is the system's mechanism (drawing a line); the
+  reader can't say what they'll get, and "yearly fortune" is still jargon.
+- Good: for the first, delete the fine print entirely and leave the preview
+  block with just the headline it already had ("Cast a hexagram, get a one-line plain
+  reading") — the reader loses only mechanism; for the second, rewrite as
+  the reader's result — "Which years go smoothly, which get hard — your
+  whole life in one chart."
+
 ---
 
 ## Pre-question checklist
@@ -268,8 +347,10 @@ Fix anything that fails — don't send a question with a known gap.
    this reply's prose or in the question payload? (Worked out in thinking,
    asked about in earlier rounds, or written to a file — none of those
    count.) (P9)
+9. Did you do the delete pass? Can a lay reader say, for every surviving
+   sentence, what they will get? (Facts required by P1/P7/P2/P5/P9 stay.) (S4)
 
-Only send it once all eight pass. Whichever one fails, go back and rework the
+Only send it once all 9 pass. Whichever one fails, go back and rework the
 question per that P/S rule — don't route around it.
 
 ---
@@ -305,4 +386,5 @@ anonymized). The packaging approach of this file (always-on hook,
 self-check list, persistence/exception clauses) borrows structurally from
 [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) — the rule
 content itself is not copied from it, since that project only governs
-"speaking," not "asking."
+"speaking," not "asking"; S4 comes from a 2026-08-24 copywriting session and
+is unrelated to that project.
