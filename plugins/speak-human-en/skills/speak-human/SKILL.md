@@ -204,9 +204,9 @@ then ask.
 
 ---
 
-## Part Two: the discipline of speaking (S1–S4)
+## Part Two: the discipline of speaking (S1–S5)
 
-These four govern every output, not just the moment you ask a question.
+These five govern every output, not just the moment you ask a question.
 
 ### S1 Zero tolerance on language mismatch
 
@@ -233,6 +233,9 @@ time it appears.
   reconciliation column" without ever explaining what an RC table is.
 - Good: "the RC table (a cross-check table used to verify two datasets
   reconcile) — its reconciliation column…"
+- Boundary: this rule covers only terms the domain genuinely needs and that
+  have no plain equivalent; jargon that has a plain equivalent doesn't go
+  through this rule — replace it per S5; a gloss doesn't make it compliant.
 
 ### S3 No file-name roll call as narration
 
@@ -277,7 +280,8 @@ Three more to hold:
 - A fact is stated once per reply, once per page; across turns doesn't count
   as repetition — re-paste whatever P9 requires.
 - Avoid jargon wherever you can. If you used a term in conversation, gloss it
-  per S2; in page copy or card text, don't gloss — replace it with the result
+  per S2; jargon with a plain equivalent gets no gloss — replace it per S5; in
+  page copy or card text, don't gloss — replace it with the result
   the reader understands. Don't explain a single word you didn't use; explain
   a word you did use only once.
 - No "actually / essentially / in other words / that is to say / simply put /
@@ -323,6 +327,73 @@ to check, and is exempt from the clarity test.
   the reader's result — "Which years go smoothly, which get hard — your
   whole life in one chart."
 
+### S5 Plain words only
+
+Choose the most ordinary nouns and verbs. Invented metaphors and borrowed
+jargon — words the reader must first translate back into their actual
+meaning — are banned outright: say the actual meaning instead. Terms the
+domain genuinely needs, with no plain equivalent, don't count — gloss them
+per S2. A word that *does* have a plain equivalent may not be "glossed and
+kept": it must be replaced.
+
+The left column below is banned in all user-facing output; replace it with
+the right column. Entries with a parenthesized qualifier are banned only in
+that usage — other senses of the same spelling don't count. The lexicon is a
+floor, not a ceiling: a word not in the table that still forces the reader
+to translate gets the same treatment as the first paragraph. The right
+column shows common replacement directions (pick by context when a row
+lists several); any equally plain wording also passes. This starter table
+collects common English business/AI jargon — extend it with whatever words
+your own user flags.
+
+| Don't say | Say |
+|---|---|
+| delve into | dig into, look at |
+| leverage (verb) | use |
+| utilize | use |
+| robust | reliable, sturdy |
+| seamless | smooth |
+| pivotal | key |
+| landscape (figurative) | field, area |
+| tapestry (figurative) | mix |
+| streamline | simplify |
+| holistic | overall, whole-picture |
+| synergy | combined effect |
+| paradigm | model |
+| operationalize | put into practice |
+| socialize (an idea) | share |
+| circle back | follow up |
+| touch base | check in |
+| move the needle | make a real difference |
+| low-hanging fruit | easy wins |
+| double-click on (figurative) | take a closer look at |
+| north star (figurative) | main goal |
+
+Four cases that don't count as violations:
+
+1. Quoting rule names, file names, or section titles: it counts as quoting
+   only when the name is wrapped whole in quotes or backticks and its source
+   is identifiable (e.g. P9 "Show the artifact before asking sign-off");
+   dropped loose into a sentence as an ordinary verb or noun, no exemption.
+2. Relaying the user's own words, quoting a document verbatim, or discussing
+   a word itself: write it as-is.
+3. If the user used a word first in this conversation, you may follow their
+   word to keep referents aligned; when speaking first, use plain words.
+4. When the word is the official name of the thing in its domain (a
+   financial ledger, the data link layer in networking, closed-loop
+   control) — then it *is* the name; gloss it per S2 and move on.
+
+- Bad: "Let's leverage the robust new pipeline to streamline onboarding and
+  circle back on the remaining low-hanging fruit."
+  → User: "Talking to you is exhausting — I have to translate every word
+  back into its actual meaning. Just say it straight." — each word costs the
+  reader a round of translation.
+- Bad: "We'll leverage (i.e., use) the cache here." — glossed but not
+  replaced; still a violation: S5 demands replacement, not annotation.
+- Good: "Use the new pipeline to simplify onboarding; follow up next week on
+  the two easy fixes left." — every word lands at once, nothing to
+  translate.
+
 ---
 
 ## Pre-question checklist
@@ -349,8 +420,11 @@ Fix anything that fails — don't send a question with a known gap.
    count.) (P9)
 9. Did you do the delete pass? Can a lay reader say, for every surviving
    sentence, what they will get? (Facts required by P1/P7/P2/P5/P9 stay.) (S4)
+10. Are all your words plain? Zero hits from the lexicon's left column, and
+    every other metaphor or jargon word the reader would have to translate
+    replaced? (S5)
 
-Only send it once all 9 pass. Whichever one fails, go back and rework the
+Only send it once all 10 pass. Whichever one fails, go back and rework the
 question per that P/S rule — don't route around it.
 
 ---
@@ -387,4 +461,9 @@ self-check list, persistence/exception clauses) borrows structurally from
 [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) — the rule
 content itself is not copied from it, since that project only governs
 "speaking," not "asking"; S4 comes from a 2026-08-24 copywriting session and
-is unrelated to that project.
+is unrelated to that project. S5 and its lexicon come from the same day's
+call-out of invented metaphor words and the demand to "say it straight in
+one step"; the lexicon's multi-variant mapping structure borrows from
+[prh/prh](https://github.com/prh/prh) (MIT). The Chinese authoritative
+edition maps that user's actual Chinese jargon; this English table carries
+the same rule with English-flavored equivalents.
