@@ -17,12 +17,12 @@
     {
       "name": "speak-human",
       "source": "./plugins/speak-human",
-      "description": "中文版:让 Claude 说人话、会提问——提问前自检清单 + 表达纪律(S4 简洁且明了:一个区块一句话、写读者得到的结果不写机制、删完每句过明了测试),规则源自 548 次真实抉择记录挖掘;touch ~/.claude/.speak-human-always 常驻"
+      "description": "中文版:让 Claude 说人话、会提问——提问前自检清单 + 表达纪律(S4 简洁且明了;S5 平实用词:不自创比喻词、20 条行话→平实词强制替换词库),规则源自 548 次真实抉择记录挖掘;touch ~/.claude/.speak-human-always 常驻"
     },
     {
       "name": "speak-human-en",
       "source": "./plugins/speak-human-en",
-      "description": "English version: make Claude speak human and ask well — pre-question self-check + expression discipline (S4 concise-and-clear: one sentence per block, say what the reader gets not what the system does, clarity test on every surviving sentence), mined from 548 real decision records; touch ~/.claude/.speak-human-always for always-on"
+      "description": "English version: make Claude speak human and ask well — pre-question self-check + expression discipline (S4 concise-and-clear; S5 plain words only: no invented metaphors, a 20-entry forced jargon-to-plain lexicon), mined from 548 real decision records; touch ~/.claude/.speak-human-always for always-on"
     },
     {
       "name": "send-to",

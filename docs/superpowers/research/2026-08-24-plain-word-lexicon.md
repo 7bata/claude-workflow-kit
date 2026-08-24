@@ -51,9 +51,12 @@ textlint-rule-prh(prh 的 Markdown lint 接入层)只在需要对文档批量 `-
 
 词库内容三个来源:Tony 点名的词、AI 汇报里的高频同类词(待 Tony 圈选)、de-ai-flavor-skill 黑名单中同类词补上替换词。
 
-## 词库草案 v0(待 Tony 圈选)
+## 词库定稿
 
-见对话中呈现的草案表;定稿后按 speak-human 分发流程进权威源与四个分发处。
+草案 v0 经 Tony 认可("目前先这样")并加一条通用原则(要求用平实词、禁自创比喻词)。
+定稿为 speak-human 的 S5「平实用词」:通用原则 + 20 条词库 + 四条豁免,见权威源
+SKILL.md 与本仓 `plugins/speak-human/skills/speak-human/SKILL.md`;评测驱动过程
+(改前 1/3 → 改后 3/3)与三票评审记录见权威源 `docs/Progress.md` 2026-08-24 S5 节。
 
 ## 证据
 
