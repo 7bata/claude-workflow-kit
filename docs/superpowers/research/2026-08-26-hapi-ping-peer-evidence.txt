@@ -1,0 +1,95 @@
+# HAPI ping_peer 事故日志证据(2026-08-26,原文摘录)
+
+## 会话对应关系
+主窗口: HAPI session e1f36ddc-cae7-4974-9dd4-d0418235fcfc / claude 08b5be7a / hapi CLI pid 33470 / 日志 /Users/tbata/.hapi/logs/2026-08-26-17-30-30-pid-33470.log / 二进制 0.27.2
+子窗口: HAPI session 9d9403d2-f92b-44c6-940a-0ffadfc6fae5 / claude d8b2c509 / hapi CLI pid 10348 / 日志 /Users/tbata/.hapi/logs/2026-08-26-18-05-45-pid-10348.log / 二进制 0.27.2
+
+## 事故 1:18:10:36 主窗口切 remote(触发者 = 子窗口的 ping_peer)
+--- 子窗口日志 ---
+526:[18:09:04.926] [hapiMCP] list_peers 
+539:[18:09:28.470] [hapiMCP] inspect_peer: e1f36ddc
+540:[18:09:29.236] [hapiMCP] inspect_peer: d651d499
+553:[18:10:35.989] [hapiMCP] ping_peer: e1f36ddc
+--- 主窗口日志 ---
+[18:10:36.022] [loop] User message received with permission mode: bypassPermissions, model: auto, effort: ultracode 
+[18:10:36.025] [MessageQueue2] push() called with mode hash: 796542ea59814eed3326ab5ba1579e83304db47f821a5e16c6cc6bd6b89213fc 
+[18:10:36.025] [local]: doSwitch 
+[18:10:36.025] [ClaudeLocal] Abort signal received, killing process tree (pid=33486) with SIGTERM 
+[18:10:36.173] In production, skipping message inspection 
+[18:10:36.173] User message pushed to queue: 
+ {
+  "role": "user",
+  "content": {
+    "type": "text",
+    "text": "来自 askthestalks 子窗口(session 9d9403d2,labs 配置,cwd /Users/tbata/Tony/Proj/askthestalks,停在 main 不动)。Ton... [truncated for logs]"
+  },
+  "meta": {
+    "sentFrom": "webapp",
+    "deliveryMode": "queue"
+  }
+}
+[18:10:36.246] [FILE_WATCHER] File changed: /Users/tbata/.claude/projects/-Users-tbata-Tony-Proj-askthestalks/08b5be7a-2ff3-4ccc-af6e-76dfad7a3cb9.jsonl 
+[18:10:37.161] [ClaudeLocal] Child exited (code=143, signal=null, aborted=true) 
+[18:10:37.171] [Session] Consumed one-time flags, remaining args: ["--dangerously-skip-permissions","--effort","ultracode"]
+[18:10:37.173] [Session] Mode switched to remote (permissionMode=bypassPermissions, model=auto, modelReasoningEffort=unset, effort=ultracode, collaborationMode=unset) 
+[18:10:37.173] [loop] Iteration with mode: remote 
+[18:10:37.245] [claudeRemoteLauncher] Starting remote launcher 
+[18:10:37.245] [claudeRemoteLauncher] TTY available: true 
+[18:10:37.260] [remote]: launch 
+[18:10:37.261] [remote]: New session detected (previous: null, current: 08b5be7a-2ff3-4ccc-af6e-76dfad7a3cb9) 
+...
+7741:[18:10:59.140] [remote]: Switching to local mode via double space 
+7742:[18:10:59.142] [remote]: doSwitch 
+7753:[18:10:59.194] [Session] Mode switched to local (permissionMode=bypassPermissions, model=auto, modelReasoningEffort=unset, effort=ultracode, collaborationM
+7762:[18:10:59.239] [ClaudeLocal] Spawning claude with args: ["--resume","08b5be7a-2ff3-4ccc-af6e-76dfad7a3cb9","--appen
+--- 主窗口 remote 模式里 Claude 给出的任务通知(SDK stream #15/#16 type=system subtype=task_notification)---
+  "task_id": "w69fcemuk",
+  "status": "stopped",
+  "summary": "No completion record was found for background workflow \"round5-frontend\" from the previous session. ... [truncated for logs]",
+--- hub 数据库 messages 表(session e1f36ddc)---
+506|2026-08-26 18:10:37|{"role":"agent","content":{"id":"cad305d9-9a03-4755-87b9-c507e8cbecd7","type":"event","data":{"type":"switch","mode":"remote"}}}
+507|2026-08-26 18:10:38|{"role":"agent","content":{"id":"d30e21ef-bc15-4cbb-9d47-4523b42189ea","type":"event","data":{"type":"ready"}}}
+508|2026-08-26 18:10:38|{"role":"agent","content":{"id":"837aa910-3c6a-44ba-9968-8b9f4dfc6ae3","type":"event","data":{"type":"ready"}}}
+509|2026-08-26 18:10:59|{"role":"agent","content":{"id":"5545d44e-ed04-4922-9ecd-a63dbcd258cd","type":"event","data":{"type":"switch","mode":"local"}}}
+510|2026-08-26 18:12:30|{"role":"user","content":{"type":"text","text":"继续"},"meta":{"sentFrom":"cli"}}
+511|2026-08-26 18:12:46|{"role":"user","content":{"type":"text","text":"继续，另外你刚才变成了remote mode，这个是什么情况"},"meta":{"sentFrom":"cli"}}
+
+## 事故 2:18:13:44 子窗口切 remote(触发者 = 主窗口的 ping_peer)
+--- 主窗口日志 ---
+7793:[18:13:44.220] [hapiMCP] ping_peer: 9d9403d2
+--- 子窗口日志 ---
+579:[18:13:44.239] [loop] User message received with permission mode: bypassPermissions, model: auto, effort: ultracode 
+586:[18:13:44.240] [local]: doSwitch 
+587:[18:13:44.241] [ClaudeLocal] Abort signal received, killing process tree (pid=10388) with SIGTERM 
+603:[18:13:44.940] [ClaudeLocal] Child exited (code=143, signal=null, aborted=true) 
+605:[18:13:44.944] [Session] Mode switched to remote (permissionMode=bypassPermissions, model=auto, modelReasoningEffort=unset, effort=ultracode, collaborationM
+609:[18:13:45.018] [remote]: launch 
+1388:[18:14:35.359] [remote]: Switching to local mode via double space 
+1397:[18:14:35.395] [Session] Mode switched to local (permissionMode=bypassPermissions, model=auto, modelReasoningEffort=unset, effort=ultracode, collaborationM
+1406:[18:14:35.400] [ClaudeLocal] Spawning claude with args: ["--resume","d8b2c509-a01c-421e-82ca-bc6ceec32223","--append-system-prompt","Use the title tool spa
+--- 主窗口发出的消息正文(claude transcript)---
+"name":"mcp__hapi__ping_peer","input":{"sessionIdPrefix":"9d9403d2","message":"主窗口回复:phase2/quiz-mvp 第五轮(R71–R82,价格页重排 + 测评解锁两档 + 充值改价 + 文案全扫)的两个编排因进程重启中断,我正在从缓存续跑;预计「续跑完 + 全量门禁(go test -p 1 很慢)+ 截图」后约 2.5–3.5 小时并入 main。目标清单最大号现在是 R82(worktree 里已提交 R71–R82),你登记选题意见用 R83 起、等我合并后再
+--- 子窗口发出的消息正文(claude transcript)---
+"name":"mcp__hapi__ping_peer","input":{"sessionIdPrefix":"e1f36ddc","message":"来自 askthestalks 子窗口(session 9d9403d2,labs 配置,cwd /Users/tbata/Tony/Proj/askthestalks,停在 main 不动)。Tony 让我向你报备并问一件事:\n\n【问】phase2/quiz-mvp(工作树 /Users/tbata/Tony/Proj/askthestalks-phase2-quiz,当前 52 个文件未提
+
+## 两个窗口都没有用过 SendMessage / send-to(transcript 里 tool_use 名字计数;"Skill send-to" 那行是字符串出现次数,来自技能清单文本,实际 Skill 调用:主窗口 2 次且都不是 send-to,子窗口 0 次)
+/Users/tbata/.claude/projects/-Users-tbata-Tony-Proj-askthestalks/08b5be7a-2ff3-4ccc-af6e-76dfad7a3cb9.jsonl:
+  SendMessage: 0
+  ListAgents: 0
+  mcp__hapi__ping_peer: 1
+  mcp__hapi__inspect_peer: 0
+  mcp__hapi__list_peers: 0
+  Skill send-to: 5
+/Users/tbata/.claude-profiles/labs/projects/-Users-tbata-Tony-Proj-askthestalks/d8b2c509-a01c-421e-82ca-bc6ceec32223.jsonl:
+  SendMessage: 0
+  ListAgents: 0
+  mcp__hapi__ping_peer: 1
+  mcp__hapi__inspect_peer: 2
+  mcp__hapi__list_peers: 1
+  Skill send-to: 5
+
+## 不相关但同日发生的环境变化(排除混杂)
+hub 进程 76329 于 18:23:57 重启、runner 76367 于 18:24:00 重启、~/.hapi/bin/hapi-stellark 于 18:23 换成 0.29.0(事故发生在 18:10/18:13,当时二进制为 0.27.2;两次事故时刻日志均无 hub 断连记录;18:23:57 主窗口 hapi 也断连 1.3 秒后重连:33470 日志 7846-7847 行)。全天 hub 里 sentFrom=webapp 的用户消息只有 2 条:e1f36ddc seq 505(子窗口 ping)与 9d9403d2 seq 41(主窗口 ping),其余全是终端敲的 sentFrom=cli。
+  PID STARTED                      COMMAND
+76329 Wed Aug 26 18:23:57 2026     /Users/tbata/.hapi/bin/hapi-stellark hub --no-relay
+76367 Wed Aug 26 18:24:00 2026     /Users/tbata/.hapi/bin/hapi-stellark runner start-sync --workspace-root /Us
