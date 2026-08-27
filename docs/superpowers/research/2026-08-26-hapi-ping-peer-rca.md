@@ -2,6 +2,8 @@
 
 日期:2026-08-26 · 排查范围:只读,未改任何项目代码,未重启任何服务 · 证据原文:`docs/superpowers/research/2026-08-26-hapi-ping-peer-evidence.txt`(本仓 claude-workflow-kit;/tmp 下另有同名副本) · 本版已按三票 opus 反驳式核验(代码路径 / 日志时间线 / 规避建议)修订,修订处标「核验修订」
 
+> **后续(2026-08-26 晚):** hapi 已修并部署(main 6c91cfd2):`ping_peer` 对旧行为的终端会话默认拒绝(`target_local_mode`)、拒绝 ping 自己、202 报排队、`inspect_peer` 输出 `mode` 与 `claudeSessionId`;升级后新开的终端会话收 hub 消息改为直接写进其原生消息口,不切 remote、不杀进程(`HAPI_LOCAL_SOCKET_DELIVERY=0` / Windows 回落旧行为)。两点均用一次性会话复验通过。本文其余内容描述的是修复前的行为。
+
 ## 一句话结论
 
 `ping_peer`(MCP 工具)和 `hapi ping-peer`(命令行)走的是同一条路:把消息 POST 到 hub 的 `/api/sessions/<目标>/messages`,hub 把它当成**网页端发来的用户消息**转给目标会话的 hapi 进程;目标会话如果正处在**本地模式**(终端里跑着交互式 Claude Code),hapi 会立刻执行"本地 → remote 切换":对交互式 Claude 的进程树发 SIGTERM,再用 Claude Agent SDK 以 `--resume` 起一个 remote 模式的新进程去处理这条消息。**被杀的是目标会话,不是发起方**;仍挂在 Claude 进程树上的后代(Workflow、子代理、后台 shell)一起被杀,MCP 连接断开后由新进程重连。

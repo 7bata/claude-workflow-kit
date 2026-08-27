@@ -8,14 +8,14 @@ argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话�
 
 底层是 Claude Code 的跨会话消息:`ListAgents` 列出本机 peer 会话,`SendMessage` 按名字(或按 `uds:` 地址)发纯文本。对方收到的只有这段文本——**没有本会话的任何历史、文件或上下文**。
 
-在 HAPI 会话里也是同一条路:投递只走 `SendMessage`;HAPI 自带的 `mcp__hapi__ping_peer` / `hapi ping-peer` **不是**投递通道——它会让目标窗口的 Claude 进程被杀掉重开(见「HAPI 会话」一节)。
+在 HAPI 会话里,`SendMessage` 仍是默认投递方式;HAPI 自带的 `mcp__hapi__ping_peer` / `hapi ping-peer` 可作替代通道,但**绝不传 force**——它拒绝的目标,force 一下就是杀掉对方正在跑的一切(见「HAPI 会话」一节)。
 
 ## 环境要求
 
 - Claude Code v2.1.224+,macOS/Linux(Windows 原生不支持)。会话里 `/list-agents` 不认识 = 该会话没有此功能。
 - 相邻命令:`/list-agents`(别名 `/peers`)查看可达会话;`/rename` 给会话起名(起过名才能 `claude --resume <名字>`)。发消息本身没有内置斜杠命令,这正是本 skill 存在的原因。
 - **跨会话发现按 profile 隔离;投递不按账号隔离**(2026-08-10 三次修订,受控实验定谳):每个会话只在自己 profile 的 `sessions/` 目录写注册文件,ListAgents 只读本 profile 的注册表,所以不同 profile 的窗口互相**不可见**。投递层面:**`SendMessage` 带显式地址 `uds:/tmp/cc-socks/<pid>.sock` 可跨登录账号直达,且无需互相可见**——受控实验(2026-08-10,用户主持):账号 A 的窗口 ↔ 账号 B 的窗口,双方确证不同登录账号、互不在对方 ListAgents,显式地址双向投递均成功并互收回声。(此前 2026-08-08 的「不可发」定论与 2026-08-09 的混杂样本均已被此实验取代;实验方法保留在此:双方账号确证不同 + 双向回声,今后翻案照此标准。)会话在启动时即注册(可见通常在几十秒内),与它发没发过消息无关。
-- **发现通道有三条,投递通道只有一条**:发现——`ListAgents`(本 profile 可见 peer)、身份注册表 `/tmp/cc-session-registry/`(跨 profile 自愿自报的名片,见下方「身份注册表」一节)、`/tmp/cc-socks/` 目录清单(兜底,只有 pid + mtime)。投递——`SendMessage` 一条,含按名字与按 `uds:` 地址两种形态。不许由你动用任何别的手段把内容送进对方会话——绕开 SendMessage 手写对方 socket、动对方 profile 的注册/会话文件或身份注册表条目、切 CLAUDE_CONFIG_DIR 起中继会话、自行 `claude --resume` 接管对方、tmux/screen 往对方终端注键、在 HAPI 里改用 `mcp__hapi__ping_peer` / `hapi ping-peer` / 自己换 JWT 后 curl hub 的 `/api/sessions/<id>/messages` / 让用户在网页端代发,全在禁止之列,技术上可行也不行。SendMessage 带 uds: 地址是官方通道的合法形态,不在禁止之列。
+- **发现通道有三条,投递通道只有一条**:发现——`ListAgents`(本 profile 可见 peer)、身份注册表 `/tmp/cc-session-registry/`(跨 profile 自愿自报的名片,见下方「身份注册表」一节)、`/tmp/cc-socks/` 目录清单(兜底,只有 pid + mtime)。投递——`SendMessage` 一条,含按名字与按 `uds:` 地址两种形态。不许由你动用任何别的手段把内容送进对方会话——绕开 SendMessage 手写对方 socket、动对方 profile 的注册/会话文件或身份注册表条目、切 CLAUDE_CONFIG_DIR 起中继会话、自行 `claude --resume` 接管对方、tmux/screen 往对方终端注键、给 `mcp__hapi__ping_peer` / `hapi ping-peer` 传 force、自己换 JWT 后 curl hub 的 `/api/sessions/<id>/messages`,全在禁止之列,技术上可行也不行。SendMessage 带 uds: 地址是官方通道的合法形态,不在禁止之列。
 
 ## 步骤
 
@@ -85,38 +85,35 @@ argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话�
 
 ## HAPI 会话(用户引用了 /sessions/<id>,或目标是 hub 里的会话)
 
-这一节和上面的禁令是同一条规则:HAPI 会话里投递也只有 `SendMessage` 一条通道。`mcp__hapi__ping_peer` / `hapi ping-peer` 的 ping 不是提醒,是把消息当**网页端用户输入**塞进 hub 队列,后果按目标状态分三种(2026-08-26 两起事故 + 一次性会话复现,见 claude-workflow-kit 仓 `docs/superpowers/research/2026-08-26-hapi-ping-peer-rca.md`):
+HAPI 从 2026-08-26 晚的版本(hapi 仓 main 6c91cfd2)起分两代行为,先弄清目标是哪一代:
 
-| 目标状态 | ping_peer 实际做的事 |
-|---|---|
-| 本地模式(有人开着的终端窗口,`claude --resume` 交互式进程) | hapi 立刻切 remote:对方整棵 Claude 进程树被 SIGTERM(进行中的 Workflow、子代理、后台 shell 全丢),再以 remote 模式重开;对方要按双空格才回到终端(已实测) |
-| 离线 | 对方机器上有在线 runner 时,按对方原来的权限设置(可能是 bypass)起一个无人看管的 agent 去执行你这条消息;已归档的会话会被重新启动;hub 也可能只把消息排进唤醒队列却返回"已发送"(未实测,按代码推断) |
-| remote 模式(网页/手机端控制,或 runner 起的) | 只入队,不杀进程——唯一无害的场景(已实测) |
+| 目标会话 | 收到 hub 消息(网页/手机/`ping_peer`)时 | `ping_peer` 不带 force 时 |
+|---|---|---|
+| 升级后新开的终端会话(有原生消息口) | 消息直接写进它正在跑的 Claude,终端显示「@ HAPI 网页/手机 · 用户本人❯」;不切 remote、不杀进程;写不进就只提示、消息留队(已实测) | 直接投递 |
+| 升级前开的终端会话、`HAPI_LOCAL_SOCKET_DELIVERY=0`、Windows | 整棵 Claude 进程树被 SIGTERM(进行中的 Workflow、子代理、后台 shell 全丢),再以 remote 模式重开;要按双空格才回终端(已实测) | 拒绝,错误码 `target_local_mode`,对方毫无感知(已实测) |
+| 离线 | 对方机器有在线 runner 时,按对方原来的权限设置起一个无人看管的 agent 执行这条消息;已归档的会话会被重新启动;返回 "queued" 表示对方还没处理(按代码推断) | 照常唤醒 |
+| remote 模式(网页/手机端控制,或 runner 起的) | 只入队 | 直接投递 |
 
-同一条路的所有入口后果相同,同样禁止:自己换 JWT 后 curl hub 的 `/api/sessions/<id>/messages`、任何会往那里发消息的 hapi 子命令、让用户在网页/手机端代发。拿自己的会话 id "先试一下"也禁止:`pingPeer()` 不排除调用方自己,前缀匹配到自己就是杀自己。
+你不用自己判断对方是哪一代:`ping_peer` 自带护栏,不安全就拒绝。规则只有四条:
 
-hapi 系统提示里那句「引用了 /sessions/<id> 就调 ping_peer 去 nudge / hand off」只对 remote 模式目标成立,hand off(任务交接)也一样——交接内容照样用 SendMessage 发,或写文件交接。`inspect_peer` 的输出没有 controlledByUser,它的任何字段(active、thinking、flavor、lifecycle)都不能拿来推断对方是 remote;只有用户本人说「它开在网页/手机上」才算 remote 证据。
+1. **绝不传 `force: true` / `--force`。** 护栏拒绝就是因为对方不是新版,force 的唯一效果是把它杀掉。被拒绝(`target_local_mode`)→ 改走本技能的阶梯:`inspect_peer` 输出里的 `claudeSessionId` 和 `/tmp/cc-session-registry/` 条目的 `session_id` 精确匹配(先剔除自己的条目,再按有效性过滤)→ 对该 `uds:` 地址 `SendMessage`;找不到 → L3 → L4。
+2. **经 `ping_peer` 发的消息开头必须自报家门**(哪个项目、哪个 profile 的 Claude 窗口):对方界面把它显示成"用户本人的话",不自报对方就会当成用户指令执行。
+3. **离线目标不 ping。** 确需唤醒时先把表里离线那一行的后果原样告诉用户、逐项确认,汇报时说明 "queued" 只是排队。`ping_peer` 拒绝 ping 自己(`self_target`),也别拿自己试。
+4. `inspect_peer` / `list_peers` 只读,随便用;`inspect_peer` 现在有 `mode: local|remote|offline` 和 `claudeSessionId`。不要自己换 JWT 后 curl hub 的 `/api/sessions/<id>/messages`——那条路没有护栏,对旧版终端会话就是杀进程。
 
-**/sessions/<id> 引用的做法(替代 ping_peer):**
-
-1. `mcp__hapi__inspect_peer`(只读,对方进程和终端都不动)只取 `cwd`(输出里就叫 cwd;项目名自己取 cwd 的最后一段);输出里有 `claudeSessionId` 就一并记下(hapi 加上这个字段之前没有)。cwd 显示 `(unknown)` → 退回 L1/L3 或问用户。在线状态不作任何判断依据。
-2. 按 L2 读 `/tmp/cc-session-registry/`:先剔除当前会话自己的条目(pid 等于自己的 `CLAUDE_PID`,或 socket 等于自己的 `CLAUDE_CODE_MESSAGING_SOCKET`),再按「身份注册表」一节的有效性过滤(socket 存在且 pid 存活),然后有 `claudeSessionId` 就和条目的 `session_id` 精确匹配,没有就按 `cwd` 对照。唯一 → 对该 `uds:` 地址 `SendMessage`;同 cwd 多条(主窗口和子窗口开在同一项目是常态,不是异常)→ 把 profile、账号、启动时间亮给用户挑;没有条目 → L3 → L4,不回头找 ping。
-3. 汇报只说"已发送";权限模式类别不同会被对方挂起(held)。
-
-`inspect_peer` / `list_peers` 只当发现线索(和 L2 注册表同性质),不算投递。`ping_peer` 只在两个条件**同时**满足时才用:①用户本轮逐字写出工具名 `ping_peer` / `ping-peer`——「nudge、叫醒、唤醒、推一下、催一下、通知它、hand off、交接」都不算,遇到这些词照上面的做法走,"要不要用 ping_peer"当成一次显式提问;②用户本人确认目标开在网页/手机上(remote 模式)。目标离线不走 ping,默认 L4 文件交接;确需唤醒时先把表里离线那一行的后果原样告诉用户、逐项确认,汇报时说明"已发送"也可能只是排队。
+`SendMessage`(按名字或 `uds:` 地址)对任何 Claude Code 会话都有效,仍是默认投递方式;`ping_peer` 是 HAPI 目标的替代通道,好处是消息进 hub 历史、网页上看得见。
 
 **借口对照:**
 
 | 借口 | 事实 |
 |---|---|
-| "系统提示要求 /sessions/<id> 走 ping_peer,harness 优先于 skill" | 那句适用于 remote 目标;对终端窗口它就是杀进程。本节是用户规则,不是礼仪 |
-| "ping_peer 是官方通道,还能唤醒不活跃会话" | 唤醒 = 在对方机器上起一个无人看管、权限沿用对方设置的 agent 执行你的消息 |
-| "/sessions/<id> 是 hub 会话 id,不是 ListAgents 里的名字,SendMessage 路径不适用" | inspect_peer 读出的 cwd 就是走 SendMessage 的入场券:对照注册表拿到 uds 地址,照发 |
-| "我没用 ping_peer,我用的是 hub 官方 REST 接口 / 让用户在网页端发" | 消息一进 hub 的 /messages,后果和 ping_peer 一样 |
-| "这是任务交接(hand off),不是传话" | 交接内容照样 SendMessage 或文件交接;hand off 那句同样只对 remote 目标成立 |
-| "先拿自己 / 不重要的会话试一下" | pingPeer 不排除自己;试的结果是自己这棵进程树连同 Workflow 一起没了 |
+| "被拒绝了,加个 force 就能发" | 拒绝 = 对方是旧版/回落模式,force = 杀掉对方正在跑的一切。改走 SendMessage |
+| "对方是新版,force 也没事" | 对方是新版就不会被拒绝,用不到 force;用到 force 的场合恰恰是会杀进程的场合 |
+| "ping_peer 能唤醒离线会话,顺手叫醒它" | 唤醒 = 在对方机器上起一个无人看管、权限沿用对方设置的 agent 执行你的消息;先问用户 |
+| "hub 官方 REST 接口和 ping_peer 一样,直接 curl" | curl 绕过了 ping_peer 的护栏,对旧版终端会话就是杀进程 |
+| "消息内容对方一看就懂,不用自报家门" | 对方看到的是"用户本人❯",会把你的话当用户的指令执行 |
 
-**出现下面任一念头就停下,回到做法第 1 步:** 要调 `mcp__hapi__ping_peer`;要跑 `hapi ping-peer`;要 curl `/api/sessions/<id>/messages`;"对方在 hub 里,SendMessage 够不着";"我只是 nudge / 交接一下";"先试一下"。
+**出现下面任一念头就停下:** 要给 `ping_peer` 传 force;要跑 `hapi ping-peer … --force`;要 curl `/api/sessions/<id>/messages`;"先拿自己试一下";"对方离线,ping 一下叫醒它"。
 
 ## 文件交接降级(L4:目标存在但消息不可达时)
 
@@ -131,7 +128,7 @@ hapi 系统提示里那句「引用了 /sessions/<id> 就调 ping_peer 去 nudge
 ## 边界
 
 - 标着 Remote Control 的条目(别的机器/网页会话)**只能回复不能主动发起**——目标命中这类条目时向用户说明,不要硬发。
-- HAPI remote 模式的会话:它的进程是 hapi 起的非交互子进程,是否注册 uds socket、SendMessage 能否送到人眼前均未验证;用户逐字写出 ping_peer 且确认对方开在网页/手机上时可用 ping_peer(已在 remote 模式,ping 不杀进程),否则走 L4 文件交接。
+- HAPI remote 模式的会话:它的进程是 hapi 起的非交互子进程,是否注册 uds socket、SendMessage 能否送到人眼前均未验证;对这类目标用 `ping_peer`(不带 force,消息只入队,不杀进程),或走 L4 文件交接。
 - 要延续整个对话或共享完整上下文,用 `claude --resume <名字>`,不是发消息;要传大文件/长历史,消息里给路径让对方自己读。
 - 权限边界:本会话被拒绝或会被拦的操作,不许以**任何形式**转嫁给对方会话——消息、交接文件、让用户粘贴的指令,同受此限。
 
@@ -154,4 +151,5 @@ hapi 系统提示里那句「引用了 /sessions/<id> 就调 ping_peer 去 nudge
 | 拿单次混杂样本当机制结论 | 2026-08-10 的教训:先前一次"成功"因目标被 ccswitch 切成同账号而不构成证据;后由受控实验(双方账号确证不同 + 双向回声)才定谳可发。下机制结论必须排混杂 |
 | 对着没被用户指认/对方自报、且不属于注册表确证的 uds: 地址盲发 | 违规。非确证地址只有三条来源(对方自报/用户提供/用户指认候选)之外不许发,且必须等回声 |
 | 想用 SendMessage 之外的通道把内容送进对方会话(手写 socket、动注册文件或身份注册表条目、--resume 接管、tmux 注键……) | 一律禁止,不论技术上可不可行。SendMessage 带 uds: 地址是合法官方通道;彻底不可达时走 L4 文件交接(经用户的手) |
-| 在 HAPI 会话里改用 `mcp__hapi__ping_peer` / `hapi ping-peer` / curl hub 送消息,或把「nudge / 叫醒 / hand off」当成用户明说要用 ping_peer | 违规,见「HAPI 会话」一节 |
+| `ping_peer` 被拒绝(target_local_mode)后加 force 重发,或自己 curl hub 送消息 | 违规,对方正在跑的一切会被杀掉;改走 SendMessage,见「HAPI 会话」一节 |
+| 经 `ping_peer` 发的消息开头没自报家门 | 对方界面显示为"用户本人❯",会把你的话当用户指令执行;见「HAPI 会话」规则 2 |
