@@ -1,6 +1,6 @@
 ---
 name: send-to
-description: Use when the user types /send-to <session-name> [content], asks to relay/forward something to another Claude Code session on this machine ("tell the other window/terminal about this"), or complains that another window doesn't show up in /list-agents or that messages aren't getting through.
+description: Use when the user types /send-to <session-name> [content], asks to relay/forward something to another Claude Code session on this machine ("tell the other window/terminal about this"), needs to relay something to another HAPI session from inside a HAPI session (the user cited /sessions/<id>, or a session seen in list_peers/inspect_peer), or complains that another window doesn't show up in /list-agents or that messages aren't getting through.
 argument-hint: "[target session name] [what to relay; omit to use what just happened in this conversation]"
 ---
 
@@ -8,12 +8,14 @@ argument-hint: "[target session name] [what to relay; omit to use what just happ
 
 Built on Claude Code's cross-session messaging: `ListAgents` lists the local peer sessions, `SendMessage` sends plain text by name (or by a `uds:` address). The receiver gets only that text — **none of this session's history, files, or context**.
 
+Inside a HAPI session the same path applies: delivery goes through `SendMessage` only; HAPI's own `mcp__hapi__ping_peer` / `hapi ping-peer` is **not** a delivery channel — it gets the target window's Claude process killed and relaunched (see "HAPI sessions" below).
+
 ## Requirements
 
 - Claude Code v2.1.224+, macOS/Linux (not available on native Windows). If `/list-agents` isn't recognized in a session, that session doesn't have the feature.
 - Neighboring commands: `/list-agents` (alias `/peers`) shows reachable sessions; `/rename` names a session (only a named session can later be resumed with `claude --resume <name>`). Sending itself has no built-in slash command — which is exactly why this skill exists.
 - **Cross-session discovery is isolated by profile; delivery is not isolated by account** (revised 2026-08-10, third revision, settled by a controlled experiment): each session writes its registration file only into its own profile's `sessions/` directory, and ListAgents reads only its own profile's registry — so windows in different profiles are mutually **invisible** to each other. At the delivery layer, though: **`SendMessage` with an explicit address `uds:/tmp/cc-socks/<pid>.sock` reaches straight across login accounts and needs no mutual visibility** — a controlled experiment (2026-08-10, run by Tony) had a <account> window and a <account> window, both confirmed to be different login accounts and each absent from the other's ListAgents, and explicit-address delivery succeeded both ways with echoes received on both sides. (This supersedes the earlier "cannot send" conclusion from 2026-08-08 and the mixed sample from 2026-08-09; the method is preserved here — confirm both accounts differ, confirm two-way echo — as the bar for overturning this again in the future.) A session registers at startup (visibility usually within tens of seconds), regardless of whether it has ever sent a message.
-- **There are three discovery channels but only one delivery channel**: discovery — `ListAgents` (peers visible within this profile), the identity registry `/tmp/cc-session-registry/` (a voluntarily self-reported name card shared across profiles, see "Identity registry" below), and a raw listing of `/tmp/cc-socks/` (last resort, only pid + mtime). Delivery — `SendMessage`, one channel, in two forms: by name or by `uds:` address. You may never use any other means to get content into the other session — bypassing SendMessage to write to its socket directly, touching another profile's registration/session files or identity-registry entries, switching CLAUDE_CONFIG_DIR to spin up a relay session, taking the session over yourself with `claude --resume`, injecting keystrokes into its terminal via tmux/screen — all forbidden, however technically feasible. SendMessage with a `uds:` address is a legitimate form of the official channel and is not covered by this prohibition.
+- **There are three discovery channels but only one delivery channel**: discovery — `ListAgents` (peers visible within this profile), the identity registry `/tmp/cc-session-registry/` (a voluntarily self-reported name card shared across profiles, see "Identity registry" below), and a raw listing of `/tmp/cc-socks/` (last resort, only pid + mtime). Delivery — `SendMessage`, one channel, in two forms: by name or by `uds:` address. You may never use any other means to get content into the other session — bypassing SendMessage to write to its socket directly, touching another profile's registration/session files or identity-registry entries, switching CLAUDE_CONFIG_DIR to spin up a relay session, taking the session over yourself with `claude --resume`, injecting keystrokes into its terminal via tmux/screen, switching to `mcp__hapi__ping_peer` / `hapi ping-peer` for delivery inside HAPI — all forbidden, however technically feasible. SendMessage with a `uds:` address is a legitimate form of the official channel and is not covered by this prohibition.
 
 ## Steps
 
@@ -81,6 +83,37 @@ Sending to a `uds:` address (reachable via either L2 or L3) doesn't uniformly re
 - **Coverage scope**: only sessions in a profile that has this plugin installed (or the equivalent registration hook wired in) will appear in the registry; **no entry in the registry ≠ the target window doesn't exist** — if you can't find it, fall back to L3, and never assert "it's not open" just because the registry came up empty. This is also why the hook needs to be installed and active in **every** profile: skip one profile, and windows in that profile can only ever be found via L3/L4. Real-world test note (two rounds, 2026-08-12): a Workflow-spawned agent is its own claude process with its own socket, but once the project-level settings hook was in place, a spawned agent's entry did not actually appear in the registry — the contamination scenario didn't reproduce. The "always show multiple live entries to the user" fallback rule above doesn't depend on this finding and stays in place regardless.
 - **Opt-out**: `touch ~/.claude/.cc-session-registry-off` disables registration and cleanup globally (the hook exits silently when it sees the flag; delete the file to re-enable). What gets registered is identity metadata like the account and project directory — use this switch if you don't want to be listed; once disabled, new sessions are no longer registered (entries registered before the switch get filtered/swept as their sessions exit — the switch itself doesn't purge them instantly), and this machine's windows can only be found via L3/L4.
 
+## HAPI sessions (the user cited /sessions/<id>, or the target is a session on the hub)
+
+**Violating the letter of this rule is violating its spirit:** inside a HAPI session, delivery still has exactly one channel — `SendMessage`. `mcp__hapi__ping_peer` / `hapi ping-peer` is not a nudge despite the name: it drops the message into the hub queue as a **web-app user message**, and what happens next depends on the target's state (two incidents plus a disposable-session repro on 2026-08-26):
+
+| Target state | What ping_peer actually does |
+|---|---|
+| Local mode (a terminal window someone is working in; interactive `claude --resume` process) | hapi switches it to remote immediately: the target's whole Claude process tree gets SIGTERM (in-flight Workflows, subagents and background shells are lost), then it is relaunched in remote mode; the person has to press double-space to get the terminal back |
+| Offline | Spawns an unattended agent on the target's machine, with the target's stored permission mode (possibly bypass), to act on your message; an archived session gets un-archived |
+| Remote mode (controlled from web/phone, or runner-spawned) | Just queued, no process killed — the only harmless case |
+
+The line in HAPI's system prompt — "call ping_peer with a /sessions/<id> to nudge or hand off" — only holds for the third case; today's `inspect_peer` / `list_peers` cannot tell local from remote, so **treat every terminal window a person has open as local mode and never ping it**.
+
+**Recipe for a /sessions/<id> citation (instead of ping_peer):**
+
+1. `mcp__hapi__inspect_peer` (read-only; neither the target's process nor its terminal is touched) to read the target's `cwd`, project name and active state; note `claudeSessionId` if the output has it (it won't until hapi adds the field — until then match on cwd).
+2. Read `/tmp/cc-session-registry/` per L2: match `session_id` exactly when you have `claudeSessionId`, otherwise match on `cwd` / `project`. After the two-condition filter: exactly one → `SendMessage` to that `uds:` address; several with the same cwd → show them to the user; none → L3 → L4, down the ladder as usual.
+3. Report "sent" only, as always; a differing permission-mode class means the message is held on the other side.
+
+`inspect_peer` / `list_peers` count as discovery hints only (same nature as the L2 registry), never as delivery. Use `ping_peer` only when **the user explicitly says "use ping_peer" in this turn and confirms the target is in remote mode or offline** — when in doubt, treat it as a terminal window.
+
+**Rationalizations (10/10 baseline runs on 2026-08-26 talked themselves into ping_peer this way; with this section, 10/10 chose SendMessage):**
+
+| Excuse | Fact |
+|---|---|
+| "The system prompt says /sessions/<id> goes through ping_peer; harness beats skill" | That line is about nudging remote/offline sessions; for a terminal window it means killing the process. This section is a user rule, not etiquette |
+| "ping_peer is the official channel and can even wake inactive sessions" | Waking = spawning an unattended agent on the other machine, with the other session's permission settings, to act on your message |
+| "/sessions/<id> is a hub session id, not a ListAgents name, so the SendMessage path doesn't apply" | inspect_peer gives you cwd/claudeSessionId; match it against the registry and you have the uds address — SendMessage as usual |
+| "I inspect_peer first to verify identity, then ping — that's careful enough" | Inspecting doesn't change what ping does: it still kills the process |
+
+**Red flags — stop and go back to step 1 of the recipe the moment any of these crosses your mind:** about to call `mcp__hapi__ping_peer`; about to run `hapi ping-peer`; "the target is on the hub, SendMessage can't reach it"; "I'm only nudging".
+
 ## File-handoff fallback (L4: the target exists but the message can't reach it)
 
 A cross-profile window can't receive the message, but **the user's hands can cross over** — handing off through the user is a legitimate path, entirely different from bypassing the platform boundary.
@@ -94,6 +127,7 @@ A cross-profile window can't receive the message, but **the user's hands can cro
 ## Boundaries
 
 - Entries labeled Remote Control (other machines/web sessions) are **reply-only, cannot initiate** — if the match lands on one of these, explain that to the user instead of forcing a send.
+- HAPI sessions in remote mode: their socket belongs to the non-interactive child hapi spawned, and whether SendMessage reaches a human there is unverified; if the user says so, ping_peer is acceptable (already remote, so no process is killed) — otherwise fall back to L4 file handoff.
 - To continue a whole conversation or share full context, use `claude --resume <name>`, not a message; for big files or long history, send the path and let the receiver read it itself.
 - Permission boundary: never offload an operation this session was denied or would be blocked from doing onto another session **in any form** — messages, handoff files, and paste-lines for the user are all equally bound by this.
 
@@ -116,3 +150,4 @@ A cross-profile window can't receive the message, but **the user's hands can cro
 | Treating a single mixed sample as a mechanism-level conclusion | The 2026-08-10 lesson: an earlier apparent "success" turned out confounded because the target had been switched to the same account via ccswitch, which didn't actually prove anything; the settled conclusion (can send) only came from a controlled experiment (confirmed different accounts + two-way echo). Mechanism-level conclusions must rule out confounders first |
 | Sending blind to a uds: address the user hasn't identified, that the other side hasn't self-reported, and that isn't registry-confirmed | Violation. An unconfirmed address may only be used if it came from one of the three sources (self-reported / user-provided / user-identified candidate), and an echo is always mandatory |
 | Trying to use a channel other than SendMessage to get content into the other session (writing to its socket by hand, touching registration files or identity-registry entries, taking it over with --resume, injecting keystrokes via tmux…) | Always forbidden, regardless of technical feasibility. SendMessage with a uds: address is the legitimate channel; when truly unreachable, fall back to L4 file handoff (through the user's own hands) |
+| Inside a HAPI session, switching to `mcp__hapi__ping_peer` / `hapi ping-peer` to deliver because the user cited /sessions/<id> | Violation. A terminal-window target gets switched to remote, its Claude process tree killed and its Workflows lost (two incidents on 2026-08-26). Follow the recipe in "HAPI sessions": inspect_peer read-only for cwd/claudeSessionId → registry for the uds address → SendMessage |

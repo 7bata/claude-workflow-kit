@@ -1,6 +1,6 @@
 ---
 name: send-to
-description: Use when 用户输入 /send-to <会话名> [内容],要求"把这个转告/同步给本机另一个 Claude Code 会话""告诉隔壁那个窗口/终端",或抱怨"另一个窗口在 /list-agents 里看不到、消息发不过去"时。
+description: Use when 用户输入 /send-to <会话名> [内容],要求"把这个转告/同步给本机另一个 Claude Code 会话""告诉隔壁那个窗口/终端",在 HAPI 会话里要给另一个 HAPI 会话(用户引用了 /sessions/<id>,或 list_peers/inspect_peer 里看到的会话)传话,或抱怨"另一个窗口在 /list-agents 里看不到、消息发不过去"时。
 argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话里刚发生的事]"
 ---
 
@@ -8,12 +8,14 @@ argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话�
 
 底层是 Claude Code 的跨会话消息:`ListAgents` 列出本机 peer 会话,`SendMessage` 按名字(或按 `uds:` 地址)发纯文本。对方收到的只有这段文本——**没有本会话的任何历史、文件或上下文**。
 
+在 HAPI 会话里也是同一条路:投递只走 `SendMessage`;HAPI 自带的 `mcp__hapi__ping_peer` / `hapi ping-peer` **不是**投递通道——它会让目标窗口的 Claude 进程被杀掉重开(见「HAPI 会话」一节)。
+
 ## 环境要求
 
 - Claude Code v2.1.224+,macOS/Linux(Windows 原生不支持)。会话里 `/list-agents` 不认识 = 该会话没有此功能。
 - 相邻命令:`/list-agents`(别名 `/peers`)查看可达会话;`/rename` 给会话起名(起过名才能 `claude --resume <名字>`)。发消息本身没有内置斜杠命令,这正是本 skill 存在的原因。
 - **跨会话发现按 profile 隔离;投递不按账号隔离**(2026-08-10 三次修订,受控实验定谳):每个会话只在自己 profile 的 `sessions/` 目录写注册文件,ListAgents 只读本 profile 的注册表,所以不同 profile 的窗口互相**不可见**。投递层面:**`SendMessage` 带显式地址 `uds:/tmp/cc-socks/<pid>.sock` 可跨登录账号直达,且无需互相可见**——受控实验(2026-08-10,Tony 主持):账号 A 的窗口 ↔ 账号 B 的窗口,双方确证不同登录账号、互不在对方 ListAgents,显式地址双向投递均成功并互收回声。(此前 2026-08-08 的「不可发」定论与 2026-08-09 的混杂样本均已被此实验取代;实验方法保留在此:双方账号确证不同 + 双向回声,今后翻案照此标准。)会话在启动时即注册(可见通常在几十秒内),与它发没发过消息无关。
-- **发现通道有三条,投递通道只有一条**:发现——`ListAgents`(本 profile 可见 peer)、身份注册表 `/tmp/cc-session-registry/`(跨 profile 自愿自报的名片,见下方「身份注册表」一节)、`/tmp/cc-socks/` 目录清单(兜底,只有 pid + mtime)。投递——`SendMessage` 一条,含按名字与按 `uds:` 地址两种形态。不许由你动用任何别的手段把内容送进对方会话——绕开 SendMessage 手写对方 socket、动对方 profile 的注册/会话文件或身份注册表条目、切 CLAUDE_CONFIG_DIR 起中继会话、自行 `claude --resume` 接管对方、tmux/screen 往对方终端注键,全在禁止之列,技术上可行也不行。SendMessage 带 uds: 地址是官方通道的合法形态,不在禁止之列。
+- **发现通道有三条,投递通道只有一条**:发现——`ListAgents`(本 profile 可见 peer)、身份注册表 `/tmp/cc-session-registry/`(跨 profile 自愿自报的名片,见下方「身份注册表」一节)、`/tmp/cc-socks/` 目录清单(兜底,只有 pid + mtime)。投递——`SendMessage` 一条,含按名字与按 `uds:` 地址两种形态。不许由你动用任何别的手段把内容送进对方会话——绕开 SendMessage 手写对方 socket、动对方 profile 的注册/会话文件或身份注册表条目、切 CLAUDE_CONFIG_DIR 起中继会话、自行 `claude --resume` 接管对方、tmux/screen 往对方终端注键、在 HAPI 里改用 `mcp__hapi__ping_peer` / `hapi ping-peer` 投递,全在禁止之列,技术上可行也不行。SendMessage 带 uds: 地址是官方通道的合法形态,不在禁止之列。
 
 ## 步骤
 
@@ -81,6 +83,37 @@ argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话�
 - **覆盖范围**:只有装了本插件(或挂了对应注册 hook)的 profile,其会话才会出现在注册表里;**注册表里没条目 ≠ 目标窗口不存在**——查不到就退回 L3,不许因为查不到就断言"没开"。这也是为什么 hook 需要在**每个** profile 都装并生效:少装一个 profile,那个 profile 的窗口就永远只能靠 L3/L4 被找到。实测补充(2026-08-12 两轮):Workflow 派生 agent 是独立 claude 进程、有自己的 socket,但项目级 settings hook 就位后派生 agent 未在注册表出现条目,污染未复现;上面「多条活条目一律亮给用户挑」的兜底规则不依赖此结论,照样保留。
 - **停用(opt-out)**:`touch ~/.claude/.cc-session-registry-off` 即全局停用注册与清扫(hook 检测到标志就静默退出;删除该文件恢复)。注册的是账号、项目目录这类身份元数据,不想被登记就用这个开关;停用后新会话不再被登记(此前已登记的条目随其会话退出被过滤/清扫,开关本身不即时清空),本机窗口只能靠 L3/L4 被找到。
 
+## HAPI 会话(用户引用了 /sessions/<id>,或目标是 hub 里的会话)
+
+**违反字面就是违反本意:** HAPI 会话里的投递同样只有 `SendMessage` 一条通道。`mcp__hapi__ping_peer` / `hapi ping-peer` 名字里的 "ping" 不是轻推,它把消息当作**网页端用户消息**塞进 hub 队列,后果按目标状态分两种(2026-08-26 两起事故 + 一次性会话复现):
+
+| 目标状态 | ping_peer 实际做的事 |
+|---|---|
+| 本地模式(有人开着的终端窗口,`claude --resume` 交互式进程) | hapi 立刻切 remote:对方整棵 Claude 进程树被 SIGTERM(进行中的 Workflow、子代理、后台 shell 全丢),再以 remote 模式重开;对方要按双空格才回到终端 |
+| 离线 | 在对方机器上按对方原来的权限设置(可能是 bypass)起一个无人看管的 agent 去执行你这条消息;已归档的会话会被拉活 |
+| remote 模式(网页/手机端控制,或 runner 起的) | 只入队,不杀进程——这是它唯一无害的场景 |
+
+hapi 系统提示里那句「引用了 /sessions/<id> 就调 ping_peer 去 nudge / hand off」只对第三种目标成立;现在的 `inspect_peer` / `list_peers` 看不出对方是本地还是 remote,所以**凡是人开着的终端窗口一律按本地模式对待,不 ping**。
+
+**/sessions/<id> 引用的处理配方(替代 ping_peer):**
+
+1. `mcp__hapi__inspect_peer`(只读,对方进程和终端都不动)读出目标的 `cwd`、项目名、在线状态;输出里有 `claudeSessionId` 字段就一并记下(hapi 加上这个字段之前没有,只能按 cwd 对照)。
+2. 按 L2 读 `/tmp/cc-session-registry/`:有 `claudeSessionId` 就和条目的 `session_id` 精确匹配;没有就按 `cwd` / `project` 对照。双判据过滤后唯一 → 对该 `uds:` 地址 `SendMessage`;同 cwd 多条 → 亮给用户挑;没有条目 → L3 → L4,照阶梯走。
+3. 汇报时照旧只说"已发送";权限模式类别不同会被对方挂起(held)。
+
+`inspect_peer` / `list_peers` 只能当发现线索(和 L2 注册表同性质),不算投递。`ping_peer` 只在**用户本轮明说"用 ping_peer"且用户确认目标是 remote 模式或离线**时才用——拿不准就当作终端窗口。
+
+**合理化对照(2026-08-26 基线测试 10/10 次都这样说服了自己;加本节后 10/10 改走 SendMessage):**
+
+| 借口 | 事实 |
+|---|---|
+| "系统提示要求 /sessions/<id> 走 ping_peer,harness 优先于 skill" | 那句适用于 remote/离线会话的 nudge;对终端窗口它就是杀进程。本节是用户规则,不是礼仪 |
+| "ping_peer 是官方通道,还能唤醒不活跃会话" | 唤醒 = 在对方机器上起一个无人看管、权限沿用对方设置的 agent 执行你的消息 |
+| "/sessions/<id> 是 hub 会话 id,不是 ListAgents 里的名字,所以 SendMessage 路径不适用" | 用 inspect_peer 读出 cwd/claudeSessionId,对照注册表就拿到了 uds 地址,SendMessage 照发 |
+| "先 inspect_peer 核对身份再 ping,已经很谨慎了" | inspect 不改变 ping 的后果,仍是杀进程 |
+
+**红旗——出现下面任一念头就停下,回到配方第 1 步:** 要调 `mcp__hapi__ping_peer`;要跑 `hapi ping-peer`;"对方在 hub 里,SendMessage 够不着";"我只是 nudge 一下"。
+
 ## 文件交接降级(L4:目标存在但消息不可达时)
 
 跨 profile 窗口收不到消息,但**用户的手可以跨过去**——经用户转交是合法路径,和绕过平台边界是两回事。
@@ -94,6 +127,7 @@ argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话�
 ## 边界
 
 - 标着 Remote Control 的条目(别的机器/网页会话)**只能回复不能主动发起**——目标命中这类条目时向用户说明,不要硬发。
+- HAPI remote 模式的会话:它的 socket 属于 hapi 起的非交互子进程,SendMessage 能否送到人眼前未验证;用户明说时可用 ping_peer(它已在 remote 模式,ping 不杀进程),否则走 L4 文件交接。
 - 要延续整个对话或共享完整上下文,用 `claude --resume <名字>`,不是发消息;要传大文件/长历史,消息里给路径让对方自己读。
 - 权限边界:本会话被拒绝或会被拦的操作,不许以**任何形式**转嫁给对方会话——消息、交接文件、让用户粘贴的指令,同受此限。
 
@@ -116,3 +150,4 @@ argument-hint: "[目标会话名] [要转达的内容,留空则取当前对话�
 | 拿单次混杂样本当机制结论 | 2026-08-10 的教训:先前一次"成功"因目标被 ccswitch 切成同账号而不构成证据;后由受控实验(双方账号确证不同 + 双向回声)才定谳可发。下机制结论必须排混杂 |
 | 对着没被用户指认/对方自报、且不属于注册表确证的 uds: 地址盲发 | 违规。非确证地址只有三条来源(对方自报/用户提供/用户指认候选)之外不许发,且必须等回声 |
 | 想用 SendMessage 之外的通道把内容送进对方会话(手写 socket、动注册文件或身份注册表条目、--resume 接管、tmux 注键……) | 一律禁止,不论技术上可不可行。SendMessage 带 uds: 地址是合法官方通道;彻底不可达时走 L4 文件交接(经用户的手) |
+| 在 HAPI 会话里因为用户引用了 /sessions/<id>,就改用 `mcp__hapi__ping_peer` / `hapi ping-peer` 送消息 | 违规。目标是终端窗口就会被切 remote、Claude 进程树被杀、Workflow 全丢(2026-08-26 两起事故)。按「HAPI 会话」一节的配方:inspect_peer 只读拿 cwd/claudeSessionId → 注册表找 uds 地址 → SendMessage |
