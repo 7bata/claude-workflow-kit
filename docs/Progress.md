@@ -5,8 +5,8 @@
 | 模块 | 状态 | 备注 |
 |---|---|---|
 | workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.0;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
-| workflow-codex(Codex CLI 移植版) | done | 0.9.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
-| speak-human / -en(提问与表达纪律 + evals) | done | 0.4.1 / 0.3.1;evals 34 条真实失败案例 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
 | 进度文档层(PLAN/Progress) | done | 2026-08-13 补;此前只有 README + spec + git 历史 |
@@ -23,6 +23,13 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-08-31 — speak-human 同步母本新增 S6「更新日志式汇报」(speak-human 0.7.0 / -en 0.6.0 / workflow-codex 0.10.0)
+
+母本仓(5e4de8e)新增"说"的纪律第六条:进展/完成类汇报,做了两件以上独立的事、或有计划内没做成/已知问题要交代时,用「本次完成/未完成/已知问题」三段体——条目功能级零文件名、杂项归并、未完成各附一句原因、空段整段省略;单项且无未做无问题照 S4 一句结果不硬套。S4 形状表"一段进展汇报"行改分流、必留清单补"S6 未完成条目的原因句"。
+
+- kit 面:zh / workflow-codex 内嵌两份条款区与母本逐字节同文,en 手译全套;evals 镜像同步(语料 +c41~c43 共 43 条、rubric S6 判分段与专项注记、run_evals.py S1~S6 与 S6 案例输出指令分支,保留 kit 侧 SKILL.md 路径差异);出处段按开源口径通用化。README zh/en 里 codex 版 speak-human 的"S1~S4"陈旧引用顺带更正为 S1~S6。
+- 同步面:dev-toolkit、huake claude-toolkit-engineer(0.21.0,README 加记录行)、codex-toolkit-engineer(0.10.0)三仓 SKILL.md 同文同步;dev-toolkit 版本由 CI 自动升。
 
 ### 2026-08-31 — main 门禁改为只拦前端可见改动(workflow 三插件 0.8.0 → 0.9.0)
 

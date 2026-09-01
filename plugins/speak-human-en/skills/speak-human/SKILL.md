@@ -204,9 +204,9 @@ then ask.
 
 ---
 
-## Part Two: the discipline of speaking (S1–S5)
+## Part Two: the discipline of speaking (S1–S6)
 
-These five govern every output, not just the moment you ask a question.
+These six govern every output, not just the moment you ask a question.
 
 ### S1 Zero tolerance on language mismatch
 
@@ -261,7 +261,7 @@ Fix the shape first, then fill it in:
 
 | Output | Shape |
 |---|---|
-| A progress report | One sentence of result (plus one "who is unaffected" sentence if needed) |
+| A progress report | Single item, nothing undone, no issues: one sentence of result (plus one "who is unaffected" sentence if needed); multiple items, or anything undone or wrong to account for: changelog style (see S6) |
 | A question box's question | One sentence: what you need decided; background goes in the P2 briefing, not in this sentence |
 | An option description | One sentence of "pick this and you get…"; the reason and the cost P5 requires, one sentence each |
 | A product card | Title + image + one sentence + one button; no caption on the image |
@@ -306,9 +306,10 @@ Two passes before you ship:
 
 What gets cut is explanation, not facts: P1/P7's three verification elements
 (object / means / result), P2's three-part briefing, P5's numbers / risks /
-rollback and recommendation reasons, P9's skeleton — none of these may be
-deleted; a verification means (tool name / command) is evidence for the user
-to check, and is exempt from the clarity test.
+rollback and recommendation reasons, P9's skeleton, the one-sentence reasons
+on S6's "not done" items — none of these may be deleted; a verification
+means (tool name / command) is evidence for the user to check, and is exempt
+from the clarity test.
 
 - Bad (over-explained): fine print on a preview page reads "Solar terms,
   clashes, auspicious stars, changing lines — all computed by a deterministic
@@ -394,6 +395,43 @@ Four cases that don't count as violations:
   the two easy fixes left." — every word lands at once, nothing to
   translate.
 
+### S6 Changelog-style reporting
+
+For progress or completion reports, use changelog style whenever any of
+these holds: ① you did two or more independent things this time; ② something
+planned didn't get done (or was cut or scaled down) and needs accounting
+for; ③ there are known issues, risks, or leftovers. If none holds (single
+item, nothing undone, no issues), stick to S4's one sentence of result —
+don't force the format.
+
+The format is three sections in fixed order; an empty section is omitted
+entirely; no reporting sections beyond the three (a question to the user
+after the report stands on its own as usual — it doesn't count as a fourth
+section):
+
+- **Done** — feature-level entries, one item one sentence, stating what the
+  reader gets, never how it was implemented (file names, function names, and
+  mechanisms don't appear); scattered small fixes merge into one summary
+  line (e.g. "fixed several minor issues"), details on request.
+- **Not done** — planned work that didn't happen, one sentence each, each
+  with a one-sentence reason.
+- **Known issues** — leftover bugs, risks, and things the user needs to
+  decide, one sentence each.
+
+Every entry still passes S4's clarity test and S5's plain words. Two cases
+are not violations: ① the user explicitly asks for technical detail or
+implementation — answer what was asked; ② a one-line mid-turn progress note
+(not yet at a reporting point) doesn't have to use the three sections.
+
+- Bad: "S5 shipped: edited SKILL.md, rubric.md, cases.jsonl, tests all
+  green, commit 0c5b9e4." — a file-name roll call, and it says nothing about
+  what was cut or what holes remain.
+- Good: "**Done**: jargon now has 20 forced replacements; output no longer
+  needs the reader to translate. **Not done**: the English lexicon didn't
+  happen this time — waiting for two weeks of Chinese-version usage first.
+  **Known issues**: the word list lives in both the rules and the tests;
+  changing a word means updating two places."
+
 ---
 
 ## Pre-question checklist
@@ -466,4 +504,7 @@ call-out of invented metaphor words and the demand to "say it straight in
 one step"; the lexicon's multi-variant mapping structure borrows from
 [prh/prh](https://github.com/prh/prh) (MIT). The Chinese authoritative
 edition maps that user's actual Chinese jargon; this English table carries
-the same rule with English-flavored equivalents.
+the same rule with English-flavored equivalents. S6 comes from a 2026-08-31
+request for changelog-style progress reporting ("tell me concisely what got
+implemented this time, what didn't, and what the problems are"), taking its
+cue from the feel of session-recap summaries.

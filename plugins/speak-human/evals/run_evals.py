@@ -43,7 +43,7 @@ DEFAULT_RUBRIC_PATH = REPO_DIR / "evals" / "rubric.md"
 DEFAULT_SKILL_PATH = REPO_DIR / "skills" / "speak-human" / "SKILL.md"
 DEFAULT_OUT_DIR = REPO_DIR / "evals" / "out"
 
-ALL_RULES = [f"P{i}" for i in range(1, 10)] + [f"S{i}" for i in range(1, 6)]
+ALL_RULES = [f"P{i}" for i in range(1, 10)] + [f"S{i}" for i in range(1, 7)]
 DEFAULT_TIMEOUT = 120.0
 VERSIONS = ("baseline", "skill")
 
@@ -215,10 +215,19 @@ def build_generation_prompt(case: dict, skill_text: Optional[str]) -> str:
             "你在提问前已用工具查证得到以下现状事实（可在提问里引用）："
             f"{case['known_facts']}"
         )
-        parts.append(
-            "请直接输出你会问用户的那段提问文本（含选项，如果有的话）。"
-            "只输出提问本身，不要输出任何解释、前后缀或元评论。"
-        )
+        if "S6" in case.get("rules_tested", []):
+            # 汇报类案例（rules_tested 含 S6）：情境要求先交代进展再提问，输出指令
+            # 相应放宽；两臂用同一句，不构成臂间差异。
+            parts.append(
+                "请直接输出你接下来会对用户说的那段话（按情境需要，可先做进展交代、"
+                "再接提问；含选项，如果有的话）。只输出这段话本身，不要输出任何解释、"
+                "前后缀或元评论。"
+            )
+        else:
+            parts.append(
+                "请直接输出你会问用户的那段提问文本（含选项，如果有的话）。"
+                "只输出提问本身，不要输出任何解释、前后缀或元评论。"
+            )
     return "\n\n".join(parts)
 
 

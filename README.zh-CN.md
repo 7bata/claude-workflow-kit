@@ -89,7 +89,7 @@ SOP 截图前,或改完一批 UI 后做回归扫描,把全站可交互元素系�
 - `whats-next`:读文档判断下一步该干什么
 - `sop-generate`:给已部署的 Web 应用生成带截图的中文业务 SOP
 - `parallel-do`:把一个步骤拆成独立子任务,分波 spawn 并行 Codex subagent 执行——这个 skill 是 Codex 独有的,补的是 Claude Code 原生多代理编排工具在 Codex 侧缺失的能力
-- `speak-human`:让 Codex 提问与表达遵守说人话纪律——移植自下方「附赠插件:speak-human」的同一套 P1~P9/S1~S4 规则,常驻方式改为写入 `~/.codex/AGENTS.md`(见该 skill 文件末尾「常驻安装」一节的脚本)
+- `speak-human`:让 Codex 提问与表达遵守说人话纪律——移植自下方「附赠插件:speak-human」的同一套 P1~P9/S1~S6 规则,常驻方式改为写入 `~/.codex/AGENTS.md`(见该 skill 文件末尾「常驻安装」一节的脚本)
 
 `workflow-codex` 不含 auto-scaffold(说一句要做新东西就自动建目录铺脚手架)的随装自动生效——Codex CLI 没有会话开局 hook 机制,插件装上不会像 Claude Code 版那样自动触发。想要同款效果,需按 `scaffold` skill 文件末尾「Auto 模式与常驻安装(可选)」一节手动 opt-in:把判定规则片段写进 `~/.codex/AGENTS.md`(附幂等安装/卸载脚本,可反复跑不重复追加)。
 
