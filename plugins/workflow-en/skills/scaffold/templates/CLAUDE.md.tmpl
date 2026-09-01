@@ -78,7 +78,7 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
 ### 5.1 Branch & Backup Strategy
 
 1. **Branch means push**: day-to-day development always happens on a feature/wip branch — switch to or create one before starting work (a worktree flow satisfies this automatically); push the current branch to the remote immediately after every commit, no confirmation needed — this is your real-time offsite backup
-2. **main is gated**: the confirmation checkpoint is at **merging into the default branch**, not at pushing. Merging into main (or committing directly on main) requires the user's confirmation first; after confirmation, push main and delete the merged remote feature branch
+2. **main is gated — only for changes the user can see in the frontend**: before merging into main (or committing directly on main), ask one question — could the user see or test the difference from the frontend? **Yes** (frontend code changes, or backend logic changes that alter frontend interaction/display behavior) → get the user's confirmation first; **No** (anything the user can't test from the frontend: pure backend internals and refactors, docs, backend tests, scripts, CI, dependency bumps, changes that leave API behavior unchanged) → merge and push main directly, no confirmation needed — just report the merge in one line. Either way, delete the merged remote feature branch; when unsure, treat it as "yes" and ask; committing directly on main is still governed by rule 1 (branch first) — this clause only decides whether to ask. This clause overrides finishing-a-development-branch's Step 4 three-option menu — on a "no" verdict, skip the menu, merge, and continue the wrap-up
 3. **No-remote fallback**: if the repo has no remote (or the branch has no upstream), remind the user to set one up after the first commit, so "auto-push" doesn't silently fail
 
 ## 6. Secrets Handling
@@ -122,7 +122,7 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
 - Write real credentials into md files
 - Commit `data/` into git
 - Break the Core Invariants in Section 0
-- Merge a change into main/the default branch (via merge or a direct commit) without confirmation
+- Merge a change the user can see in the frontend into main/the default branch (via merge or a direct commit) without confirmation — changes with no frontend-visible difference merge directly per §5.1, no asking
 - Hear a requirement and not log it to the Goal Ledger (not logging it counts as not having heard it; when unsure, log it as `open` anyway — better to over-log than to miss one)
 
 ---

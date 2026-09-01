@@ -6,7 +6,7 @@
 ## 当前状态
 
 - 最新发布:**v2026.08.13**(首个 tag 与 GitHub Release)
-- 插件版本:workflow / workflow-en `0.8.0` · workflow-codex `0.6.0` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.4.1` · speak-human `0.4.1` / speak-human-en `0.3.1`
+- 插件版本:workflow / workflow-en `0.9.0` · workflow-codex `0.9.0` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.4.1` · speak-human `0.4.1` / speak-human-en `0.3.1`
 
 ## Phase 路线
 
@@ -34,7 +34,7 @@
 
 ## Spec 索引
 
-- [分支即推与 main 门禁](superpowers/specs/2026-08-03-branch-push-policy-design.md) — 日常分支即推、并入默认分支才是确认点
+- [分支即推与 main 门禁](superpowers/specs/2026-08-03-branch-push-policy-design.md) — 日常分支即推;2026-08-31 起并入默认分支只对前端可见改动设确认点,其余直接合并
 - [业务档案文档](superpowers/specs/2026-08-03-business-doc-design.md) — docs 八件套加入 BUSINESS.md 与 7 格业务追问
 - [新项目自动铺设](superpowers/specs/2026-08-11-auto-scaffold-design.md) — auto-scaffold 常驻判定规则与 evals
 - [send-to 直发标准化与身份注册](superpowers/specs/2026-08-12-send-to-socket-registry-design.md) — uds 直发升标准路径 + 会话身份注册表
