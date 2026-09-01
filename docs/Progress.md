@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.8.0;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面) |
-| workflow-codex(Codex CLI 移植版) | done | 0.6.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.0;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
+| workflow-codex(Codex CLI 移植版) | done | 0.9.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.4.1 / 0.3.1;evals 34 条真实失败案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -23,6 +23,14 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-08-31 — main 门禁改为只拦前端可见改动(workflow 三插件 0.8.0 → 0.9.0)
+
+Tony 拍板:merge 进 main 按"用户在前端能不能看出/测出差别"分两类——能(前端代码改动,或后端逻辑变化改变前端交互/展示行为)必须先获用户确认;不能(纯后端内部实现与重构、文档、测试、脚本、CI、依赖升级、接口行为不变)直接合并并 push main,合并后报告一句。拿不准按"能"处理先问;本条覆盖 finishing-a-development-branch 等 skill 的"合并前一律询问"。
+
+- 改动面:README zh/en §五/§5、workflow / workflow-en / workflow-codex 三份 scaffold 模板 §5.1(三插件版本 0.8.0 → 0.9.0;Progress 总览里 codex 旧标 0.6.0 为陈旧记录,实际改前已是 0.8.0)。两票 opus 评审(一致性/语义忠实度)后补修:五份模板「禁止事项」里"没确认不许并 main"同口径改为只禁前端可见改动(否则新规则在 scaffold 出的项目里被硬清单压掉,blocker);免问清单"测试"限定为"后端测试"(消除与前端测试改动的重叠);补"直接在 main 上 commit 仍先按规则 1 切分支";finishing-a-development-branch 覆盖声明点名到 Step 4 三选项菜单;PLAN.md 版本行与 spec 索引摘要同步。
+- 同步面:本机全局 `~/.claude/CLAUDE.md`(即时生效)、stellark dev-toolkit(WORKFLOW.md + stellark-scaffold 模板 + stellark-portfolio 一句 + 三版本维护约定一句)、huake claude-toolkit-engineer(scaffold 模板,0.19.0 → 0.20.0);dev-toolkit-engineer 仓已封存不动。
+- 未动待拍板:dev-toolkit 生产线技能(engineer 版 stellark-commit / stellark-deploy / starter CLAUDE.md)把并 main 确认与生产部署绑定,生产项目后端改动是否免确认直接部署,见 REQUIREMENTS 目标台账 open 项。
 
 ### 2026-08-14 — docs-capture 四面落地收口(U2~U6)+ 层 2 五轮定案
 
