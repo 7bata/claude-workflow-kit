@@ -17,12 +17,12 @@
     {
       "name": "speak-human",
       "source": "./plugins/speak-human",
-      "description": "中文版:让 Claude 说人话、会提问——提问前自检清单 + 表达纪律(S4 简洁且明了;S5 平实用词:不自创比喻词、20 条行话→平实词强制替换词库),规则源自 548 次真实抉择记录挖掘;touch ~/.claude/.speak-human-always 常驻"
+      "description": "中文版:让 Claude 说人话、会提问——提问前自检清单 + 表达纪律(S4 简洁且明了;S5 平实用词:不自创比喻词、20 条行话→平实词强制替换词库;S6 更新日志式汇报:多项进展或有未做/问题时用「本次完成/未完成/已知问题」三段体),规则源自 548 次真实抉择记录挖掘;touch ~/.claude/.speak-human-always 常驻"
     },
     {
       "name": "speak-human-en",
       "source": "./plugins/speak-human-en",
-      "description": "English version: make Claude speak human and ask well — pre-question self-check + expression discipline (S4 concise-and-clear; S5 plain words only: no invented metaphors, a 20-entry forced jargon-to-plain lexicon), mined from 548 real decision records; touch ~/.claude/.speak-human-always for always-on"
+      "description": "English version: make Claude speak human and ask well — pre-question self-check + expression discipline (S4 concise-and-clear; S5 plain words only: no invented metaphors, a 20-entry forced jargon-to-plain lexicon; S6 changelog-style reporting: multi-item progress or anything undone/wrong gets a Done/Not done/Known issues report), mined from 548 real decision records; touch ~/.claude/.speak-human-always for always-on"
     },
     {
       "name": "send-to",
