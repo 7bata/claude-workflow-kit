@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.1;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.1;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.2;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.2;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -23,6 +23,10 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-08-31 — 截图交付改为合并单文件 HTML(0.9.2 / codex 0.10.2)
+
+Tony 追加:给用户看的截图不再散发单张,一律合并成一个自包含 HTML(图片内嵌、浏览器直接打开、每图一行标题),发到会话界面供直接查看,并在正文写出可复制进浏览器的本地路径。门禁"能"类分支的交付要求改为此口径,十处副本同步;Tony 侧全局 CLAUDE.md 另立「截图交付规范」承载 HAPI 双路交付细节(hub 渲染 + TUI 路径),kit 面保持工具无关表述。
 
 ### 2026-08-31 — main 门禁补充:前端改动确认必须附页面(0.9.1 / codex 0.10.1)
 
