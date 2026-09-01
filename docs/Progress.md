@@ -15,7 +15,6 @@
 
 | 事项 | 来源 | 优先级 |
 |---|---|---|
-| `speak-human` evals 声称 33 条(25 verified + 8 unverified),实际 `cases.jsonl` 为 34 条且无 verified 字段 | 2026-08-13 发布把关 | 低 |
 | README 仓库结构树漏 `docs/` 与 `.agents/`;`speak-human-en` 标注「结构同 speak-human」但实际无 `evals/` | 2026-08-13 发布把关 | 低 |
 | 内部版 CI 令牌 `dev-toolkit-ci-bot` **2027-04-20 到期**,到期后 auto-bump 会再次全红 | 2026-08-13 修 auto-bump 时建 | 到期前 |
 | Phase 4 方向未定 | — | 待规划 |

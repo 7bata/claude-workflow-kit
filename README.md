@@ -50,7 +50,7 @@ Make Claude speak human and ask answerable questions. The rules are mined from 5
 
 - **On demand**: trigger with `/speak-human` in any session.
 - **Always on**: `touch ~/.claude/.speak-human-always` — a SessionStart hook injects the rules into every session automatically; delete the file to turn it off.
-- **Evals included** (`plugins/speak-human/evals/`): 37 sanitized real failure cases (29 verified + 8 unverified) + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
+- **Evals included** (`plugins/speak-human/evals/`): 43 sanitized/synthesized failure cases (13 verified + 8 unverified + 22 early unlabeled) + a per-rule rubric + a baseline-vs-skill runner (`run_evals.py`), so rule edits can be regression-tested instead of vibes-tested.
 
 ## Bonus plugin: send-to
 
