@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.0;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.1;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.1;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -23,6 +23,10 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-08-31 — main 门禁补充:前端改动确认必须附页面(0.9.1 / codex 0.10.1)
+
+Tony 追加要求:前端改动请求合并确认时,必须把改动后的页面贴出来供检查——截图或可直接打开的 HTML,光文字描述不算。写进 main 门禁"能"类分支,十一处副本同步;顺带补上早上批次漏掉的 codex-toolkit-engineer scaffold 模板(该份门禁与禁止事项当时仍是旧文,本批整条更新)。
 
 ### 2026-08-31 — speak-human 同步母本新增 S6「更新日志式汇报」(speak-human 0.7.0 / -en 0.6.0 / workflow-codex 0.10.0)
 
