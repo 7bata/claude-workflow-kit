@@ -6,7 +6,7 @@
 ## 当前状态
 
 - 最新发布:**v2026.09.01**(汇总 8/13 以来五批:门禁分流、截图 HTML 交付与交付前视觉预审、S4~S6、docs-capture)
-- 插件版本:workflow / workflow-en `0.9.5` · workflow-codex `0.10.5` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
+- 插件版本:workflow / workflow-en `0.9.6` · workflow-codex `0.10.6` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
 
 ## Phase 路线
 

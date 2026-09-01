@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.5;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审、跨天/批次做完即收尾换新会话 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.5;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.6;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.6;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -22,6 +22,10 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-09-01 — 撤回「跨天/批次做完即收尾换新会话」规则(0.9.6 / codex 0.10.6)
+
+Tony 否决该规则:"每次新开窗口太麻烦了,不符合我的使用习惯"。全局 ~/.claude/CLAUDE.md 的对应节已删;kit 五处镜像(README zh/en 七之三 / 7c、workflow / workflow-en / workflow-codex 三份 scaffold 模板的 §7 条目与禁止事项行)同批撤除。0.9.5 / 0.10.5 批次里的另一项(启动模型钉版核查、fable[1m] 别名结论)不受影响,保留。原 kit 窗口已关,本批由家目录主窗口 tbata-92 代执行。
 
 ### 2026-09-01 — 跨天/批次做完即收尾换新会话写进规则(0.9.5 / codex 0.10.5);顺带核查启动模型钉版
 
