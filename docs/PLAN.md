@@ -6,7 +6,7 @@
 ## 当前状态
 
 - 最新发布:**v2026.08.13**(首个 tag 与 GitHub Release)
-- 插件版本:workflow / workflow-en `0.9.3` · workflow-codex `0.10.3` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
+- 插件版本:workflow / workflow-en `0.9.4` · workflow-codex `0.10.4` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
 
 ## Phase 路线
 

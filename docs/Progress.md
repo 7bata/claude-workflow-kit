@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.3;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.3;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.4;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.4;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -22,6 +22,10 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-09-01 — 门禁截图交付补"AI 先看一遍"预审步(0.9.4 / codex 0.10.4)
+
+Tony 反馈门禁交付的截图里常有显而易见的问题,要求 AI(opus)先自己看一遍、觉得没问题再给他看。门禁"能"类分支在"散图不算"与"截不了图即停"之间插入预审句:交付前派视觉评审子代理(opus + medium;codex 版为自检措辞)逐张读图,专抓一眼可见的问题(布局错位、元素重叠、文字溢出/截断、乱码或占位文本、空白或缺数据区块、明显样式丢失、报错信息),查出先修复重截复审,通过才交付;拿不准是毛病还是有意设计的不硬修,交付正文点名让用户定并附一句评审结论。同步面:kit README zh/en 与三份模板(0.9.3→0.9.4,codex 0.10.3→0.10.4)、本机全局「截图交付规范」(补预审句)、dev-toolkit 六处副本(CI 自动升版)、huake claude 模板(0.21.3→0.21.4)与 codex 模板(0.10.2→0.10.4,顺带补上其漏掉的上一批"截不了图即停"句)。
 
 ### 2026-08-31 — 生产线门禁分流 + 生产文档契约对齐 kit 八件套(dev-toolkit 批次)+ 门禁补"截不了图即停"句(0.9.3 / codex 0.10.3)
 
