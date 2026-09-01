@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.4;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.4;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.5;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审、跨天/批次做完即收尾换新会话 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.5;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -22,6 +22,10 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-09-01 — 跨天/批次做完即收尾换新会话写进规则(0.9.5 / codex 0.10.5);顺带核查启动模型钉版
+
+Tony 的用量审计(经家目录主窗口 tbata-92 转达)发现跨天会话只占 3% 却消耗 58% 的 token、前 100 次大额缓存重建 98 次在跨天会话,全局 CLAUDE.md 新增「跨天会话阶段收尾即换新会话」。kit 五处同步:README zh/en 各加 七之三 / 7c 小节;workflow / workflow-en / workflow-codex 三份 scaffold 模板 §7 各加一条(写交接 recap 进 Progress 变更日志或 handoffs 目录、明确提醒用户开新会话、旧会话不再用"继续"推进),禁止事项加对应一行;codex 版改成 `~/.codex/handoffs` 与重开 `codex`,HAPI 细节不进 kit 面。同批核查"启动模型固定成最 SOTA":kit 仓没有 settings.json,README/模板只写"最强模型(如 Fable/Opus)"不钉版本,无需改;Claude Code 2.1.257 的 `--help` 与二进制别名表证实 settings 的 `model` 可写 `fable` / `fable[1m]` 自动跟最新版,本机全局与 labs/long/tech 三 profile 已是 `claude-fable-5-1[1m]`。
 
 ### 2026-09-01 — 门禁截图交付补"AI 先看一遍"预审步(0.9.4 / codex 0.10.4)
 
