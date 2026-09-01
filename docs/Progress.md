@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.2;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.2;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.3;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.3;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -22,6 +22,11 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-08-31 — 生产线门禁分流 + 生产文档契约对齐 kit 八件套(dev-toolkit 批次)+ 门禁补"截不了图即停"句(0.9.3 / codex 0.10.3)
+
+Tony 拍板生产线也按前端可见性分流、starter 文档契约分叉并轨。主体改动在 dev-toolkit 仓(c60360e,含 DECISIONS/Progress 记档):部署/提交技能全线分流(生产部署脚本 y/N 与回滚确认保留),新项目铺 kit 八件套、存量六件套由下游按 docs/PLAN.md 自适应,setup 的路径解析加固为落盘重读+失败即停。评审 2 opus high + 1 codex 异构首审,链式接力七轮收敛。评审新增的"起不了应用、截不了图时停止推送并报告门禁受阻,不许退化成纯文字确认"一句回灌到 kit README zh/en 与三份模板(0.9.2→0.9.3,codex 0.10.2→0.10.3)、huake 模板(0.21.3)与本机全局截图交付规范,防同源同步抹掉。已知限制:存量项目 skill 副本需另行下发批次(见目标台账 open 项)。
+
 
 ### 2026-08-31 — 截图交付改为合并单文件 HTML(0.9.2 / codex 0.10.2)
 
