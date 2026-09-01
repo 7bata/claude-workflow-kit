@@ -291,10 +291,6 @@ For security/hardening work — specs, dispatch prompts, code comments, commit m
 
 Any requirement, expectation, or complaint the user expresses in conversation — even a single sentence — must be logged into the "goal ledger" in `docs/REQUIREMENTS.md` **the same round** (date + verbatim quote + source), followed by a one-line reply "Logged to the goal ledger." When unsure whether something counts as a requirement, log it as `open` anyway — better to over-log than to miss one; **failing to log it counts as not having heard it, and is forbidden.** Requirement-type items from meeting notes and user feedback likewise land in the ledger first and get promoted later; action items (things to do) still go to PLAN/spec, not the ledger.
 
-### 7c. Wrap up and switch to a fresh session at a day boundary or when a batch is done
-
-A session crossing into a new day, or a batch/spec being finished, is a wrap-up point: Claude proactively writes a handoff recap (project work goes into the `docs/Progress.md` changelog with the next step attached; one-off work that belongs to no project goes to `~/.claude/handoffs/<date-topic>.md`), then explicitly reminds the user to start a new session to continue — don't run the next batch in the old session, and don't push new work forward in the old session with short "continue / ok" prompts. Claude can't close the user's terminal window, but the handoff must be ready first — the user relaunches `claude` and picks up seamlessly (a fresh session opens with §9's /whats-next, which reads Progress). Evidence: a 2026-09-01 usage audit found sessions spanning multiple days were 3% of all sessions but consumed 58% of all tokens; 98 of the top 100 large cache rebuilds happened in multi-day sessions; a single "continue" in an extra-long session measured up to 122 million tokens.
-
 ## 8. Do GitHub research first for new products / major features
 
 - **New product/new project: research is mandatory**, no "should we research" decision step.
