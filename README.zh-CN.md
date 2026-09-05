@@ -136,6 +136,7 @@ git commit --allow-empty -m probe && git reset --hard HEAD~1
 - **并行实现靠谁**:spec 定稿后的并行实现由 `parallel-do` 承担,不是下面的 ultracode / Workflow 多代理编排工具
 - **改技术栈基线改哪**:改 `plugins/workflow-codex/skills/scaffold/SKILL.md` 与其 `templates/`,不是下面「自定义技术栈基线」指向的 `plugins/workflow/`
 - **没有 docs-capture hooks**:六之二描述的决策/需求三层捕获(`AskUserQuestion` → `DECISIONS.inbox.md`、信号词提醒、commit 门禁)未移植到这里——依赖 Claude Code 的 hooks 机制,Codex CLI 没有。纪律照旧成立(决策/需求落档别蒸发),Codex 这边靠约定维持,不靠自动化。
+- **没有 worktree-sweep hook**:六之三描述的"已并 main 且无改动的 worktree 每轮自动清"同样依赖 hooks,未移植;§五.4「worktree 用完即删」的纪律在 Codex 侧靠约定维持。
 
 ## 使用方式(项目生命周期)
 
@@ -226,6 +227,7 @@ docs 八件套各自的职责:
 1. **分支即推**:日常开发一律在 feature/wip 分支进行,开工先切/建分支(worktree 流程自动满足);每次 commit 后立即 `git push` 当前分支到远端,无需确认(无 upstream 时用 `-u` 建立)——这就是实时异地备份。
 2. **main 门禁**(只拦用户在前端看得出来的改动):merge 进 main(或直接在 main 上 commit)前先判一次——这次改动用户在前端能不能看出/测出差别?**能**(前端代码改动,或后端逻辑变化会改变前端交互/展示行为)→ 必须先获用户确认,请求确认时把改动后的页面贴出来给用户检查——所有截图一律合并成一个自包含 HTML(图片内嵌、浏览器直接打开、每张图配一行标题),发到会话界面供直接查看,并在正文写出该文件可复制进浏览器的本地路径;光文字描述或散发单张截图不算;交付给用户前先派一个视觉评审子代理逐张检查截图,专抓一眼可见的问题——布局错位、元素重叠、文字溢出或截断、乱码或占位文本、空白或缺数据的区块、明显样式丢失、报错信息;查出问题先修复、重新截图、复审,评审通过才交付;拿不准是毛病还是有意设计的不硬修,交付时在正文点名让用户定,并附一句评审结论(通过,或修了什么);起不了应用、截不了图时停止推送并如实报告门禁受阻,不许退化成纯文字确认。**不能**(用户没法在前端测试的:纯后端内部实现与重构、文档、后端测试、脚本、CI、依赖升级、接口行为不变的改动)→ 直接合并并 push main,无需确认,合并后向用户报告一句。两类合并后都照旧删除已合并的远端 feature 分支;拿不准就按"能"处理,先问;直接在 main 上 commit 仍先按规则 1 切分支,本条只管要不要确认。本条覆盖 finishing-a-development-branch 的 Step 4 三选项菜单——判定为"不能"时不弹菜单,直接合并并继续收尾。门禁只设在用户能亲手验证的地方,其余改动用户本来就无从核对,问了只是打断。
 3. **无远端兜底**:仓库没有 remote(或分支没有 upstream)时,首次 commit 后提醒用户建远端,避免"自动 push"静默失效。
+4. **worktree 用完即删**:worktree 只许建在仓库内的 `.worktrees/<分支名>`(superpowers 默认位置,须在 .gitignore 里)或原生 EnterWorktree 的 `.claude/worktrees/`,禁止建在项目同级目录(`xxx-wt-*`)和 `/tmp`——临时用来合并、审计的也一样。合并、放弃或临时用途结束,在同一批次收尾里就 `git worktree remove <路径>` + `git worktree prune` + 删掉已并 main 的本地分支,收尾汇报写一句「worktree 已清」;本会话建的一律自己清,不管建在哪(本条覆盖 finishing-a-development-branch「只清 `.worktrees/` 下的、其余归宿主管」的限制)。批次收尾前跑一次 `git worktree list` 盘点,不属于进行中批次的清掉;有未提交或未合并内容的不删,列出来问用户。依据:2026-09-05 核查两周会话记录,88 次建 worktree,漏删的全是建在 `.worktrees/` 之外被收尾技能跳过的,单个项目残留近 800M。
 
 ## 六、开新项目:先铺文档脚手架(对应 /scaffold)
 
@@ -274,11 +276,19 @@ docs 八件套各自的职责:
 - **只消化不代笔**:`docs/DECISIONS.inbox.md` 是原始缓冲区,不是事实源——见 `CLAUDE.md.tmpl` 的「文档同步规则」表:决策提炼进 `docs/DECISIONS.md`,需求类条目转入 `docs/REQUIREMENTS.md` 目标台账,噪音直接删除。
 - **不移植进 workflow-codex**:Codex CLI 没有承载这三层的 hooks 机制;"落档别蒸发"的纪律照旧成立,只是在 Codex 那边靠约定维持,不靠自动化(见「附赠插件:Codex CLI 版工作流」一节的对应说明)。
 
+### 六之三、worktree 用完自动清(worktree-sweep)
+
+§五.4 靠 AI 自觉,这个 hook 补自动化:每轮回复结束(`Stop`)和会话退出(`SessionEnd`)时跑 `worktree-sweep.sh`,对当前仓库 `git worktree list` 里的每个非主 worktree 判三条——分支已并入 main、工作区无未提交改动(含未跟踪文件)、不是本会话所在目录且 30 分钟内没有别的会话在里面活动(按会话记录目录的修改时间判)——三条全满足就 `git worktree remove` + `git branch -d` + `git worktree prune`,并回一行「已清理 worktree <路径>(分支 <名> 已并 main)」;分支已并 main 但工作区不干净的只提醒不删(同一仓库一小时内只提醒一次);分支未并 main 的视为进行中,不动不提。删错的代价上限是"一个分支已并 main、无改动的目录",内容全在 main 里,`git worktree add` 可重建。
+
+- **关闭**:`touch ~/.claude/.worktree-sweep-off` 即全局关闭;缺 `jq` 或不在 git 仓内静默退出。
+- **冒烟测试**:`sh plugins/workflow/hooks/worktree-sweep-smoke-test.sh`(临时目录建 fixture 仓,覆盖:已并且干净→删、已并但脏→只提醒、未并→不动、当前目录→不动、开关文件→静默、失效登记→prune)。
+- **不移植进 workflow-codex**:Codex 无 hooks 机制,§五.4 的纪律靠约定维持。
+
 ## 七、主流程:Brainstorming → Spec → Ultracode 直通
 
 1. 一切创造性工作先走 superpowers:brainstorming,把 design spec 写入 `docs/superpowers/specs/<日期>-<主题>-design.md`,并登记进 `docs/PLAN.md` 的 Spec 索引。开工前先读 `docs/REQUIREMENTS.md` 目标台账里状态为 open 的未销账项,把与本次相关的列给用户;spec 须含「目标覆盖声明」——本次覆盖台账哪几条、明确不覆盖哪几条及原因。
 2. spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权:**不等待批准、不问"是否开始实现"、不 invoke superpowers:writing-plans、不产出实现计划文档**,自动立即进入实现(用户中途主动喊停则照常停下)。
-3. 需要隔离时先建 worktree(superpowers:using-git-worktrees,或 Workflow agent 的 `isolation: 'worktree'`)。
+3. 需要隔离时先建 worktree(superpowers:using-git-worktrees,或 Workflow agent 的 `isolation: 'worktree'`);位置与用完即删按 §五.4。
 4. Workflow 编排实现:先输出 3~5 行**开工摘要**(拆了几个单元、各自 model/effort 档位、预估规模),**不等待确认直接开跑**——摘要只是给用户一个看得见的打断窗口。开工摘要末尾附一行现成可贴的目标命令:`/goal "完成 <批次/spec 名>" until "<spec 验收条款要点或本批覆盖的台账条目>全部满足"`——`/goal` 是 Claude Code 会话级内置命令(每轮自动评估完成条件,防长会话做着做着跑偏),不跨会话,跨批次的持久性靠目标台账。随后按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则 + **生产红线与文件所有权**——FORBIDDEN FILES(本单元不许碰的文件/目录点名列出)、绝不重启共享服务、绝不读写生产数据、禁止 force push 与任何丢弃改动的历史改写、只改分给本单元的文件)→ 每单元完成即派评审 agent(`opus`)验证裁决,评审除核对实现外必须核对**测试本身**(是否覆盖 spec 对应验收条款、是否只测 happy path),测试弱视同打回,被打回的单元重跑时测试与实现分开派两个 agent → 主对话汇总修复。评审报告一律**报差异不报摘要**:只报与上一轮、与其他票不同的新发现与推翻项,禁止"检查了一遍没问题"式复述;无新发现就写明"无新发现"并列出复核过的检查点。评审编排按任务选:验收裁决用平行多镜头票,诊断/根因/排障用链式接力(每轮 prompt 附上一轮结论与被否决的假设,连续两轮无新发现才收,见三.2)。
 5. 本批改动涉及 UI(前端页面/交互)时,进 code review 前先跑一次 ui-sweep 做交互回归扫描(全站可交互元素系统性点一遍),把 dead(点了没反应)/page-error/left-domain 清单带进验收;真缺陷逐条真浏览器复核后才定罪,假阳性(状态累积、同步 prompt 堵塞、当前态按钮)按 skill 的判读指南定性。纯后端/文档批次跳过。实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅),同时销账目标台账——本批覆盖到的条目状态改 done 并附证据(commit/截图/spec 条款),把实现过程中新冒出的目标登记进台账。本批若造出了**别的项目能拿去用的成型件**(通用中间件/数据管线/LLM 客户端/部署模板/解析器等,非业务专属逻辑),收尾时登记进你组织的组件索引(§八 第 0 步查的那份;没有就从一份 YAML 清单起步,字段建议 slug/name/capability/repo/path/how_to_integrate/maturity/since/used_by),**必须核实真实路径后才写**,登记完推回索引所在仓。这与「第 0 步内部先行」构成闭环:一个管查、这个管造——索引只有人查没人写,三个月后就会退化成过期清单。
 6. 本流程覆盖 brainstorming SKILL.md 中「结束后唯一可 invoke 的是 writing-plans」的规定;subagent-driven-development / executing-plans 因不再有 plan 文档而失去入口,属预期,不必绕路满足。
@@ -290,7 +300,11 @@ docs 八件套各自的职责:
 
 ### 七之二、需求当轮落账(目标台账登记规则)
 
-对话中用户表达的需求、期望或不满——哪怕只有一句话——**当轮**登记进 `docs/REQUIREMENTS.md` 的「目标台账」(日期+原话+出处),并回一行「已记入目标台账」。拿不准算不算需求就按 open 登记,宁滥勿漏;**不登记视同没听见,禁止**。会议纪要、用户反馈里的需求类条目同样先落台账再升格;行动项(要做的事)照旧进 PLAN/spec,不入台账。
+对话中用户表达的需求、期望或不满——哪怕只有一句话——**当轮**登记进 `docs/REQUIREMENTS.md` 的「目标台账」(日期+原话+出处),并回一行「已记入目标台账」(与七之三的复述句合成同一行)。拿不准算不算需求就按 open 登记,宁滥勿漏;**不登记视同没听见,禁止**。会议纪要、用户反馈里的需求类条目同样先落台账再升格;行动项(要做的事)照旧进 PLAN/spec,不入台账。
+
+### 七之三、需求先复述再动手
+
+用户每提出一个需求(改逻辑、加功能、修 bug、查问题都算),看懂之后的第一句必须是一行复述:「收到,接下来做 <用自己的话概括的一句>」;多条需求逐条编号,每条一句。复述与七之二的登记合成同一行(「收到,接下来做 X;已记入目标台账」),复述完才开始查文件、动手。复述是给用户核对理解对不对的检查点:概括要具体到动作和对象(「修邮件发送逻辑」),不许只回「收到」;没看懂就直接问,不许用含糊复述糊弄过去。例:用户说"修改一下邮件发送的逻辑,具体为……",回「收到,接下来做邮件发送逻辑修复。」
 
 ## 八、新产品/大功能先做 GitHub 调研
 
@@ -332,7 +346,7 @@ claude-workflow-kit/
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
-    │   ├── hooks/                   # auto-scaffold 常驻规则(hooks.json + inject.sh + auto-scaffold.md)+ docs-capture(capture-decisions.sh、signal-reminder.sh、commit-gate.sh、signals-decision.txt、signals-requirement.txt、signals-veto.txt、docs-capture-smoke-test.sh)
+    │   ├── hooks/                   # auto-scaffold 常驻规则(hooks.json + inject.sh + auto-scaffold.md)+ docs-capture(capture-decisions.sh、signal-reminder.sh、commit-gate.sh、signals-decision.txt、signals-requirement.txt、signals-veto.txt、docs-capture-smoke-test.sh)+ worktree-sweep(worktree-sweep.sh、worktree-sweep-smoke-test.sh)
     │   ├── evals/                   # auto-scaffold 判定 evals:cases.jsonl + run_evals.py + rubric.md + .gitignore(out/、__pycache__/)
     │   └── skills/
     │       ├── scaffold/            # /scaffold:SKILL.md(含 Auto 模式节)+ templates/(11 个模板)
