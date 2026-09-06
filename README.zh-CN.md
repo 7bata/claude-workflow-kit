@@ -278,10 +278,10 @@ docs 八件套各自的职责:
 
 ### 六之三、worktree 用完自动清(worktree-sweep)
 
-§五.4 靠 AI 自觉,这个 hook 补自动化:每轮回复结束(`Stop`)和会话退出(`SessionEnd`)时跑 `worktree-sweep.sh`,对当前仓库 `git worktree list` 里的每个非主 worktree 判三条——分支已并入 main、工作区无未提交改动(含未跟踪文件)、不是本会话所在目录且 30 分钟内没有别的会话在里面活动(按会话记录目录的修改时间判)——三条全满足就 `git worktree remove` + `git branch -d` + `git worktree prune`,并回一行「已清理 worktree <路径>(分支 <名> 已并 main)」;分支已并 main 但工作区不干净的只提醒不删(同一仓库一小时内只提醒一次);分支未并 main 的视为进行中,不动不提。删错的代价上限是"一个分支已并 main、无改动的目录",内容全在 main 里,`git worktree add` 可重建。
+§五.4 靠 AI 自觉,这个 hook 补自动化:每轮回复结束(`Stop`)和会话退出(`SessionEnd`)时跑 `worktree-sweep.sh`,对当前仓库 `git worktree list` 里的每个非主 worktree 判五条——①分支已并入 main;②工作区无未提交改动(含未跟踪文件);③被 .gitignore 忽略的文件里没有不可再生的那几类(`.env*`、`*.pem`/`*.key`/`id_rsa*` 等密钥证书、`*.db`/`*.sqlite*` 本地数据库、`data/` 与 `secrets/` 目录下任意深度的文件;清单用 `git ls-files --others --ignored` 逐个列出,先剔除 node_modules、.venv、vendor 这类依赖/构建目录再判;该命令或 `git status` 失败、或被忽略目录里嵌套着另一个 git 仓库时,按"无法确认"不删);④不是本会话所在目录,30 分钟内没有别的会话在里面活动(按会话记录目录的修改时间判),也没有任何进程的工作目录落在里面(有 lsof 才查);⑤30 分钟内既没新建也没在里面提交过(按 worktree 的 git 管理目录里 index / COMMIT_EDITMSG 的修改时间判,给 Workflow `isolation: 'worktree'` 子代理留出写第一个文件的窗口)——五条全满足就 `git worktree remove` + `git branch -d` + `git worktree prune`,并回一行「worktree-sweep:已清理 <路径>(分支 <名> 已并 main,本地分支已删)」;①满足但②或③不满足的只提醒不删(同一仓库一小时内只提醒一次);①不满足的视为进行中,不动不提。删错的代价上限:分支已并 main、无未提交改动的目录——git 内容可用 `git worktree add` 重建;依赖、构建产物这类可再生的忽略文件会随目录一起删掉,不可再生的那几类(见③)命中即不删。
 
 - **关闭**:`touch ~/.claude/.worktree-sweep-off` 即全局关闭;缺 `jq` 或不在 git 仓内静默退出。
-- **冒烟测试**:`sh plugins/workflow/hooks/worktree-sweep-smoke-test.sh`(临时目录建 fixture 仓,覆盖:已并且干净→删、已并但脏→只提醒、未并→不动、当前目录→不动、开关文件→静默、失效登记→prune)。
+- **冒烟测试**:`sh plugins/workflow/hooks/worktree-sweep-smoke-test.sh`(临时目录建 fixture 仓,覆盖:已并且干净→删、已并但脏→只提醒且一小时内不重复、含 .env 类忽略文件→只提醒、data/ 或 secrets/ 子目录里的忽略文件→只提醒、git 列不出忽略文件→只提醒、只含依赖/构建产物类忽略文件→照删、未并→不动、当前目录→不动、刚建或刚提交不到 30 分钟→不动、别的会话在用→不动、有进程在里面→不动、locked→不动、开关文件→静默、失效登记→prune、非 git 目录→静默)。
 - **不移植进 workflow-codex**:Codex 无 hooks 机制,§五.4 的纪律靠约定维持。
 
 ## 七、主流程:Brainstorming → Spec → Ultracode 直通

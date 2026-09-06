@@ -50,6 +50,30 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/worktree-sweep.sh\" en",
+            "timeout": 15,
+            "statusMessage": "Sweeping merged worktrees..."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/worktree-sweep.sh\" en",
+            "timeout": 15,
+            "statusMessage": "Sweeping merged worktrees..."
+          }
+        ]
+      }
     ]
   }
 }

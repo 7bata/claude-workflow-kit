@@ -50,6 +50,30 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/worktree-sweep.sh\"",
+            "timeout": 15,
+            "statusMessage": "清理已合并的 worktree..."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/worktree-sweep.sh\"",
+            "timeout": 15,
+            "statusMessage": "清理已合并的 worktree..."
+          }
+        ]
+      }
     ]
   }
 }
