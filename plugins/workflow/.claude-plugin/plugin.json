@@ -1,6 +1,6 @@
 {
   "name": "workflow",
-  "version": "0.9.6",
+  "version": "0.10.0",
   "description": "文档驱动的多代理开发工作流（指挥/执行/评审三层）：/scaffold 在项目里铺设 CLAUDE.md + docs 八件套脚手架，/whats-next 读文档判断下一步该干什么，sop-generate 为已部署的 Web 应用生成带截图的中文业务 SOP；新会话自动认出「要做新项目」并静默铺设脚手架（auto-scaffold，可 opt-out）；docs-capture 三层 hook 自动把问答框拍板存入 DECISIONS.inbox、按信号词提醒决策/需求未落档、commit 前门禁催消化，防止关键决策与需求随对话蒸发；方法论含目标台账（需求当轮落账防蒸发）、四点评审纪律（链式对抗评审／评审报差异／安全加固措辞／生产红线前置到实现侧）、调研内部先行与组件索引收尾登记",
   "author": {
     "name": "Tony Jiang"

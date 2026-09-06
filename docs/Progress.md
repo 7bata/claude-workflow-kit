@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.9.6;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.6;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.10.0;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.10.7;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -22,6 +22,10 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-09-05 — 需求先复述再动手 + worktree 用完即删 + worktree-sweep hook(0.10.0 / codex 0.10.7)
+
+Tony 两条需求:①每次给出需求后 AI 先复述一句再动手(「收到,接下来做 X」);②最近 AI 建了很多 worktree 不自动清理。核查两周会话记录属实(88 次建、漏删全在 `.worktrees/` 之外、单项目残留近 800M),根因是 superpowers 收尾技能只清 `.worktrees/` 下的。规则层:全局 CLAUDE.md 新节「需求先复述再动手」与「Git push 策略」第 4 条「worktree 用完即删」;kit README zh 七之三 / 六之三 / §五.4 与 en 7c / 6c / 5.4;三份 scaffold 模板 §5.1 第 4 条、§7 复述 bullet、禁止事项两行、gitignore 模板 `.worktrees/`。自动化层:`worktree-sweep.sh` 挂 Stop + SessionEnd,五条判据全满足才 remove + branch -d + prune(已并 main、工作区干净、忽略文件里没有 .env/密钥/本地库/data/secrets 这类不可再生的、无会话或进程在用、30 分钟内没建没提交),已并但脏只提醒且一小时一次,冒烟测试 200+ 例含变异验证。评审四轮(opus high 安全票 + opus medium 测试票)先后修掉:set -f 让通配符会话根不展开、刚建的空 worktree 满足全部判据、忽略文件白名单只匹配根一级、data/ 子目录被折叠绕过、扫描命令失败被当成"没有"、node_modules 内的 data/ 路径误拦、C locale 下会话目录名算错、status 回写 index 污染新鲜度判据;忽略文件判定最终由主对话改为 ls-files 逐文件 + 依赖目录先剔除 + 黑名单正则。下游:dev-toolkit wip/worktree-hygiene-restate(59ff7f4,规则三处 + hook,CI 自动升版)、huake claude-toolkit-engineer 0.22.0(ef26ed1,模板 + hook)、codex-toolkit-engineer 0.10.5(062d9af,模板;engineer 版无目标清单故复述句去掉合成半句)。本机 hook 要等 dev-toolkit 插件更新后才生效(本机没装 kit 的 workflow 插件)。kit 本仓 7c575eb 按门禁(纯文档 + hook,前端不可见)直接并 main。
 
 ### 2026-09-01 — 撤回「跨天/批次做完即收尾换新会话」规则(0.9.6 / codex 0.10.6)
 
