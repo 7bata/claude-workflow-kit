@@ -13,7 +13,7 @@ allowed-tools: Read, Glob, Grep
 ## 步骤 1：读进度文件
 
 1. `docs/PLAN.md` — 总体路线、各 Phase 状态（标题带 ✅ = 已完成）、Spec 索引
-2. `docs/Progress.md` — 上半部「进度总览」模块状态表（pending/doing/done）+ 下半部变更日志（**最新在上**，读最近 2~3 条）
+2. `docs/Progress.md` — 上半部「进度总览」模块状态表（pending/doing/done）+ 下半部变更日志（**最新在上**，读最近 2~3 条）；更早月份在 `docs/archive/Progress-YYYY-MM.md`，需要追溯历史时才读
 3. 最新 design spec — Spec 索引指向的最新一条 `docs/superpowers/specs/<日期>-<主题>-design.md`（索引没有就 Glob 该目录取日期最新）— 对照 Progress.md 判断是否已实现
 4. `docs/DECISIONS.md` — **最新在上**，读最近 2~3 条：与下一步同域的决策必须进「随行注意」
 5. `docs/MEETINGS.md` — 只看**最新一节**的「待办」：未勾选、且没出现在任何计划里的条目，进输出第 4 部分
@@ -35,7 +35,6 @@ ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档，不含进度，不读
 1. **当前位置** — 一两句：最近完成了什么，引用 Progress 最新条目的日期
 2. **下一步** — 任务名 + 第一步具体动作（到文件/命令级别）+ 出处（哪个文件哪一节）
 3. **随行注意** — 与下一步相关的已定决策 / 踩坑，来源：DECISIONS.md 最近条目 + Progress 变更日志，注明出处；若最近一批改动动过 UI 且 Progress 里没有 ui-sweep 走查记录，在此提示一句：建议补跑一次交互回归扫描（没有则省略，不强推）；没有则省略此节
-3. **随行注意** — 与下一步相关的已定决策 / 踩坑，来源：DECISIONS.md 最近条目 + Progress 变更日志，注明出处；没有则省略此节
 4. **未落计划的会议待办** — MEETINGS.md 最新一节里未勾选、且没进任何计划的待办，提醒用户决定去向；已登记进目标台账的条目不在此重复列；没有则省略此节
 5. **未销账目标** — REQUIREMENTS.md 目标台账里状态为 open 的条目逐条列出，挂账超 7 天的置顶标注；只列台账条目；没有则省略此节
 

@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.10.0;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
-| workflow-codex(Codex CLI 移植版) | done | 0.10.7;无 hook 机制,auto-scaffold 靠手动 opt-in |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.11.0;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.11.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.0;引擎 smoke 24 例,三入口接进主流程 |
@@ -22,6 +22,16 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-09-07 — 进度日志按月归档 + 评审轮次压进单元提交(0.11.0 / codex 0.11.0)
+
+起因:Tony 贴来另一会话对 stella 八月代码量的审查,问「这是什么问题」。本会话在本机 stella 克隆上核对:审查的头号结论「27% 测试是重复脚手架」是行级去重把公共 helper 的调用当成复制粘贴(loginAndGetCookie 定义 1 处、调用 616 次;6 行块级重复测试 5~6%、源码 2%),不成立;站得住的是两个工作流问题——八月 docs 提交 241 条居各类之首、Progress.md 9,380 行 385 条日志(规则要求每次改代码都写日志,而 whats-next 只读最近 2~3 条),以及 fix 235 条里至少 77 条是评审某一轮各自成 commit(造成"三分之一在返工"的假象)。Tony 拍板两条对策。
+- 规则 A「变更日志按月归档」:主文件只留当月,每月第一次批次收尾把上月及更早整体剪到 `docs/archive/Progress-<YYYY-MM>.md`,进度总览不归档,归档单独一个 `docs:` 提交;whats-next 读法加一句。
+- 规则 B「评审轮次压进单元提交」:评审打回/复审/终验的修复用 `git commit --squash=<单元首个提交>`,并 main 前 `GIT_EDITOR=true git rebase --autosquash main` 压平再 `--force-with-lease` 推自己的 wip 分支(临时仓实测非交互可跑,轮次说明进提交正文;`--fixup=` 会丢说明故不用);main 禁止 force push 不变;已并 main 后的反馈修复仍独立 `fix:`;worktree-sweep 的祖先判定不受影响(`merge --squash` 会让它失效,故不采用)。副产品:压完后 `git log --format=%B | grep -c '^评审第'` 就是档位表规则 4 要的按单元打回率。
+- 落点:本机全局 CLAUDE.md(§Git push 策略第 5 条 + 收尾句);kit README zh/en(§四 / §五.5 / §七.5 / §九.2)、workflow / workflow-en / workflow-codex 三套 scaffold 模板(§1 / 归档段 / §5.1.5 / 禁止事项两行)+ Progress.md.tmpl + whats-next;dev-toolkit(WORKFLOW.md、stellark-workflow、stellark-scaffold 模板、stellark-whats-next,9e53ef1,CI 自动升版);huake claude-toolkit-engineer 0.23.0(30bd94c)/ codex-toolkit-engineer 0.11.0(8785cc9)。
+- 编排:6 个 sonnet medium 实现单元,每单元两票 opus medium(完整性 / 副作用与格式)最多三轮,45 个 agent;三个单元一轮过,三个单元到第三轮只剩「拿不准」项,由主对话裁决:统一五面禁止事项措辞与顺序、codex 版第 5 条指代改清楚并删掉多出的第三行、codex Progress 模板头注改成与中文版同体例;顺手删掉 kit zh/codex whats-next 里历史遗留的重复「3. 随行注意」行(dev-toolkit/huake 本无此重复,范围外清理)。
+- 本仓同批按规则 A 首次归档:8 月日志移入 `docs/archive/Progress-2026-08.md`(单独提交)。DECISIONS.inbox 两条 9 月 5 日旧草稿(已在目标清单)清空。
+- 不覆盖:是否加「测试复用」规则(等档位校准数据);commit-gate 每次源码提交都要动 Progress.md 的频率;stella 仓现存 Progress.md 的实际归档由 stella 窗口按新规则自己做一次。
 
 ### 2026-09-05 — 需求先复述再动手 + worktree 用完即删 + worktree-sweep hook(0.10.0 / codex 0.10.7)
 

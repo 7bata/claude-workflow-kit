@@ -5,8 +5,8 @@
 
 ## 当前状态
 
-- 最新发布:**v2026.09.01**(汇总 8/13 以来五批:门禁分流、截图 HTML 交付与交付前视觉预审、S4~S6、docs-capture);2026-09-05 后未发布:需求先复述再动手、worktree 用完即删 + worktree-sweep hook(workflow 0.10.0 / codex 0.10.7)
-- 插件版本:workflow / workflow-en `0.9.6` · workflow-codex `0.10.6` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
+- 最新发布:**v2026.09.01**(汇总 8/13 以来五批:门禁分流、截图 HTML 交付与交付前视觉预审、S4~S6、docs-capture);2026-09-05 后未发布:需求先复述再动手、worktree 用完即删 + worktree-sweep hook(workflow 0.10.0 / codex 0.10.7);2026-09-07 进度日志按月归档 + 评审轮次压进单元提交(workflow 0.11.0 / codex 0.11.0)
+- 插件版本:workflow / workflow-en `0.11.0` · workflow-codex `0.11.0` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
 
 ## Phase 路线
 
@@ -43,3 +43,4 @@
 - [ui-sweep UI 全量交互遍历](superpowers/specs/2026-08-13-ui-sweep-design.md) — agent-browser 驱动 + 通用化遍历引擎
 - [ui-sweep 孤儿功能对账](superpowers/specs/2026-08-13-ui-sweep-orphan-check-design.md) — 代码清单 vs 遍历实际到达求差集
 - [docs-capture 决策/文档采集三层 hook](superpowers/specs/2026-08-14-docs-capture-hooks-design.md) — AskUserQuestion 拍板自动记入 inbox + 信号词软提醒 + commit 门禁催消化;四面已交付(kit wip 分支 / dev-toolkit 1.3.0 wip / claude-toolkit-engineer 0.15.0 wip / 本机 settings.json,三仓待 Tony 门禁并 main)
+- [进度日志按月归档 + 评审轮次压进单元提交](superpowers/specs/2026-09-07-progress-archive-and-review-squash-design.md) — Progress.md 只留当月、上月剪到 docs/archive/;评审打回修复 --squash= 挂单元提交,并 main 前 autosquash;源自 stella 八月代码量审查诊断
