@@ -164,7 +164,7 @@ docs 八件套各自的职责:
 | `docs/REQUIREMENTS.md` | 产品需求,**唯一真相源**,需求变化先改这里;含「目标台账(收件箱)」节,收对话/会议里冒出的需求 |
 | `docs/BUSINESS.md` | 业务档案:业务事实(系统出现之前怎么做、业务规则),业务规则变化先改这里 |
 | `docs/PLAN.md` | 分阶段路线图 + Phase 状态(✅)+ Spec 索引,只装索引不装正文 |
-| `docs/Progress.md` | 模块状态总览表 + 变更日志(最新在上) |
+| `docs/Progress.md` | 模块状态总览表 + 变更日志(最新在上;变更日志只留当月,更早的按月归档在 `docs/archive/`) |
 | `docs/DECISIONS.md` | 关键决策记录,每条 What/Why/Changes,最新在上 |
 | `docs/ARCHITECTURE.md` | 技术栈、架构图、数据模型、API、目录结构 |
 | `docs/DEPLOYMENT.md` | 部署形态、环境变量、启动命令 |
@@ -228,6 +228,7 @@ docs 八件套各自的职责:
 2. **main 门禁**(只拦用户在前端看得出来的改动):merge 进 main(或直接在 main 上 commit)前先判一次——这次改动用户在前端能不能看出/测出差别?**能**(前端代码改动,或后端逻辑变化会改变前端交互/展示行为)→ 必须先获用户确认,请求确认时把改动后的页面贴出来给用户检查——所有截图一律合并成一个自包含 HTML(图片内嵌、浏览器直接打开、每张图配一行标题),发到会话界面供直接查看,并在正文写出该文件可复制进浏览器的本地路径;光文字描述或散发单张截图不算;交付给用户前先派一个视觉评审子代理逐张检查截图,专抓一眼可见的问题——布局错位、元素重叠、文字溢出或截断、乱码或占位文本、空白或缺数据的区块、明显样式丢失、报错信息;查出问题先修复、重新截图、复审,评审通过才交付;拿不准是毛病还是有意设计的不硬修,交付时在正文点名让用户定,并附一句评审结论(通过,或修了什么);起不了应用、截不了图时停止推送并如实报告门禁受阻,不许退化成纯文字确认。**不能**(用户没法在前端测试的:纯后端内部实现与重构、文档、后端测试、脚本、CI、依赖升级、接口行为不变的改动)→ 直接合并并 push main,无需确认,合并后向用户报告一句。两类合并后都照旧删除已合并的远端 feature 分支;拿不准就按"能"处理,先问;直接在 main 上 commit 仍先按规则 1 切分支,本条只管要不要确认。本条覆盖 finishing-a-development-branch 的 Step 4 三选项菜单——判定为"不能"时不弹菜单,直接合并并继续收尾。门禁只设在用户能亲手验证的地方,其余改动用户本来就无从核对,问了只是打断。
 3. **无远端兜底**:仓库没有 remote(或分支没有 upstream)时,首次 commit 后提醒用户建远端,避免"自动 push"静默失效。
 4. **worktree 用完即删**:worktree 只许建在仓库内的 `.worktrees/<分支名>`(superpowers 默认位置,须在 .gitignore 里)或原生 EnterWorktree 的 `.claude/worktrees/`,禁止建在项目同级目录(`xxx-wt-*`)和 `/tmp`——临时用来合并、审计的也一样。合并、放弃或临时用途结束,在同一批次收尾里就 `git worktree remove <路径>` + `git worktree prune` + 删掉已并 main 的本地分支,收尾汇报写一句「worktree 已清」;本会话建的一律自己清,不管建在哪(本条覆盖 finishing-a-development-branch「只清 `.worktrees/` 下的、其余归宿主管」的限制)。批次收尾前跑一次 `git worktree list` 盘点,不属于进行中批次的清掉;有未提交或未合并内容的不删,列出来问用户。依据:2026-09-05 核查两周会话记录,88 次建 worktree,漏删的全是建在 `.worktrees/` 之外被收尾技能跳过的,单个项目残留近 800M。
+5. **评审轮次压进单元提交**:一个单元的首个提交照常 `feat:`/`fix:`;之后评审打回、复审、终验产生的修复,提交时用 `git commit --squash=<该单元首个提交的 sha> -m "评审第 N 轮:<改了什么>"`(仍然每次 commit 后立即 push,备份不变)。并 main 前、门禁判定之前,主对话在 wip 分支上跑 `GIT_EDITOR=true git rebase --autosquash main`,把各轮压进对应单元提交(轮次说明自动进提交正文),再 `git push --force-with-lease origin <wip 分支>`,然后照常 merge。`--force-with-lease` 只许在这一步、只对自己的 wip 分支用;main 与共享分支照旧禁止 force push,实现 agent 的红线不变(这一步由主对话在收尾做,不派发)。单元已并 main 之后由真机/线上反馈引出的修复,照常独立 `fix:` 提交——那才是真返工,统计上应当看得见。评审轮次也不在 `docs/Progress.md` 新开日志条目,追加到该单元条目末尾一行「评审 N 轮:…」。
 
 ## 六、开新项目:先铺文档脚手架(对应 /scaffold)
 
@@ -244,7 +245,7 @@ docs 八件套各自的职责:
    - `.claude/CLAUDE.md`(项目硬规则)、`.gitignore`、`README.md`
    - **docs 八件套**:
      - `PLAN.md` — 总体路线、各 Phase 状态(标题带 ✅ = 完成)、Spec 索引
-     - `Progress.md` — 上半部模块状态总览表(pending/doing/done),下半部变更日志(**最新在上**)
+     - `Progress.md` — 上半部模块状态总览表(pending/doing/done),下半部变更日志(**最新在上**;只留当月,更早的按月在 `docs/archive/`)
      - `REQUIREMENTS.md` — 产品定位、目标用户、分期路线图、已确认决策(用 intake 内容能填实就填实)+ 目标台账(收件箱)节
      - `BUSINESS.md` — 业务档案:系统出现之前怎么做、业务规则、输入输出样本登记(用 7 格追问收集的内容填实)
      - `ARCHITECTURE.md` — 架构设计;`DEPLOYMENT.md` — 部署方案
@@ -290,7 +291,7 @@ docs 八件套各自的职责:
 2. spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权:**不等待批准、不问"是否开始实现"、不 invoke superpowers:writing-plans、不产出实现计划文档**,自动立即进入实现(用户中途主动喊停则照常停下)。
 3. 需要隔离时先建 worktree(superpowers:using-git-worktrees,或 Workflow agent 的 `isolation: 'worktree'`);位置与用完即删按 §五.4。
 4. Workflow 编排实现:先输出 3~5 行**开工摘要**(拆了几个单元、各自 model/effort 档位、预估规模),**不等待确认直接开跑**——摘要只是给用户一个看得见的打断窗口。开工摘要末尾附一行现成可贴的目标命令:`/goal "完成 <批次/spec 名>" until "<spec 验收条款要点或本批覆盖的台账条目>全部满足"`——`/goal` 是 Claude Code 会话级内置命令(每轮自动评估完成条件,防长会话做着做着跑偏),不跨会话,跨批次的持久性靠目标台账。随后按 spec 拆独立单元 → 并行实现 agent(`sonnet`,每个遵守 TDD,prompt 自包含:附 spec 相关段落 + 项目 CLAUDE.md 硬规则 + **生产红线与文件所有权**——FORBIDDEN FILES(本单元不许碰的文件/目录点名列出)、绝不重启共享服务、绝不读写生产数据、禁止 force push 与任何丢弃改动的历史改写、只改分给本单元的文件)→ 每单元完成即派评审 agent(`opus`)验证裁决,评审除核对实现外必须核对**测试本身**(是否覆盖 spec 对应验收条款、是否只测 happy path),测试弱视同打回,被打回的单元重跑时测试与实现分开派两个 agent → 主对话汇总修复。评审报告一律**报差异不报摘要**:只报与上一轮、与其他票不同的新发现与推翻项,禁止"检查了一遍没问题"式复述;无新发现就写明"无新发现"并列出复核过的检查点。评审编排按任务选:验收裁决用平行多镜头票,诊断/根因/排障用链式接力(每轮 prompt 附上一轮结论与被否决的假设,连续两轮无新发现才收,见三.2)。
-5. 本批改动涉及 UI(前端页面/交互)时,进 code review 前先跑一次 ui-sweep 做交互回归扫描(全站可交互元素系统性点一遍),把 dead(点了没反应)/page-error/left-domain 清单带进验收;真缺陷逐条真浏览器复核后才定罪,假阳性(状态累积、同步 prompt 堵塞、当前态按钮)按 skill 的判读指南定性。纯后端/文档批次跳过。实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。完成后更新 `docs/Progress.md`(状态表 + 变更日志)与 `docs/PLAN.md`(Phase 打 ✅),同时销账目标台账——本批覆盖到的条目状态改 done 并附证据(commit/截图/spec 条款),把实现过程中新冒出的目标登记进台账。本批若造出了**别的项目能拿去用的成型件**(通用中间件/数据管线/LLM 客户端/部署模板/解析器等,非业务专属逻辑),收尾时登记进你组织的组件索引(§八 第 0 步查的那份;没有就从一份 YAML 清单起步,字段建议 slug/name/capability/repo/path/how_to_integrate/maturity/since/used_by),**必须核实真实路径后才写**,登记完推回索引所在仓。这与「第 0 步内部先行」构成闭环:一个管查、这个管造——索引只有人查没人写,三个月后就会退化成过期清单。
+5. 本批改动涉及 UI(前端页面/交互)时,进 code review 前先跑一次 ui-sweep 做交互回归扫描(全站可交互元素系统性点一遍),把 dead(点了没反应)/page-error/left-domain 清单带进验收;真缺陷逐条真浏览器复核后才定罪,假阳性(状态累积、同步 prompt 堵塞、当前态按钮)按 skill 的判读指南定性。纯后端/文档批次跳过。实现完成后照常走 superpowers:requesting-code-review → verification-before-completion → finishing-a-development-branch;这些 skill 里的 "plan" 占位(如 PLAN_OR_REQUIREMENTS)一律填 spec 路径。并 main 前先按 §五.5 完成 autosquash 评审轮次;完成后更新 `docs/Progress.md`(状态表 + 变更日志;每月第一次收尾把上月及更早的日志整体移入 `docs/archive/Progress-<YYYY-MM>.md`,进度总览不归档,归档单独一个 `docs:` 提交)与 `docs/PLAN.md`(Phase 打 ✅),同时销账目标台账——本批覆盖到的条目状态改 done 并附证据(commit/截图/spec 条款),把实现过程中新冒出的目标登记进台账。本批若造出了**别的项目能拿去用的成型件**(通用中间件/数据管线/LLM 客户端/部署模板/解析器等,非业务专属逻辑),收尾时登记进你组织的组件索引(§八 第 0 步查的那份;没有就从一份 YAML 清单起步,字段建议 slug/name/capability/repo/path/how_to_integrate/maturity/since/used_by),**必须核实真实路径后才写**,登记完推回索引所在仓。这与「第 0 步内部先行」构成闭环:一个管查、这个管造——索引只有人查没人写,三个月后就会退化成过期清单。
 6. 本流程覆盖 brainstorming SKILL.md 中「结束后唯一可 invoke 的是 writing-plans」的规定;subagent-driven-development / executing-plans 因不再有 plan 文档而失去入口,属预期,不必绕路满足。
 7. 用户明确点名要 writing-plans / subagent-driven / inline / 并行分派时,按点名的方式执行。
 
@@ -322,7 +323,7 @@ docs 八件套各自的职责:
 用户说"下一步干什么 / 我到哪了",且项目根目录有 `docs/PLAN.md` 时:
 
 1. **文档是唯一依据**,不为回答这个问题遍历代码库;只在文档间矛盾需核对时才抽查代码。
-2. 读:`PLAN.md`(路线 + Phase 状态 + Spec 索引)→ `Progress.md`(状态表 + 最近 2~3 条日志)→ 最新 spec(对照 Progress 判断是否已实现)→ `DECISIONS.md` 最近 2~3 条 → `MEETINGS.md` 最新一节的待办 → `REQUIREMENTS.md` 目标台账里状态为 open 的未销账项。
+2. 读:`PLAN.md`(路线 + Phase 状态 + Spec 索引)→ `Progress.md`(状态表 + 最近 2~3 条日志;更早月份在 `docs/archive/Progress-YYYY-MM.md`,追溯历史时才读)→ 最新 spec(对照 Progress 判断是否已实现)→ `DECISIONS.md` 最近 2~3 条 → `MEETINGS.md` 最新一节的待办 → `REQUIREMENTS.md` 目标台账里状态为 open 的未销账项。
 3. **按序判断,命中即停**:
    | 状态 | 下一步 |
    |---|---|

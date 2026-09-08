@@ -13,7 +13,7 @@ Read the plan and progress docs laid down by /scaffold, and tell the user what t
 ## Step 1: Read the progress files
 
 1. `docs/PLAN.md` — Overall Roadmap, each Phase's status (title with ✅ = done), Spec Index
-2. `docs/Progress.md` — the top-half "## Progress Overview" module status table (pending/doing/done) + the bottom-half changelog ("## Changelog", **newest first**, read the 2-3 most recent entries)
+2. `docs/Progress.md` — the top-half "## Progress Overview" module status table (pending/doing/done) + the bottom-half changelog ("## Changelog", **newest first**, read the 2-3 most recent entries); older months are archived in `docs/archive/Progress-YYYY-MM.md` — only read those when tracing history
 3. The latest design spec — the latest `docs/superpowers/specs/<date>-<topic>-design.md` pointed to by the Spec Index (if the index doesn't have it, Glob that directory and take the newest by date) — cross-check against Progress.md to judge whether it's already implemented
 4. `docs/DECISIONS.md` — **newest first**, read the 2-3 most recent entries: any decision in the same domain as the next step must go into "Watch-outs"
 5. `docs/MEETINGS.md` — only look at the **latest section**'s "Action Items": entries that are unchecked and don't appear in any plan go into part 4 of the output
@@ -35,7 +35,6 @@ ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress —
 1. **Where you are** — one or two sentences: what was most recently completed, citing the date of Progress's latest entry
 2. **Next step** — task name + the first concrete action (down to the file/command level) + source (which file, which section)
 3. **Watch-outs** — decisions already made / pitfalls relevant to the next step, sourced from: DECISIONS.md's most recent entries + the Progress changelog, with citations; if this batch touched UI and Progress has no ui-sweep record, note here that a follow-up interaction regression scan is recommended (omit and don't push if not applicable); omit this section if none
-3. **Watch-outs** — decisions already made / pitfalls relevant to the next step, sourced from: DECISIONS.md's most recent entries + the Progress changelog, with citations; omit this section if none
 4. **Meeting action items not yet in any plan** — unchecked action items from MEETINGS.md's latest section that haven't made it into any plan, prompting the user to decide where they go; items already logged in the Goal Ledger are not repeated here; omit this section if none
 5. **Unsettled goals** — entries in REQUIREMENTS.md's Goal Ledger with status `open`, listed one by one, with any pinned to the top if they've been outstanding for more than 7 days; only list Goal Ledger entries; omit this section if none
 
