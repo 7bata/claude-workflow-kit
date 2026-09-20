@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.11.0;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.12.0;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.11.0;无 hook 机制,auto-scaffold 靠手动 opt-in |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -24,6 +24,10 @@
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-09-19 — omitClaudeMd 机械 agent + 并发上限文档(workflow/-en 0.12.0)
+
+起因:Claude Code 更新到 2.1.278(67 新功能等),Tony 让审 changelog 看 workflow 有无可加功能。挑出三项相关,Tony 圈定第 1/2/4,brainstorming 时又 YAGNI 掉 AGENTS.md(第 4 项),定为两项:①纯机械 stage(定位/清单;批量迁移/重命名/模板化)改用带 `omitClaudeMd: true` 的 `mechanical` 子代理类型(经 `agent(prompt,{agentType:'mechanical'})`),跳过自动加载的 CLAUDE.md、省 token,常规实现与全部评审照旧带 CLAUDE.md;②文档化 `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`(1–256)并发上限旋钮,不改默认、只在机器有余量时调高,附 2026-09-19 过载事故告诫。冒烟验证 agentType+omitClaudeMd 生效(mech=NORULE、ctl=HASRULE)。镜像:本机全局 CLAUDE.md、kit README zh/en + workflow/-en 插件(新 `agents/mechanical.md`)、dev-toolkit(WORKFLOW.md + `plugins/dev-toolkit/agents/mechanical.md`)。huake 变体不在本机,待到 huake 侧镜像;workflow-codex 不涉(omitClaudeMd 为 Claude Code 专有)。同会话还诊断处理了 ccskip/HAPI hub 过载事故(32 个孤儿空转进程)、在 gitlab.stellark.io 建 StellarkAriel 群组 + Ariel 英文 Claude-facing onboarding;闲置会话自动回收器策略已定、实现仍 open(独立任务)。
 
 ### 2026-09-07 — 进度日志按月归档 + 评审轮次压进单元提交(0.11.0 / codex 0.11.0)
 
