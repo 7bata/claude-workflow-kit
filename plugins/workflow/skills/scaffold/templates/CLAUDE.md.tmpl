@@ -119,6 +119,8 @@
   - 评审报告只报差异（与上一轮/与其他票的新发现与推翻项），禁止"检查了一遍没问题"式摘要；无新发现要明说并列出复核点
   - 派实现 agent 的 prompt 除 spec 段落与本文件硬规则外，必须点名生产红线与文件所有权：FORBIDDEN FILES 清单、绝不重启共享服务、绝不读写生产数据、禁止 force push 与丢改动的历史改写、只改分给本单元的文件
   - `effort` 只有 Workflow 的 `agent()` 支持，裸 Agent 工具没这个参数 → 批量机械活优先走 Workflow 编排
+  - 纯机械 stage（定位/清单、批量迁移/重命名/模板化）用 `agent(..., { agentType: 'mechanical', effort: 'low' })`——`mechanical` 是本 workflow 插件里带 `omitClaudeMd: true` 的子代理，不自动加载 CLAUDE.md、省 token；正因它不载 CLAUDE.md，可写的机械 stage 必须把生产红线写进它自己的 prompt，常规实现与评审照旧带 CLAUDE.md
+  - Workflow 单次运行并发子代理上限默认约 `min(16, 核数-2)`，可用环境变量 `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`（1–256）调高，机器 CPU/内存有余量再调，别在已吃紧时调
   - 档位表是有日期的经验校准，主力模型换代后用会话用量数据复盘更新——凭数据改表，不凭手感
 
 ## 禁止事项

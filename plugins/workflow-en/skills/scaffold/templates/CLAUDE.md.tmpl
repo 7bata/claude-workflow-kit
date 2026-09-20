@@ -119,6 +119,8 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
   - Review reports state only the delta (new findings and reversals vs. the previous round/other votes) — no "checked it, looks fine" summaries; when there's nothing new, say so explicitly and list the checkpoints that were re-verified
   - Beyond the spec excerpt and this file's hard rules, implementer-agent prompts must also name the production red lines and file ownership: the FORBIDDEN FILES list, never restart shared services, never read/write production data, no force push or any history rewrite that discards changes, and touch only the files assigned to this unit
   - `effort` is only supported by Workflow's `agent()` — the bare Agent tool has no such parameter → prefer Workflow orchestration for batch mechanical work
+  - Pure-mechanical stages (locating/listing; batch migration/renaming/templating) dispatch via `agent(..., { agentType: 'mechanical', effort: 'low' })` — `mechanical` is a subagent shipped in this plugin with `omitClaudeMd: true`, so it skips the auto-loaded CLAUDE.md and saves tokens; because it doesn't load CLAUDE.md, any write-capable mechanical stage must carry the production red lines in its own prompt. Regular implementation and all review agents keep CLAUDE.md.
+  - The Workflow per-run concurrent-agent cap defaults to about `min(16, cores-2)`; raise it with the env var `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (1–256) only when the machine has CPU/memory headroom, never on an already-loaded machine
   - The tier table is a dated empirical calibration — after each major model generation, revisit it against your session usage data; change the table based on data, not vibes
 
 ## Never Do
