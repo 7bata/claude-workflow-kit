@@ -136,6 +136,7 @@ git commit --allow-empty -m probe && git reset --hard HEAD~1
 - **Where to edit the tech-stack baseline**: edit `plugins/workflow-codex/skills/scaffold/SKILL.md` and its `templates/`, not `plugins/workflow-en/` as the "Customizing the tech-stack baseline" section below points to
 - **No docs-capture hooks**: the three-layer decision/requirement capture described in Section 6b (`AskUserQuestion` → `DECISIONS.inbox.md`, signal-word reminders, commit-time gate) is not ported here — it depends on Claude Code's hooks mechanism, which Codex CLI doesn't have. The discipline still stands (log decisions and requirements before they evaporate); on the Codex side it's enforced by convention, not automation.
 - **No worktree-sweep hook**: the "auto-clean each round for worktrees already merged into main with no changes" described in Section 6c likewise depends on hooks and isn't ported here — the "worktrees are removed when done" discipline in Section 5.4 is enforced by convention on the Codex side.
+- **omitClaudeMd and the Workflow concurrency env var (Claude side, 0.12.0) are Claude-only**: Codex subagents have no per-agent knob to skip the auto-loaded `AGENTS.md` (the token-saving win of Claude's `omitClaudeMd`), so mechanical Codex subtasks instead just get lean, self-contained prompts. Claude's `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` maps to Codex's `[agents] max_threads` in `config.toml` (default 6, max 8) — raise it only when the machine has CPU/memory headroom.
 
 ## Usage (project lifecycle)
 

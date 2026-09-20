@@ -137,6 +137,7 @@ git commit --allow-empty -m probe && git reset --hard HEAD~1
 - **改技术栈基线改哪**:改 `plugins/workflow-codex/skills/scaffold/SKILL.md` 与其 `templates/`,不是下面「自定义技术栈基线」指向的 `plugins/workflow/`
 - **没有 docs-capture hooks**:六之二描述的决策/需求三层捕获(`AskUserQuestion` → `DECISIONS.inbox.md`、信号词提醒、commit 门禁)未移植到这里——依赖 Claude Code 的 hooks 机制,Codex CLI 没有。纪律照旧成立(决策/需求落档别蒸发),Codex 这边靠约定维持,不靠自动化。
 - **没有 worktree-sweep hook**:六之三描述的"已并 main 且无改动的 worktree 每轮自动清"同样依赖 hooks,未移植;§五.4「worktree 用完即删」的纪律在 Codex 侧靠约定维持。
+- **omitClaudeMd 与 Workflow 并发 env(Claude 侧 0.12.0)是 Claude 专有**:Codex 子代理没有 per-agent 跳过自动加载 `AGENTS.md` 的旋钮(即 Claude `omitClaudeMd` 的省 token 收益),所以机械类 Codex 子任务改为只给精简、自包含的 prompt。Claude 的 `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` 在 Codex 侧对应 `config.toml` 的 `[agents] max_threads`(默认 6、最高 8)——机器 CPU/内存有余量再调高。
 
 ## 使用方式(项目生命周期)
 
