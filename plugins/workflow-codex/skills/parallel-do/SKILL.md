@@ -53,7 +53,7 @@ description: 当下一步工作能拆成 2 个以上互相独立、无共享状�
 不逐个串行做,把同一波的独立子任务一次性并行 spawn(Codex 原生 subagents):
 
 - **一波 = 一次并行 spawn**:每个子任务一个 subagent;明确表述「spawn N 个并行 agent,agent 1 做 X,agent 2 做 Y……等全部完成再继续」
-- **并发上限**:`config.toml` `[agents]` 的 `max_threads` 默认 6(最高 8);同一波子任务多于上限时分批 spawn
+- **并发上限**:`config.toml` `[agents]` 的 `max_threads` 默认 6(最高 8);同一波子任务多于上限时分批 spawn。调高 `max_threads` 只在机器 CPU/内存有余量时做,别在已吃紧的机器上拉高——过载反而更慢(2026-09-19 一台机器被空转进程 + 会话堆积拖到负载 108,即此类)
 - **有依赖的波次**:等上一波全部返回,把关键结论写进下一波每个 subagent 的 prompt
 - 每个 subagent 的 prompt 必须**自包含**(subagent 看不到主对话):
   - 背景:在做什么、为什么做
