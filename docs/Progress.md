@@ -25,6 +25,10 @@
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
 
+### 2026-09-20 — 调研:jev-skill 要不要装进 kit(结论:不装、不融合,kit 无改动)
+
+Tony 问给 workflow 加 jev-skill 有没有安装和融合的必要。jev-skill 是围绕 TypeSafe AI 的 Jev(2026-09-17 前后发布、只回答选择/打分/是非题的托管计费模型,尚在抢先体验并按排队放号)的一批第三方 skill 仓库,GitHub 同名搜索 43 个结果、40 个建于 9 月 16~20 日。结论:不装进 kit、不融合——kit 的判断点要么必须由脚本按固定规则判、要么依据是 Jev 拿不到也放不进 32k 输入上限的代码与对话、要么需要能照着改的具体意见而 Jev 只回分数;接入会让 hook 失去"不联网、不要密钥、出错静默放行",并把中文消息、提交标题、改动内容发到美国主机,与 huake 数据不出内网的前提冲突;唯一的 agent 对照试验(12 对)没看到变好且开销翻倍。`codaaiteam/jev-skill` 默认走第三方计费转发站,不建议装;想个人试用用官方 `typesafe-ai/skills`(附四个条件与卸载办法)。顺带结论:精简 skill 清单用 Claude Code 自带的 `/skills`(个人 skill)与 `/plugin`(插件 skill),不需要 Jev。报告 `docs/superpowers/research/2026-09-20-jev-skill-eval.md`(含 14 个判断点逐项对照、可检查的复查条件)。过程:三轮只读调研 8 个 sonnet 子代理 + 3 票 opus 评审(结论与适配 / 数据去向与依赖 high / 边界与异常情况),三票均判"结论成立需修改",推翻草稿三处(称无中文评测、`/skills` 建议对插件 skill 无效、官方 skill 不联网)并补 7 个漏掉的判断点与 `fast-jev-compaction`(5201 星)。
+
 ### 2026-09-19 — omitClaudeMd 机械 agent + 并发上限文档(workflow/-en 0.12.0)
 
 起因:Claude Code 更新到 2.1.278(67 新功能等),Tony 让审 changelog 看 workflow 有无可加功能。挑出三项相关,Tony 圈定第 1/2/4,brainstorming 时又 YAGNI 掉 AGENTS.md(第 4 项),定为两项:①纯机械 stage(定位/清单;批量迁移/重命名/模板化)改用带 `omitClaudeMd: true` 的 `mechanical` 子代理类型(经 `agent(prompt,{agentType:'mechanical'})`),跳过自动加载的 CLAUDE.md、省 token,常规实现与全部评审照旧带 CLAUDE.md;②文档化 `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`(1–256)并发上限旋钮,不改默认、只在机器有余量时调高,附 2026-09-19 过载事故告诫。冒烟验证 agentType+omitClaudeMd 生效(mech=NORULE、ctl=HASRULE)。镜像:本机全局 CLAUDE.md、kit README zh/en + workflow/-en 插件(新 `agents/mechanical.md`)、dev-toolkit(WORKFLOW.md + `plugins/dev-toolkit/agents/mechanical.md`)。huake 变体不在本机,待到 huake 侧镜像;workflow-codex 不涉(omitClaudeMd 为 Claude Code 专有)。同会话还诊断处理了 ccskip/HAPI hub 过载事故(32 个孤儿空转进程)、在 gitlab.stellark.io 建 StellarkAriel 群组 + Ariel 英文 Claude-facing onboarding;闲置会话自动回收器策略已定、实现仍 open(独立任务)。
