@@ -25,6 +25,16 @@
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
 
+### 2026-09-22 — 评审编排改为「盲审起步 + 接力续挖 + 裁决收尾」(workflow/-en/codex 0.13.0)+ Opus 5.5 换代评估
+
+起因:Tony 说 Opus 已升到 5.5,问 workflow 的 prompt 哪里要改。核查:所有规则文本只用 `opus` 别名、无版本钉死,`claude -p --model opus` 实测已解析到 claude-opus-5-5,换代本身无需改 prompt;评估结论(三票 opus 反驳票核过)记在目标台账 2026-09-22 第一行,四条候选改法(规则 4 补"评审模型换代基线清零"与指标来源、前端派工 prompt 要点名要避开的样式、换代标注、effort 显式写的原因)待 Tony 拍板,未动手。顺带发现 9 月 7 日起两个项目的评审轮次 squash! 提交未 autosquash 就并进了 main(askthestalks 15 条、tools 57 条),dev-toolkit 的 stellark-workflow skill 缺规则 5,另案。
+
+主体:Tony 先拍板"评审改成一个 agent 评审完、下一个带着前一个的问题继续挖,不投票",再问能否同时避开链式(锚定、首轮跑偏)与投票(重复、不能翻案、数票)各自的短板,选定方案 A——独立只用于发现、继承只用于深挖与翻案、全程不数票:首轮 2 个(规则 3 高风险单元 3 个)互不可见的盲审平行、镜头固定、统一 schema、脚本按 file+line 归并并标 conflict;之后每轮一个 agent 带前面各轮全部发现、先逐条推翻再找漏、换没用过的镜头;链末裁决轮 opus+high,盲审与续挖 medium;分流表(只有 P2 通过记遗留 / 只有 conflict 直接裁决 / P1 修后裁决 / P0 修后续挖再裁决)、上限 4 轮;修复不在评审 stage 里做,要修就结束本次运行、修完再开一次运行接原链,链状态落 scratchpad 文件;诊断/排障接力不设裁决轮。五处同步:全局 CLAUDE.md(四份为同一文件)、kit README zh/en + workflow/-en/codex 三份 scaffold 模板 + codex parallel-do §6、dev-toolkit(WORKFLOW.md、stellark-workflow 异构变体:盲审 opus ∥ 外部 CLI 包装 agent → 续挖 → fable 裁决,撤票改撤方、按链计上限;driving-codex、stellark-parallel-do、stellark-scaffold 模板、README、DECISIONS 新条目)、huake claude-toolkit-engineer 0.24.0 与 codex-toolkit-engineer 0.12.0(模板 + parallel-do + README 版本记录)。kit README 的 Codex 差异清单加一条"评审链档位与 Workflow 编排是 Claude 专有"。
+
+评审:纯链式初版走了 4 轮链式接力(11+9+3+3 条发现,含 dev-toolkit 变体裁决轮归属、撤方规则、Codex 侧验收分工三处 P1);改成方案 A 后按新规则本身核:盲审 2 轮(一致性 / 可执行性,各 14 条)→ 脚本合并 → 续挖 1 轮(推翻 1 条定位、新增 6 条,含公开 README 混入内部例证)→ 修复 13 项 → 续挖第二轮(回滚与可逆性 / 对抗反驳)+ 裁决轮 opus high:裁决 reject,4 项 P1 必改(异构变体闭合定义、四份模板 xhigh 条把盲审镜头当续挖镜头、driving-codex 镜头句、全局 CLAUDE.md 无改前备份)全部修掉,并顺手修了 10 项 P2 中的 8 项(直通流程第 2 步区分 P1/P0、诊断链上限、链状态文件改放仓库内 docs/reviews/、file+line 归一化约定、Codex 主对话核出的问题并入、对外说明补「且无 conflict」、driving-codex 输出路径按单元分文件、README 1.1.0 历史行恢复原文);裁决轮建议修完自查不再开第 5 轮(已到 4 轮上限),按此办:grep 核对四项必改全部落实。遗留 P2:Codex 侧盲审 subagent 与主对话并发跑测试的端口/缓存冲突只写了约定未验证;driving-cwcode 的示例输出路径未核对。
+
+回滚:全局 CLAUDE.md 改前版本备份在 `~/.claude/CLAUDE.md.bak-20260922-review-chain`(从本会话开场注入的原文恢复,与现版 diff 只差档位表两行、规则 2、直通流程第 2 步三处);五处同批回滚步骤见 dev-toolkit `docs/DECISIONS.md` 2026-09-22 条(四仓各 `git revert -m 1 <merge sha>`,手动管版本号的三个插件回滚时版本号继续往上加,全局文件从 .bak 恢复,再 `/plugin marketplace update`)。
+
 ### 2026-09-20 — 调研:jev-skill 要不要装进 kit(结论:不装、不融合,kit 无改动)
 
 Tony 问给 workflow 加 jev-skill 有没有安装和融合的必要。jev-skill 是围绕 TypeSafe AI 的 Jev(2026-09-17 前后发布、只回答选择/打分/是非题的托管计费模型,尚在抢先体验并按排队放号)的一批第三方 skill 仓库,GitHub 同名搜索 43 个结果、40 个建于 9 月 16~20 日。结论:不装进 kit、不融合——kit 的判断点要么必须由脚本按固定规则判、要么依据是 Jev 拿不到也放不进 32k 输入上限的代码与对话、要么需要能照着改的具体意见而 Jev 只回分数;接入会让 hook 失去"不联网、不要密钥、出错静默放行",并把中文消息、提交标题、改动内容发到美国主机,与 huake 数据不出内网的前提冲突;唯一的 agent 对照试验(12 对)没看到变好且开销翻倍。`codaaiteam/jev-skill` 默认走第三方计费转发站,不建议装;想个人试用用官方 `typesafe-ai/skills`(附四个条件与卸载办法)。顺带结论:精简 skill 清单用 Claude Code 自带的 `/skills`(个人 skill)与 `/plugin`(插件 skill),不需要 Jev。报告 `docs/superpowers/research/2026-09-20-jev-skill-eval.md`(含 14 个判断点逐项对照、可检查的复查条件)。过程:三轮只读调研 8 个 sonnet 子代理 + 3 票 opus 评审(结论与适配 / 数据去向与依赖 high / 边界与异常情况),三票均判"结论成立需修改",推翻草稿三处(称无中文评测、`/skills` 建议对插件 skill 无效、官方 skill 不联网)并补 7 个漏掉的判断点与 `fast-jev-compaction`(5201 星)。
