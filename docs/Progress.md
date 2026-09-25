@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.12.0;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.12.0;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、登录默认复用组织登录库、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.12.0;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -24,6 +24,12 @@
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-09-25 — 登录相关默认复用组织通用登录库(kit §八;私有面固定 stellark-auth)
+
+Tony 一句需求:「凡是和登录相关的,如果我没特殊要求,直接复用 stellark-auth 这个仓库」。改动位置:kit README zh/en §八/§8 在「第 0 步内部先行」后加一条「组织内已有通用登录库时,登录相关不调研、直接复用」——公开面不点名内部仓,写成"组织内已有通用登录库或登录服务就复用",并要求把登录库名字与接入方式登记进 scaffold skill 的技术栈基线表(中/英/Codex 三个插件各写自己的文件路径)。规则内容:登录/注册、登出、改密/找回密码、会话与令牌、第三方登录、验证码登录、鉴权中间件、登录页等都算登录相关,不受本节"新产品/大功能才触发"限制、任何规模都适用,视为第 0 步已经定下的结果(不调研、不选型、不与外部开源一起比较,Prior art 直接写复用;第 0 步句尾加了交叉引用);实现只做接入、派工 prompt 写明不重写用户表/密码哈希/令牌签发;库缺能力、语言形态不匹配、存量项目要不要迁,都先问用户、不默认自建;用户本次明确要求换方案或自研才例外,原因进 spec;公开面补一句"没有登录库照常调研";复用后照样登记组件索引的 used_by,接入单元评审仍按三.3(鉴权高风险)走。私有面点名内部登录库 stellark-auth(Go 库;路径与接入文档只写在私有面):本机全局 CLAUDE.md「新产品/大功能先做 GitHub 调研」节追加一段(改前备份 `~/.claude/CLAUDE.md.bak-20260925-login-reuse`);dev-toolkit WORKFLOW.md §八 + stellark-workflow 核心 §八 一句 + references/research.md 细则 + upstream-map 归位表。
+- 不覆盖:kit 三份 scaffold 基线表未加登录行(公开版没有固定登录库,规则里让使用者自己登记;dev-toolkit 的 stellark-scaffold 早有 stellark-auth/login 行);huake claude/codex engineer 插件没有调研节也没有登录基线行,本批未动,要不要给同事版加同款规则待 Tony 定;插件版本号不动(kit 只改 README 与 docs,无插件文件改动)。
+- 评审 5 轮(盲审 2 个 opus medium + 裁决 opus high 三次 + 第 5 轮只核闭合;超出默认 4 轮上限,原因:前三次裁决各报出一条真实 P1、各在不同的面,第四轮的 P1 是英文面路径一字之差,不能带着未闭合 P1 停):第三次裁决 P1——英文 README 的基线表路径抄了中文插件的,已改为 workflow-en 的 scaffold;P2:日志旧说法与计数、公开面不写索引 slug、英文章节引用统一为 Section x.y、自造词「既定命中/免记账/索引闭环/装配」换成平实说法。第二次裁决 P1——私有面写"登记进 stellark-auth 条目的 used_by",但组件索引里该仓对应两个条目(根包与 login 子包),已改为按实际引入的包登记;P2 五条(github-research 快扫/直接采用两处补登录例外、公开面"见上文「自定义技术栈基线」"跳出 prompt 块改成文件路径、TS 后端提示同源库、登录库自身开发不适用本条、单元首个提交标题在收尾 rebase 时改为新标题)一并修。第一次裁决新发现 P1——执行第 0 步的本机 github-research skill 没同步(仍要求与外部开源一起比较、没说复用后 used_by 登记做不做),已在该 skill 第 0 步加登录例外与记账句,六个规则面同步补"复用后照样登记 used_by"与"接入单元仍按三.3 评审";P2 三条(日志引用旧标题、scaffold 样板只覆盖 Google 登录子包、与三.3 衔接)一并修。盲审轮:P1 两条——公开仓 docs 里写了内部仓完整路径(已删到只剩仓名)、规则被本节触发条件缩窄(已加"任何规模都适用");P2 六条(第 0 步缺交叉引用、标题无条件而正文有条件、§六指向错、列举像穷举、"鉴权"易读成权限体系、存量项目与非 Go 后端没说)全部采纳修改。
 
 ### 2026-09-22 — 评审编排改为「盲审起步 + 接力续挖 + 裁决收尾」(workflow/-en/codex 0.13.0)+ Opus 5.5 换代评估
 
