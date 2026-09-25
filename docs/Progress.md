@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.12.0;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、登录默认复用组织登录库、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.12.0;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.12.0;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -24,6 +24,10 @@
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-09-25 — 撤回公开 kit §八 的「登录相关默认复用登录库」条(Tony:公开的 kit 不要加)
+
+同日稍后 Tony 拍板:「公开的kit不要加这个东西,删掉」。README zh/en §八 的新条与第 0 步句尾的交叉引用整体恢复到加规则前的原文(654cf05 版本),kit 无插件文件改动、版本号不动。规则本身保留在私有面:本机全局 CLAUDE.md「新产品/大功能先做 GitHub 调研」节、本机 github-research skill 第 0 步、dev-toolkit 1.5.2(WORKFLOW.md §八 + stellark-workflow 核心一句 + references/research.md);本机插件已从 1.5.1 更新到 1.5.2,新开会话生效。下一条日志记录的是当天早些时候把这条规则写进各面的过程,公开面部分以本条为准。
 
 ### 2026-09-25 — 登录相关默认复用组织通用登录库(kit §八;私有面固定 stellark-auth)
 
