@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.12.0;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.13.1;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.12.0;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -24,6 +24,10 @@
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-09-28 — Sonnet 5.5 换代:本机 sonnet 别名钉到 5.5;机械子代理自带验证要求;规则 4 补实现模型分段(workflow/-en 0.13.1)
+
+起因:Tony 说 Sonnet 已升 5.5,问 workflow 要不要更新。核查(盲审 2 + 裁决 1,三条 P1 已闭合):规则只写 `sonnet` 别名,不用改字;但 Claude Code 2.1.284 的 `sonnet` 别名(含 Workflow agent() 与子代理)实测仍解析到 claude-sonnet-5,由服务端配置决定;5.5 与 5 同价,low 档可能不跑验证就报告完成、可能凭记忆作答,effort 档位重新标定,cyber/frontier_llm 拒答会自动回落到 Sonnet 5 重跑。Tony 拍板四件:本机 settings.json 加 `ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5-5`(本机设置,不进公开 kit;官方切别名或出下一代时删,已登记复查);机械子代理定义自带三条通用要求(改完跑真实检查且不跑 prompt 禁止的命令、结论来自本次工具输出、范围内做完再报告),README zh/en 同步;规则 4 补实现模型换代按实现模型分段统计(单元首个提交正文记「实现模型:」行);英文 README 计数命令改为 `^review round`,与英文提交格式一致。私有面同批:全局 CLAUDE.md(规则 4;对照实验改为 sonnet+medium 对 opus+medium 并从下一批重新计数)、dev-toolkit(mechanical、stellark-workflow、stellark-parallel-do、scaffold 模板、WORKFLOW.md)、huake claude-toolkit-engineer 0.24.1。评审 2 轮:第 1 轮 kit 因工作区有未消化的 DECISIONS.inbox 停工、dev-toolkit 核心 skill 超 token 上限(P1);第 2 轮裁决通过,余 P2 遗留见 REQUIREMENTS 2026-09-28。
 
 ### 2026-09-25 — 撤回公开 kit §八 的「登录相关默认复用登录库」条(Tony:公开的 kit 不要加)
 
