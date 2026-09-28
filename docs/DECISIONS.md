@@ -2,6 +2,12 @@
 
 > 条目格式:`## 日期 - 类型(域): 标题` + What/Why/Changes,最新在上。由 `docs/DECISIONS.inbox.md` 的问答草稿消化而来;日常小决定与过程性确认不进本表。
 
+## 2026-09-28 - process(tiers): Sonnet 5.5 换代——本机把 sonnet 别名钉到 5.5;机械与 low 档 stage 加验证要求;规则 4 补实现模型分段;对照实验 S 组改 medium
+
+- **What**:① 本机 settings.json 加 env `ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5-5`(本机设置,不进公开 kit;官方把别名切到 5.5 或出下一代时删,已登记复查)。② mechanical 子代理定义自带验证要求(改完跑真实检查、结论来自本次工具输出、范围内做完再报告);不走 mechanical 的 sonnet+low stage 在派工说明里写同样要求。③ 规则 4:实现模型换代按实现模型分段统计、可以跨代比较,每单元首个提交正文记「实现模型:」行(取实际模型 ID,不记别名);评审模型换代才清零、不跨代比较。④ 对照实验改为 sonnet+medium 对 opus+medium,从下一批重新计数,Sonnet 5 那批单独留作参考。
+- **Why**:Tony 2026-09-28「更新sonnet 5.5了，你看一下workflow里面需不需要更新」。核查(盲审 2 + 裁决 1):规则只写别名不用改字,但 Claude Code 2.1.284 的 `sonnet` 别名实测仍解析到 claude-sonnet-5(服务端配置);5.5 与 5 同价,官方称 5.5 medium 多数编码评测胜过 5 high、成本不到五分之一,但 low 档可能不跑验证就报告完成、可能凭记忆作答;effort 档位重新标定;cyber/frontier_llm 拒答会自动回落到 Sonnet 5 重跑,按别名记模型会失准。三个选项里 Tony 选全局环境变量、A/B/C 全做、S 组改 medium。
+- **Changes**:本机 ~/.claude/settings.json 与全局 CLAUDE.md(规则 4、实验行);kit workflow/-en mechanical 定义与 README zh/en(0.13.1,顺带修英文版计数命令 `^review round`);dev-toolkit mechanical 定义、stellark-workflow、stellark-parallel-do、scaffold 模板、WORKFLOW.md;huake claude-toolkit-engineer parallel-do 与 scaffold 模板(0.24.1)。见 Progress 2026-09-28。
+
 ## 2026-09-25 - process(research): 登录相关默认复用组织通用登录库,不进调研与选型(只进私有面;公开 kit 同日撤回)
 
 - **What**:登录/注册、登出、改密/找回密码、会话与令牌、第三方登录、验证码登录、鉴权中间件、登录页等,组织内已有通用登录库的一律直接复用(私有面固定为内部登录库),任何规模都适用,视为 §八 第 0 步已经定下的结果:不调研、不选型、不与外部开源一起比较,Prior art 直接写复用;实现只做接入,不在项目里重写用户表、密码哈希、令牌签发;库缺的能力、语言形态不匹配、存量项目要不要迁都先问用户;用户本次明确要求换方案或自研才例外,原因进 spec;复用后照样登记组件索引的 used_by,接入单元评审仍按三.3 走。
