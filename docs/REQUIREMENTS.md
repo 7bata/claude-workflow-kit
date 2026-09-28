@@ -46,3 +46,4 @@
 | 2026-09-25 | "给workflow里面加一个内容,就是凡是和登录相关的,如果我没特殊要求,直接复用〔内部登录库〕这个仓库" | Tony 原话(本会话) | done — 私有面生效(公开 kit 的那条同日按 Tony 要求撤回,见下一行):本机全局 CLAUDE.md「新产品/大功能先做 GitHub 调研」节、本机 github-research skill 第 0 步、dev-toolkit(WORKFLOW.md §八、stellark-workflow 核心一句 + references/research.md)点名内部登录库;huake 两个 engineer 插件无调研节、未动,见 Progress 2026-09-25 |
 | 2026-09-25 | "公开的kit不要加这个东西,删掉"(登录默认复用内部登录库的规则不进公开 kit) | Tony 原话(本会话) | done — kit README zh/en §八 的登录复用条与第 0 步交叉引用已恢复到加规则前的原文;规则只留私有面(全局 CLAUDE.md、本机 github-research skill、dev-toolkit 1.5.2),见 Progress 2026-09-25「撤回」条 |
 | 2026-09-25 | "去掉"(公开 kit 文档记录里的内部登录库仓名也不留) | Tony 原话(本会话) | done — 目标清单、Progress、DECISIONS 里的仓名全部换成「内部登录库」(原话引用处用〔〕标注替换);已并 main 的提交信息里仍有仓名,main 不重写历史 |
+| 2026-09-28 | "更新sonnet 5.5了，你看一下workflow里面需不需要更新" | Tony 原话(本会话) | open |
