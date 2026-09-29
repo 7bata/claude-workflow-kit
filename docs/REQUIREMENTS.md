@@ -50,3 +50,4 @@
 | 2026-09-28 | 本机 settings.json 的 ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5-5 是临时手段,服务端把 sonnet 别名切到 5.5 或出 Sonnet 6 时要删掉(复查:临时删掉这行跑 claude -p --model sonnet 看 modelUsage) | 本会话 Tony 选「全局加环境变量」时约定的到期复查 | open |
 | 2026-09-29 | Tony(经 stella 窗口 Claude 转达):在 workflow 收尾步骤里加一条「项目接了 Stella 时,收尾把 Stella 待办标完成 / 进行中并提议后续事项」;由主对话在并 main / 上线后做,不在会话里写更新日志与工时(每晚自动更新会生成,手写会重复) | stella 项目窗口 → 本会话 HAPI 跨会话消息 | open |
 | 2026-09-29 | Tony(经 stella 窗口 Claude 转达)更正上一条:Stella 关掉「待确认」审核区(「如果改了待办的话,就不要让人再审核了……本身正常情况下也是可以修改这个待办的」)——收尾里新冒出的事改为直接新建待办(负责人本人、先查重),做完后变得没意义的旧待办直接标完成并写原因(不删),提交后提醒去掉「propose / 提议 / 待确认」说法 | stella 项目窗口 → 本会话 HAPI 跨会话消息 | open |
+| 2026-09-29 | "这一步也取消"(收尾更新 Stella 待办时,会话里「整批复述一次、用户确认后才写」这一步也取消,改为直接写、写完列出) | Tony 原话(本会话) | open |
