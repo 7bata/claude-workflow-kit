@@ -161,6 +161,27 @@ async function waitForAppReady(page, { timeoutMs = 15000, loadingTexts = ["Loadi
   await page.waitForTimeout(400);
 }
 
+// 关闭浏览器的等待上限:close() 卡住时不能让脚本跟着一起卡死。
+// playwright 的 Browser 对象没有公开拿到浏览器子进程 PID 的办法(process() 只在 BrowserServer、
+// ElectronApplication 上有,playwright-core 1.63 的类型定义里 Browser 没有),所以超时后不按 PID 结束,
+// 而是由 main() 收尾时以原本应有的退出码显式 process.exit;playwright 在 launch 时登记了 process 'exit'
+// 处理器(processLauncher 的 killProcessAndCleanup),进程退出时会一并结束浏览器子进程(已读 playwright-core 1.63 源码核对)。
+const CLOSE_TIMEOUT_MS = 10000;
+let browserCloseTimedOut = false;
+async function closeBrowserBounded(browser) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), CLOSE_TIMEOUT_MS);
+  });
+  const closed = browser.close().then(() => "closed", () => "closed");
+  const result = await Promise.race([closed, timeout]);
+  clearTimeout(timer);
+  if (result === "timeout") {
+    browserCloseTimedOut = true;
+    console.error(`[sop-generate] 关闭浏览器超过 ${CLOSE_TIMEOUT_MS / 1000} 秒,浏览器可能没关掉;脚本将直接退出,请用 ps 核对有无残留的浏览器进程。`);
+  }
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.url || typeof args.url !== "string") {
@@ -196,206 +217,213 @@ async function main() {
   }
 
   const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  // 出错路径也要关浏览器:launch 成功之后的所有结束方式都经过下面的 finally
+  try {
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-  console.log(`[sop-generate] 打开 ${args.url}`);
-  await page.goto(args.url, { waitUntil: "domcontentloaded" });
+    console.log(`[sop-generate] 打开 ${args.url}`);
+    await page.goto(args.url, { waitUntil: "domcontentloaded" });
 
-  // --- 登录段(可选,提供账号密码时执行) ---
-  let loggedIn = false;
-  if (user && pass) {
-    const userSel =
-      args["login-selector-user"] || 'input[name="username"], input[type="email"], #username, input[type="text"]';
-    const passSel =
-      args["login-selector-pass"] || 'input[name="password"], input[type="password"], #password';
-    const submitSel = args["login-selector-submit"] || 'button[type="submit"], input[type="submit"]';
-    try {
-      await page.fill(userSel, user);
-      await page.fill(passSel, pass);
-      await page.click(submitSel);
-      await page.waitForLoadState("networkidle").catch(() => {});
-      loggedIn = !isLoginRoute(page.url());
-      if (loggedIn) {
-        console.log("[sop-generate] 登录动作已执行(账号密码不会写入任何输出文件)");
-      } else {
-        console.warn(
-          "[sop-generate] 登录提交后仍停留在登录态路由,登录可能未成功。继续遍历,但页面很可能是登录页——请检查 --login-selector-* 是否匹配。",
-        );
-      }
-    } catch (e) {
-      console.warn(
-        `[sop-generate] 登录选择器未命中(${e.message})。请用 --login-selector-* 参数指定实际选择器,或改用 playwright-mcp 手动登录后再遍历。`,
-      );
-    }
-  } else {
-    console.log(
-      "[sop-generate] 未提供凭据(SOP_USER/SOP_PASS),跳过登录段(适用于无需登录的页面,或已用 MCP 手动登录)",
-    );
-  }
-
-  // --- 遍历段:从导航结构收集页面链接,过滤退出登录/外链/非法协议 ---
-  const navSel = args["nav-selector"] || "nav a, header a, aside a";
-  const rawLinks = await page.$$eval(navSel, (els) =>
-    els.map((el) => ({ href: el.getAttribute("href"), text: (el.textContent || "").trim() })),
-  );
-
-  const seen = new Set();
-  const links = [];
-  const skipped = [];
-  for (const { href, text } of rawLinks) {
-    if (!href || seen.has(href)) continue;
-    seen.add(href);
-    const verdict = isSkippableLink(href, text, baseOrigin);
-    if (verdict.skip) {
-      skipped.push(`${href} (${verdict.reason})`);
-    } else {
-      links.push(href);
-    }
-  }
-  console.log(`[sop-generate] 从导航发现 ${links.length} 个可遍历链接: ${links.join(", ")}`);
-  if (skipped.length > 0) {
-    console.log(`[sop-generate] 已过滤跳过 ${skipped.length} 个链接:\n  ${skipped.join("\n  ")}`);
-  }
-
-  const summary = [];
-  // 落地页自身必须在采集范围内(去重后置于首位),否则导航有链接时首页会被跳过。
-  // 用规范化后的 href(而非原始 args.url)做基准:URL 会补全尾斜杠等,若两处不一致,
-  // 首页会被 slugify 成 "app-example" 而不是 "home"(见下方 slug 判断)。
-  const landingHref = new URL(args.url).href;
-  const pagesToVisit = [...new Set([landingHref, ...links])];
-
-  for (const link of pagesToVisit) {
-    const target = link.startsWith("http") ? link : new URL(link, args.url).toString();
-    const slug = slugify(link === landingHref ? "home" : link);
-    const pageDir = path.join(outDir, slug);
-    fs.mkdirSync(pageDir, { recursive: true });
-
-    try {
-      await page.goto(target, { waitUntil: "domcontentloaded" });
-      await page.waitForLoadState("networkidle").catch(() => {});
-      await waitForAppReady(page);
-
-      // 登录态校验:若中途被弹回登录页,session 已作废,后续截图全是登录页——立即中止
-      if (user && pass && loggedIn && isLoginRoute(page.url())) {
-        console.error(
-          `[sop-generate] 访问 ${target} 后落回登录态路由(${page.url()}),session 可能已失效。中止遍历,已采集页面见 _index.json。`,
-        );
-        break;
-      }
-
-      // 截图存盘
-      const screenshotPath = path.join(pageDir, "full.png");
-      await page.screenshot({ path: screenshotPath, fullPage: true });
-
-      // accessibility 摘要(不含整页截图内容,供 Claude 写文案用)
-      // page.accessibility 在新版 Playwright 已移除;ariaSnapshot(v1.44+)是官方替代
-      const snapshot = await page.locator("body").ariaSnapshot();
-      const interactive = await page.$$eval(
-        "a, button, input, select, textarea, [role=button]",
-        (els) =>
-          els.slice(0, 200).map((el) => ({
-            tag: el.tagName.toLowerCase(),
-            role: el.getAttribute("role") || undefined,
-            text: (el.textContent || el.getAttribute("placeholder") || el.getAttribute("aria-label") || "")
-              .trim()
-              .slice(0, 60),
-          })),
-      );
-
-      const pageSummary = {
-        url: target,
-        slug,
-        title: await page.title(),
-        screenshot: path.relative(process.cwd(), screenshotPath),
-        interactiveElements: interactive,
-      };
-      fs.writeFileSync(
-        path.join(pageDir, "summary.json"),
-        JSON.stringify(pageSummary, null, 2),
-        "utf-8",
-      );
-      summary.push(pageSummary);
-      console.log(`[sop-generate] 已采集: ${target} -> ${pageDir}`);
-    } catch (e) {
-      console.warn(`[sop-generate] 页面采集失败,跳过: ${target} (${e.message})`);
-    }
-  }
-
-  fs.writeFileSync(path.join(outDir, "_index.json"), JSON.stringify(summary, null, 2), "utf-8");
-  console.log(`[sop-generate] 完成,页面清单见 ${path.join(outDir, "_index.json")}`);
-
-  // --- 可选段:关键操作前/后截图(--actions <json文件>) ---
-  if (args.actions) {
-    const actionsPath = path.resolve(String(args.actions));
-    let actionList = [];
-    try {
-      actionList = JSON.parse(fs.readFileSync(actionsPath, "utf-8"));
-    } catch (e) {
-      console.warn(`[sop-generate] 读取 --actions 文件失败,跳过该段: ${e.message}`);
-      actionList = [];
-    }
-    if (actionList.length > 0) {
-      const actionsDir = path.join(outDir, "_actions");
-      fs.mkdirSync(actionsDir, { recursive: true });
-      const downloads = [];
-      for (const action of actionList) {
-        const name = action.name || slugify(action.click || action.url || "action");
-        try {
-          if (action.url) {
-            await page.goto(action.url, { waitUntil: "domcontentloaded" });
-            await page.waitForLoadState("networkidle").catch(() => {});
-            await waitForAppReady(page);
-          }
-          if (user && pass && isLoginRoute(page.url())) {
-            console.warn(`[sop-generate] 动作 ${name} 前置导航落回登录页,跳过该动作。`);
-            continue;
-          }
-          const beforePath = path.join(actionsDir, `${name}-${action.before || "before"}.png`);
-          await page.screenshot({ path: beforePath, fullPage: true });
-          if (action.click) {
-            if (action.captureDownload) {
-              const [download] = await Promise.all([
-                page.waitForEvent("download"),
-                page.click(action.click),
-              ]);
-              const suggested = download.suggestedFilename();
-              const ext = path.extname(suggested) || "";
-              const downloadPath = path.join(actionsDir, `${name}-download${ext}`);
-              await download.saveAs(downloadPath);
-              const sizeBytes = fs.statSync(downloadPath).size;
-              downloads.push({ name, suggestedFilename: suggested, sizeBytes, savedTo: path.relative(process.cwd(), downloadPath) });
-              console.log(`[sop-generate] 捕获下载: ${name} -> ${suggested} (${sizeBytes} bytes)`);
-            } else {
-              await page.click(action.click);
-            }
-            await page.waitForLoadState("networkidle").catch(() => {});
-            // 点击本身也可能触发新的异步数据请求(如切换品牌口径重新拉数),同样会先拍到
-            // "加载中…"半成品——除非调用方明确要抓转瞬即逝的忙态(见 captureBusyState),
-            // 否则默认再等一轮就绪,拍到点击后真正落定的状态。
-            if (!action.captureBusyState) await waitForAppReady(page);
-          }
-          const afterPath = path.join(actionsDir, `${name}-${action.after || "after"}.png`);
-          await page.screenshot({ path: afterPath, fullPage: true });
-          console.log(`[sop-generate] 动作截图完成: ${name} -> ${beforePath}, ${afterPath}`);
-        } catch (e) {
-          console.warn(`[sop-generate] 动作 ${name} 执行失败,跳过: ${e.message}`);
+    // --- 登录段(可选,提供账号密码时执行) ---
+    let loggedIn = false;
+    if (user && pass) {
+      const userSel =
+        args["login-selector-user"] || 'input[name="username"], input[type="email"], #username, input[type="text"]';
+      const passSel =
+        args["login-selector-pass"] || 'input[name="password"], input[type="password"], #password';
+      const submitSel = args["login-selector-submit"] || 'button[type="submit"], input[type="submit"]';
+      try {
+        await page.fill(userSel, user);
+        await page.fill(passSel, pass);
+        await page.click(submitSel);
+        await page.waitForLoadState("networkidle").catch(() => {});
+        loggedIn = !isLoginRoute(page.url());
+        if (loggedIn) {
+          console.log("[sop-generate] 登录动作已执行(账号密码不会写入任何输出文件)");
+        } else {
+          console.warn(
+            "[sop-generate] 登录提交后仍停留在登录态路由,登录可能未成功。继续遍历,但页面很可能是登录页——请检查 --login-selector-* 是否匹配。",
+          );
         }
+      } catch (e) {
+        console.warn(
+          `[sop-generate] 登录选择器未命中(${e.message})。请用 --login-selector-* 参数指定实际选择器,或改用 playwright-mcp 手动登录后再遍历。`,
+        );
       }
-      if (downloads.length > 0) {
+    } else {
+      console.log(
+        "[sop-generate] 未提供凭据(SOP_USER/SOP_PASS),跳过登录段(适用于无需登录的页面,或已用 MCP 手动登录)",
+      );
+    }
+
+    // --- 遍历段:从导航结构收集页面链接,过滤退出登录/外链/非法协议 ---
+    const navSel = args["nav-selector"] || "nav a, header a, aside a";
+    const rawLinks = await page.$$eval(navSel, (els) =>
+      els.map((el) => ({ href: el.getAttribute("href"), text: (el.textContent || "").trim() })),
+    );
+
+    const seen = new Set();
+    const links = [];
+    const skipped = [];
+    for (const { href, text } of rawLinks) {
+      if (!href || seen.has(href)) continue;
+      seen.add(href);
+      const verdict = isSkippableLink(href, text, baseOrigin);
+      if (verdict.skip) {
+        skipped.push(`${href} (${verdict.reason})`);
+      } else {
+        links.push(href);
+      }
+    }
+    console.log(`[sop-generate] 从导航发现 ${links.length} 个可遍历链接: ${links.join(", ")}`);
+    if (skipped.length > 0) {
+      console.log(`[sop-generate] 已过滤跳过 ${skipped.length} 个链接:\n  ${skipped.join("\n  ")}`);
+    }
+
+    const summary = [];
+    // 落地页自身必须在采集范围内(去重后置于首位),否则导航有链接时首页会被跳过。
+    // 用规范化后的 href(而非原始 args.url)做基准:URL 会补全尾斜杠等,若两处不一致,
+    // 首页会被 slugify 成 "app-example" 而不是 "home"(见下方 slug 判断)。
+    const landingHref = new URL(args.url).href;
+    const pagesToVisit = [...new Set([landingHref, ...links])];
+
+    for (const link of pagesToVisit) {
+      const target = link.startsWith("http") ? link : new URL(link, args.url).toString();
+      const slug = slugify(link === landingHref ? "home" : link);
+      const pageDir = path.join(outDir, slug);
+      fs.mkdirSync(pageDir, { recursive: true });
+
+      try {
+        await page.goto(target, { waitUntil: "domcontentloaded" });
+        await page.waitForLoadState("networkidle").catch(() => {});
+        await waitForAppReady(page);
+
+        // 登录态校验:若中途被弹回登录页,session 已作废,后续截图全是登录页——立即中止
+        if (user && pass && loggedIn && isLoginRoute(page.url())) {
+          console.error(
+            `[sop-generate] 访问 ${target} 后落回登录态路由(${page.url()}),session 可能已失效。中止遍历,已采集页面见 _index.json。`,
+          );
+          break;
+        }
+
+        // 截图存盘
+        const screenshotPath = path.join(pageDir, "full.png");
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+
+        // accessibility 摘要(不含整页截图内容,供 Claude 写文案用)
+        // page.accessibility 在新版 Playwright 已移除;ariaSnapshot(v1.44+)是官方替代
+        const snapshot = await page.locator("body").ariaSnapshot();
+        const interactive = await page.$$eval(
+          "a, button, input, select, textarea, [role=button]",
+          (els) =>
+            els.slice(0, 200).map((el) => ({
+              tag: el.tagName.toLowerCase(),
+              role: el.getAttribute("role") || undefined,
+              text: (el.textContent || el.getAttribute("placeholder") || el.getAttribute("aria-label") || "")
+                .trim()
+                .slice(0, 60),
+            })),
+        );
+
+        const pageSummary = {
+          url: target,
+          slug,
+          title: await page.title(),
+          screenshot: path.relative(process.cwd(), screenshotPath),
+          interactiveElements: interactive,
+        };
         fs.writeFileSync(
-          path.join(actionsDir, "_downloads.json"),
-          JSON.stringify(downloads, null, 2),
+          path.join(pageDir, "summary.json"),
+          JSON.stringify(pageSummary, null, 2),
           "utf-8",
         );
+        summary.push(pageSummary);
+        console.log(`[sop-generate] 已采集: ${target} -> ${pageDir}`);
+      } catch (e) {
+        console.warn(`[sop-generate] 页面采集失败,跳过: ${target} (${e.message})`);
       }
     }
-  }
 
-  await browser.close();
+    fs.writeFileSync(path.join(outDir, "_index.json"), JSON.stringify(summary, null, 2), "utf-8");
+    console.log(`[sop-generate] 完成,页面清单见 ${path.join(outDir, "_index.json")}`);
+
+    // --- 可选段:关键操作前/后截图(--actions <json文件>) ---
+    if (args.actions) {
+      const actionsPath = path.resolve(String(args.actions));
+      let actionList = [];
+      try {
+        actionList = JSON.parse(fs.readFileSync(actionsPath, "utf-8"));
+      } catch (e) {
+        console.warn(`[sop-generate] 读取 --actions 文件失败,跳过该段: ${e.message}`);
+        actionList = [];
+      }
+      if (actionList.length > 0) {
+        const actionsDir = path.join(outDir, "_actions");
+        fs.mkdirSync(actionsDir, { recursive: true });
+        const downloads = [];
+        for (const action of actionList) {
+          const name = action.name || slugify(action.click || action.url || "action");
+          try {
+            if (action.url) {
+              await page.goto(action.url, { waitUntil: "domcontentloaded" });
+              await page.waitForLoadState("networkidle").catch(() => {});
+              await waitForAppReady(page);
+            }
+            if (user && pass && isLoginRoute(page.url())) {
+              console.warn(`[sop-generate] 动作 ${name} 前置导航落回登录页,跳过该动作。`);
+              continue;
+            }
+            const beforePath = path.join(actionsDir, `${name}-${action.before || "before"}.png`);
+            await page.screenshot({ path: beforePath, fullPage: true });
+            if (action.click) {
+              if (action.captureDownload) {
+                const [download] = await Promise.all([
+                  page.waitForEvent("download"),
+                  page.click(action.click),
+                ]);
+                const suggested = download.suggestedFilename();
+                const ext = path.extname(suggested) || "";
+                const downloadPath = path.join(actionsDir, `${name}-download${ext}`);
+                await download.saveAs(downloadPath);
+                const sizeBytes = fs.statSync(downloadPath).size;
+                downloads.push({ name, suggestedFilename: suggested, sizeBytes, savedTo: path.relative(process.cwd(), downloadPath) });
+                console.log(`[sop-generate] 捕获下载: ${name} -> ${suggested} (${sizeBytes} bytes)`);
+              } else {
+                await page.click(action.click);
+              }
+              await page.waitForLoadState("networkidle").catch(() => {});
+              // 点击本身也可能触发新的异步数据请求(如切换品牌口径重新拉数),同样会先拍到
+              // "加载中…"半成品——除非调用方明确要抓转瞬即逝的忙态(见 captureBusyState),
+              // 否则默认再等一轮就绪,拍到点击后真正落定的状态。
+              if (!action.captureBusyState) await waitForAppReady(page);
+            }
+            const afterPath = path.join(actionsDir, `${name}-${action.after || "after"}.png`);
+            await page.screenshot({ path: afterPath, fullPage: true });
+            console.log(`[sop-generate] 动作截图完成: ${name} -> ${beforePath}, ${afterPath}`);
+          } catch (e) {
+            console.warn(`[sop-generate] 动作 ${name} 执行失败,跳过: ${e.message}`);
+          }
+        }
+        if (downloads.length > 0) {
+          fs.writeFileSync(
+            path.join(actionsDir, "_downloads.json"),
+            JSON.stringify(downloads, null, 2),
+            "utf-8",
+          );
+        }
+      }
+    }
+
+  } finally {
+    await closeBrowserBounded(browser);
+  }
 }
 
-main().catch((e) => {
+main().then(() => {
+  // close 超时时事件循环里可能还挂着浏览器连接:正常跑完(退出码 0)也要显式退出;出错路径由下面的 catch 以 1 退出
+  if (browserCloseTimedOut) process.exit(process.exitCode ?? 0);
+}).catch((e) => {
   console.error("[sop-generate] 脚本执行失败:", e);
   process.exit(1);
 });

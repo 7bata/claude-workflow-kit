@@ -481,8 +481,34 @@ function clickTopCss(sel) {
 //      在跑引擎前手动 `agent-browser state load` 预载登录态,如果那条命令先把会话建起来了,
 //      引擎自己的 --allowed-domains 就成了没人听的空话——这正是本轮修复的诱因)。
 //      `close` 用 { ok: true }:第一次跑没有残留会话时 close 会报错,忽略即可,不是异常。
+// Session cleanup (spec 2026-10-01 U3): once the session is started, the engine closes its own
+// ui-sweep session however it ends (normal finish, process.exit, uncaught exception,
+// SIGINT/SIGTERM/SIGHUP). ab() is synchronous, so it is safe inside process.on('exit'); runs once;
+// a failed close never changes the original exit code and never throws, it only prints one line to stderr.
+let sessionStarted = false;
+let sessionClosed = false;
+function closeOwnSession() {
+  if (!sessionStarted || sessionClosed) return;
+  sessionClosed = true;
+  let r = null;
+  try { r = ab(['close'], { ok: true }); } catch { /* a failed close must not affect the exit code */ }
+  // ab(..., { ok: true }) returns null when the command fails or times out (45 s): the browser may still be running, so ask for a manual close
+  if (r === null) {
+    try { console.error('ui-sweep: failed to close the browser session (it may still be running); run: agent-browser --session ui-sweep close'); } catch { /* an unwritable stderr must not change the exit code */ }
+  }
+}
+process.on('exit', closeOwnSession);
+// Note: after a signal the engine exits with 130 (SIGINT) / 143 (SIGTERM) / 129 (SIGHUP), so a parent
+// process (spawnSync, CI) sees an exit code rather than a signal; and the engine uses synchronous calls
+// (execFileSync), so a signal is only handled once the current run of synchronous calls ends and the code reaches
+// the next await (a single call times out at 45 s; several calls back to back wait longer).
+for (const [sig, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]]) {
+  process.on(sig, () => process.exit(code)); // exit with the matching non-zero code, which triggers the cleanup above
+}
+
 async function initSession() {
   ab(['close'], { ok: true });
+  sessionStarted = true; // from here on `open` may have launched a browser process, so every exit path must close it
   ab(['open', ROOT]);
   await settle(2000);
   if (STATE_FILE) {

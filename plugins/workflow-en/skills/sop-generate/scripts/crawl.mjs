@@ -192,6 +192,28 @@ async function waitForAppReady(page, { timeoutMs = 15000, loadingTexts = ["Loadi
   await page.waitForTimeout(400);
 }
 
+// Upper bound on closing the browser: a hung close() must not hang the script with it.
+// Playwright's Browser object has no public way to get the browser child PID (process() exists only on
+// BrowserServer and ElectronApplication; in the playwright-core 1.63 typings Browser does not have it),
+// so after a timeout we do not kill by PID. Instead main() exits explicitly with the exit code the run
+// should have had; playwright registers a process 'exit' handler at launch (processLauncher's
+// killProcessAndCleanup) that also kills the browser child on process exit (checked in the playwright-core 1.63 source).
+const CLOSE_TIMEOUT_MS = 10000;
+let browserCloseTimedOut = false;
+async function closeBrowserBounded(browser) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), CLOSE_TIMEOUT_MS);
+  });
+  const closed = browser.close().then(() => "closed", () => "closed");
+  const result = await Promise.race([closed, timeout]);
+  clearTimeout(timer);
+  if (result === "timeout") {
+    browserCloseTimedOut = true;
+    console.error(`[sop-generate] Closing the browser took longer than ${CLOSE_TIMEOUT_MS / 1000}s and it may not have closed; the script will exit now, please check with ps for a leftover browser process.`);
+  }
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.url || typeof args.url !== "string") {
@@ -228,216 +250,223 @@ async function main() {
   }
 
   const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  // Close the browser on error paths too: every way out after a successful launch goes through the finally below
+  try {
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-  console.log(`[sop-generate] opening ${args.url}`);
-  await page.goto(args.url, { waitUntil: "domcontentloaded" });
+    console.log(`[sop-generate] opening ${args.url}`);
+    await page.goto(args.url, { waitUntil: "domcontentloaded" });
 
-  // --- Login stage (optional, runs when credentials are supplied) ---
-  let loggedIn = false;
-  if (user && pass) {
-    const userSel =
-      args["login-selector-user"] || 'input[name="username"], input[type="email"], #username, input[type="text"]';
-    const passSel =
-      args["login-selector-pass"] || 'input[name="password"], input[type="password"], #password';
-    const submitSel = args["login-selector-submit"] || 'button[type="submit"], input[type="submit"]';
-    try {
-      await page.fill(userSel, user);
-      await page.fill(passSel, pass);
-      await page.click(submitSel);
-      await page.waitForLoadState("networkidle").catch(() => {});
-      loggedIn = !isLoginRoute(page.url());
-      if (loggedIn) {
-        console.log("[sop-generate] login action executed (credentials are never written to any output file)");
-      } else {
-        console.warn(
-          "[sop-generate] still on a login-state route after submitting login; login may have failed. Continuing traversal, but the page is likely a login page — check whether --login-selector-* matches.",
-        );
-      }
-    } catch (e) {
-      console.warn(
-        `[sop-generate] login selector didn't match (${e.message}). Specify the actual selectors with --login-selector-*, or switch to playwright-mcp for a manual login before traversing.`,
-      );
-    }
-  } else {
-    console.log(
-      "[sop-generate] no credentials supplied (SOP_USER/SOP_PASS), skipping the login stage (fine for pages that don't require login, or when already logged in manually via MCP)",
-    );
-  }
-
-  // --- Traversal stage: collect page links from the nav structure, filter out
-  //     logout/external/illegal-protocol links ---
-  const navSel = args["nav-selector"] || "nav a, header a, aside a";
-  const rawLinks = await page.$$eval(navSel, (els) =>
-    els.map((el) => ({ href: el.getAttribute("href"), text: (el.textContent || "").trim() })),
-  );
-
-  const seen = new Set();
-  const links = [];
-  const skipped = [];
-  for (const { href, text } of rawLinks) {
-    if (!href || seen.has(href)) continue;
-    seen.add(href);
-    const verdict = isSkippableLink(href, text, baseOrigin);
-    if (verdict.skip) {
-      skipped.push(`${href} (${verdict.reason})`);
-    } else {
-      links.push(href);
-    }
-  }
-  console.log(`[sop-generate] found ${links.length} traversable links from the nav: ${links.join(", ")}`);
-  if (skipped.length > 0) {
-    console.log(`[sop-generate] filtered out ${skipped.length} links:\n  ${skipped.join("\n  ")}`);
-  }
-
-  const summary = [];
-  // The landing page itself must be in the traversal set (deduped, placed first),
-  // or it gets skipped whenever the nav has other links.
-  // Anchor on the normalized href (not the raw args.url): URL fills in things like a
-  // trailing slash, and if the two don't match, the landing page gets slugified as
-  // "app-example" instead of "home" (see the slug check below).
-  const landingHref = new URL(args.url).href;
-  const pagesToVisit = [...new Set([landingHref, ...links])];
-
-  for (const link of pagesToVisit) {
-    const target = link.startsWith("http") ? link : new URL(link, args.url).toString();
-    const slug = slugify(link === landingHref ? "home" : link);
-    const pageDir = path.join(outDir, slug);
-    fs.mkdirSync(pageDir, { recursive: true });
-
-    try {
-      await page.goto(target, { waitUntil: "domcontentloaded" });
-      await page.waitForLoadState("networkidle").catch(() => {});
-      await waitForAppReady(page);
-
-      // Session validity check: if we got bounced back to the login page mid-run,
-      // the session is invalidated and every screenshot from here on is just the
-      // login page — abort immediately.
-      if (user && pass && loggedIn && isLoginRoute(page.url())) {
-        console.error(
-          `[sop-generate] landed back on a login-state route (${page.url()}) after visiting ${target}; the session may have expired. Aborting traversal — pages collected so far are in _index.json.`,
-        );
-        break;
-      }
-
-      // Save the screenshot
-      const screenshotPath = path.join(pageDir, "full.png");
-      await page.screenshot({ path: screenshotPath, fullPage: true });
-
-      // Accessibility summary (no full-page screenshot content — for Claude to
-      // write copy from)
-      // page.accessibility was removed in newer Playwright; ariaSnapshot (v1.44+)
-      // is the official replacement
-      const snapshot = await page.locator("body").ariaSnapshot();
-      const interactive = await page.$$eval(
-        "a, button, input, select, textarea, [role=button]",
-        (els) =>
-          els.slice(0, 200).map((el) => ({
-            tag: el.tagName.toLowerCase(),
-            role: el.getAttribute("role") || undefined,
-            text: (el.textContent || el.getAttribute("placeholder") || el.getAttribute("aria-label") || "")
-              .trim()
-              .slice(0, 60),
-          })),
-      );
-
-      const pageSummary = {
-        url: target,
-        slug,
-        title: await page.title(),
-        screenshot: path.relative(process.cwd(), screenshotPath),
-        interactiveElements: interactive,
-      };
-      fs.writeFileSync(
-        path.join(pageDir, "summary.json"),
-        JSON.stringify(pageSummary, null, 2),
-        "utf-8",
-      );
-      summary.push(pageSummary);
-      console.log(`[sop-generate] collected: ${target} -> ${pageDir}`);
-    } catch (e) {
-      console.warn(`[sop-generate] page collection failed, skipping: ${target} (${e.message})`);
-    }
-  }
-
-  fs.writeFileSync(path.join(outDir, "_index.json"), JSON.stringify(summary, null, 2), "utf-8");
-  console.log(`[sop-generate] done, page list at ${path.join(outDir, "_index.json")}`);
-
-  // --- Optional stage: before/after screenshots for key operations (--actions <json file>) ---
-  if (args.actions) {
-    const actionsPath = path.resolve(String(args.actions));
-    let actionList = [];
-    try {
-      actionList = JSON.parse(fs.readFileSync(actionsPath, "utf-8"));
-    } catch (e) {
-      console.warn(`[sop-generate] failed to read --actions file, skipping this stage: ${e.message}`);
-      actionList = [];
-    }
-    if (actionList.length > 0) {
-      const actionsDir = path.join(outDir, "_actions");
-      fs.mkdirSync(actionsDir, { recursive: true });
-      const downloads = [];
-      for (const action of actionList) {
-        const name = action.name || slugify(action.click || action.url || "action");
-        try {
-          if (action.url) {
-            await page.goto(action.url, { waitUntil: "domcontentloaded" });
-            await page.waitForLoadState("networkidle").catch(() => {});
-            await waitForAppReady(page);
-          }
-          if (user && pass && isLoginRoute(page.url())) {
-            console.warn(`[sop-generate] action ${name}'s pre-navigation landed back on the login page, skipping this action.`);
-            continue;
-          }
-          const beforePath = path.join(actionsDir, `${name}-${action.before || "before"}.png`);
-          await page.screenshot({ path: beforePath, fullPage: true });
-          if (action.click) {
-            if (action.captureDownload) {
-              const [download] = await Promise.all([
-                page.waitForEvent("download"),
-                page.click(action.click),
-              ]);
-              const suggested = download.suggestedFilename();
-              const ext = path.extname(suggested) || "";
-              const downloadPath = path.join(actionsDir, `${name}-download${ext}`);
-              await download.saveAs(downloadPath);
-              const sizeBytes = fs.statSync(downloadPath).size;
-              downloads.push({ name, suggestedFilename: suggested, sizeBytes, savedTo: path.relative(process.cwd(), downloadPath) });
-              console.log(`[sop-generate] captured download: ${name} -> ${suggested} (${sizeBytes} bytes)`);
-            } else {
-              await page.click(action.click);
-            }
-            await page.waitForLoadState("networkidle").catch(() => {});
-            // The click itself may also trigger new async data requests (e.g.
-            // switching a report's basis re-pulls data), which likewise briefly
-            // shows a "loading…" half-finished state first — unless the caller
-            // explicitly wants to capture that fleeting busy state (see
-            // captureBusyState), wait for readiness once more by default, to
-            // capture the state that actually settled after the click.
-            if (!action.captureBusyState) await waitForAppReady(page);
-          }
-          const afterPath = path.join(actionsDir, `${name}-${action.after || "after"}.png`);
-          await page.screenshot({ path: afterPath, fullPage: true });
-          console.log(`[sop-generate] action screenshots done: ${name} -> ${beforePath}, ${afterPath}`);
-        } catch (e) {
-          console.warn(`[sop-generate] action ${name} failed, skipping: ${e.message}`);
+    // --- Login stage (optional, runs when credentials are supplied) ---
+    let loggedIn = false;
+    if (user && pass) {
+      const userSel =
+        args["login-selector-user"] || 'input[name="username"], input[type="email"], #username, input[type="text"]';
+      const passSel =
+        args["login-selector-pass"] || 'input[name="password"], input[type="password"], #password';
+      const submitSel = args["login-selector-submit"] || 'button[type="submit"], input[type="submit"]';
+      try {
+        await page.fill(userSel, user);
+        await page.fill(passSel, pass);
+        await page.click(submitSel);
+        await page.waitForLoadState("networkidle").catch(() => {});
+        loggedIn = !isLoginRoute(page.url());
+        if (loggedIn) {
+          console.log("[sop-generate] login action executed (credentials are never written to any output file)");
+        } else {
+          console.warn(
+            "[sop-generate] still on a login-state route after submitting login; login may have failed. Continuing traversal, but the page is likely a login page — check whether --login-selector-* matches.",
+          );
         }
+      } catch (e) {
+        console.warn(
+          `[sop-generate] login selector didn't match (${e.message}). Specify the actual selectors with --login-selector-*, or switch to playwright-mcp for a manual login before traversing.`,
+        );
       }
-      if (downloads.length > 0) {
+    } else {
+      console.log(
+        "[sop-generate] no credentials supplied (SOP_USER/SOP_PASS), skipping the login stage (fine for pages that don't require login, or when already logged in manually via MCP)",
+      );
+    }
+
+    // --- Traversal stage: collect page links from the nav structure, filter out
+    //     logout/external/illegal-protocol links ---
+    const navSel = args["nav-selector"] || "nav a, header a, aside a";
+    const rawLinks = await page.$$eval(navSel, (els) =>
+      els.map((el) => ({ href: el.getAttribute("href"), text: (el.textContent || "").trim() })),
+    );
+
+    const seen = new Set();
+    const links = [];
+    const skipped = [];
+    for (const { href, text } of rawLinks) {
+      if (!href || seen.has(href)) continue;
+      seen.add(href);
+      const verdict = isSkippableLink(href, text, baseOrigin);
+      if (verdict.skip) {
+        skipped.push(`${href} (${verdict.reason})`);
+      } else {
+        links.push(href);
+      }
+    }
+    console.log(`[sop-generate] found ${links.length} traversable links from the nav: ${links.join(", ")}`);
+    if (skipped.length > 0) {
+      console.log(`[sop-generate] filtered out ${skipped.length} links:\n  ${skipped.join("\n  ")}`);
+    }
+
+    const summary = [];
+    // The landing page itself must be in the traversal set (deduped, placed first),
+    // or it gets skipped whenever the nav has other links.
+    // Anchor on the normalized href (not the raw args.url): URL fills in things like a
+    // trailing slash, and if the two don't match, the landing page gets slugified as
+    // "app-example" instead of "home" (see the slug check below).
+    const landingHref = new URL(args.url).href;
+    const pagesToVisit = [...new Set([landingHref, ...links])];
+
+    for (const link of pagesToVisit) {
+      const target = link.startsWith("http") ? link : new URL(link, args.url).toString();
+      const slug = slugify(link === landingHref ? "home" : link);
+      const pageDir = path.join(outDir, slug);
+      fs.mkdirSync(pageDir, { recursive: true });
+
+      try {
+        await page.goto(target, { waitUntil: "domcontentloaded" });
+        await page.waitForLoadState("networkidle").catch(() => {});
+        await waitForAppReady(page);
+
+        // Session validity check: if we got bounced back to the login page mid-run,
+        // the session is invalidated and every screenshot from here on is just the
+        // login page — abort immediately.
+        if (user && pass && loggedIn && isLoginRoute(page.url())) {
+          console.error(
+            `[sop-generate] landed back on a login-state route (${page.url()}) after visiting ${target}; the session may have expired. Aborting traversal — pages collected so far are in _index.json.`,
+          );
+          break;
+        }
+
+        // Save the screenshot
+        const screenshotPath = path.join(pageDir, "full.png");
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+
+        // Accessibility summary (no full-page screenshot content — for Claude to
+        // write copy from)
+        // page.accessibility was removed in newer Playwright; ariaSnapshot (v1.44+)
+        // is the official replacement
+        const snapshot = await page.locator("body").ariaSnapshot();
+        const interactive = await page.$$eval(
+          "a, button, input, select, textarea, [role=button]",
+          (els) =>
+            els.slice(0, 200).map((el) => ({
+              tag: el.tagName.toLowerCase(),
+              role: el.getAttribute("role") || undefined,
+              text: (el.textContent || el.getAttribute("placeholder") || el.getAttribute("aria-label") || "")
+                .trim()
+                .slice(0, 60),
+            })),
+        );
+
+        const pageSummary = {
+          url: target,
+          slug,
+          title: await page.title(),
+          screenshot: path.relative(process.cwd(), screenshotPath),
+          interactiveElements: interactive,
+        };
         fs.writeFileSync(
-          path.join(actionsDir, "_downloads.json"),
-          JSON.stringify(downloads, null, 2),
+          path.join(pageDir, "summary.json"),
+          JSON.stringify(pageSummary, null, 2),
           "utf-8",
         );
+        summary.push(pageSummary);
+        console.log(`[sop-generate] collected: ${target} -> ${pageDir}`);
+      } catch (e) {
+        console.warn(`[sop-generate] page collection failed, skipping: ${target} (${e.message})`);
       }
     }
-  }
 
-  await browser.close();
+    fs.writeFileSync(path.join(outDir, "_index.json"), JSON.stringify(summary, null, 2), "utf-8");
+    console.log(`[sop-generate] done, page list at ${path.join(outDir, "_index.json")}`);
+
+    // --- Optional stage: before/after screenshots for key operations (--actions <json file>) ---
+    if (args.actions) {
+      const actionsPath = path.resolve(String(args.actions));
+      let actionList = [];
+      try {
+        actionList = JSON.parse(fs.readFileSync(actionsPath, "utf-8"));
+      } catch (e) {
+        console.warn(`[sop-generate] failed to read --actions file, skipping this stage: ${e.message}`);
+        actionList = [];
+      }
+      if (actionList.length > 0) {
+        const actionsDir = path.join(outDir, "_actions");
+        fs.mkdirSync(actionsDir, { recursive: true });
+        const downloads = [];
+        for (const action of actionList) {
+          const name = action.name || slugify(action.click || action.url || "action");
+          try {
+            if (action.url) {
+              await page.goto(action.url, { waitUntil: "domcontentloaded" });
+              await page.waitForLoadState("networkidle").catch(() => {});
+              await waitForAppReady(page);
+            }
+            if (user && pass && isLoginRoute(page.url())) {
+              console.warn(`[sop-generate] action ${name}'s pre-navigation landed back on the login page, skipping this action.`);
+              continue;
+            }
+            const beforePath = path.join(actionsDir, `${name}-${action.before || "before"}.png`);
+            await page.screenshot({ path: beforePath, fullPage: true });
+            if (action.click) {
+              if (action.captureDownload) {
+                const [download] = await Promise.all([
+                  page.waitForEvent("download"),
+                  page.click(action.click),
+                ]);
+                const suggested = download.suggestedFilename();
+                const ext = path.extname(suggested) || "";
+                const downloadPath = path.join(actionsDir, `${name}-download${ext}`);
+                await download.saveAs(downloadPath);
+                const sizeBytes = fs.statSync(downloadPath).size;
+                downloads.push({ name, suggestedFilename: suggested, sizeBytes, savedTo: path.relative(process.cwd(), downloadPath) });
+                console.log(`[sop-generate] captured download: ${name} -> ${suggested} (${sizeBytes} bytes)`);
+              } else {
+                await page.click(action.click);
+              }
+              await page.waitForLoadState("networkidle").catch(() => {});
+              // The click itself may also trigger new async data requests (e.g.
+              // switching a report's basis re-pulls data), which likewise briefly
+              // shows a "loading…" half-finished state first — unless the caller
+              // explicitly wants to capture that fleeting busy state (see
+              // captureBusyState), wait for readiness once more by default, to
+              // capture the state that actually settled after the click.
+              if (!action.captureBusyState) await waitForAppReady(page);
+            }
+            const afterPath = path.join(actionsDir, `${name}-${action.after || "after"}.png`);
+            await page.screenshot({ path: afterPath, fullPage: true });
+            console.log(`[sop-generate] action screenshots done: ${name} -> ${beforePath}, ${afterPath}`);
+          } catch (e) {
+            console.warn(`[sop-generate] action ${name} failed, skipping: ${e.message}`);
+          }
+        }
+        if (downloads.length > 0) {
+          fs.writeFileSync(
+            path.join(actionsDir, "_downloads.json"),
+            JSON.stringify(downloads, null, 2),
+            "utf-8",
+          );
+        }
+      }
+    }
+
+  } finally {
+    await closeBrowserBounded(browser);
+  }
 }
 
-main().catch((e) => {
+main().then(() => {
+  // After a close timeout the browser connection may keep the event loop alive: exit explicitly with 0 after a normal run; the error path exits with 1 in the catch below
+  if (browserCloseTimedOut) process.exit(process.exitCode ?? 0);
+}).catch((e) => {
   console.error("[sop-generate] script execution failed:", e);
   process.exit(1);
 });

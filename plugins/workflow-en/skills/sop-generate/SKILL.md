@@ -55,6 +55,7 @@ Hard rules (apply throughout; violating any means redoing the work):
 - Screenshot each page/feature in turn, storing to `docs/sop-images/<page-slug>/` (use the page's route name for the slug — stick to ASCII; non-ASCII filenames get mangled by some tools).
 - **Key operations** (form submissions, report exports, triggering batch jobs — anything with a side effect or a state change) get **before/after** screenshot pairs, filenames suffixed `-before` / `-after`.
 - Alongside each screenshot, jot down one sentence summarizing the accessibility summary's key points for that page/state (used in Step 4 for copywriting — no need to keep the full summary verbatim).
+- **Close when done**: once the screenshots are taken, close the agent-browser session used for them and any app process you started for the shots; close only what you started yourself, never processes that were already running.
 
 ### 4. Write it up
 
