@@ -481,8 +481,32 @@ function clickTopCss(sel) {
 //      在跑引擎前手动 `agent-browser state load` 预载登录态,如果那条命令先把会话建起来了,
 //      引擎自己的 --allowed-domains 就成了没人听的空话——这正是本轮修复的诱因)。
 //      `close` 用 { ok: true }:第一次跑没有残留会话时 close 会报错,忽略即可,不是异常。
+// 会话收尾(spec 2026-10-01 U3):会话一旦建立,引擎无论怎么结束(正常跑完、process.exit、
+// 未捕获异常、SIGINT/SIGTERM/SIGHUP)都关掉自己的 ui-sweep 会话。ab() 是同步调用,所以能在
+// process.on('exit') 里用;只执行一次;关闭失败不改变原退出码、不抛异常,只往 stderr 打一行提示。
+let sessionStarted = false;
+let sessionClosed = false;
+function closeOwnSession() {
+  if (!sessionStarted || sessionClosed) return;
+  sessionClosed = true;
+  let r = null;
+  try { r = ab(['close'], { ok: true }); } catch { /* 关闭失败不影响原退出码 */ }
+  // ab(..., { ok: true }) 在命令失败或超时(45 秒)时返回 null:此时浏览器可能还活着,提示人工关
+  if (r === null) {
+    try { console.error('ui-sweep: failed to close the browser session (it may still be running); run: agent-browser --session ui-sweep close'); } catch { /* stderr 写不出去也不改变退出码 */ }
+  }
+}
+process.on('exit', closeOwnSession);
+// 说明:收到信号后引擎以 130(SIGINT)/143(SIGTERM)/129(SIGHUP)退出,父进程(spawnSync、CI)
+// 看到的是退出码而不是 signal;另外引擎用的是同步调用(execFileSync),信号要等当前这一串同步
+// 调用结束、代码回到下一个 await 时才会被处理(单次调用的超时是 45 秒,连续几次调用时等得更久)。
+for (const [sig, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]]) {
+  process.on(sig, () => process.exit(code)); // 以对应非零码退出,触发上面的 exit 收尾
+}
+
 async function initSession() {
   ab(['close'], { ok: true });
+  sessionStarted = true; // 从这里起 open 可能已经拉起浏览器进程,任何结束路径都要关
   ab(['open', ROOT]);
   await settle(2000);
   if (STATE_FILE) {

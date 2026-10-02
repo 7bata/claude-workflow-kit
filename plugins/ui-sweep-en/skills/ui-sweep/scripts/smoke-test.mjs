@@ -32,8 +32,8 @@
 //      - F3:coverage_note 采集失灵不可辨(--check-coverage-note)——网络采集解析失败次数>0、
 //        或整轮采集次数为 0 时,coverage_note 必须带警告文字,且绝不能输出"full coverage"
 //        强断言(哪怕 coverageGaps 是空的)
-import { spawnSync } from 'node:child_process';
-import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { spawnSync, spawn } from 'node:child_process';
+import { writeFileSync, mkdtempSync, rmSync, readFileSync, existsSync, mkdirSync, chmodSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -45,12 +45,12 @@ let pass = 0, fail = 0;
 function ok(name) { pass++; console.log(`PASS: ${name}`); }
 function bad(name, detail) { fail++; console.log(`FAIL: ${name}${detail ? ' — ' + detail : ''}`); }
 
-function run(args) {
+function run(args, extraEnv) {
   // spawnSync (not execFileSync) so stderr is captured on BOTH success and failure exit codes —
   // execFileSync only hands back e.stderr when the process throws (non-zero exit), so a warning
   // printed to stderr by an exit-0 run (e.g. the network-shape parse warning) would silently go
   // to the test runner's own stderr instead of being visible to assertions here.
-  const r = spawnSync('node', [SWEEP, ...args], { encoding: 'utf8' });
+  const r = spawnSync('node', [SWEEP, ...args], { encoding: 'utf8', env: extraEnv ? { ...process.env, ...extraEnv } : process.env });
   return { code: r.status ?? 1, stdout: r.stdout || '', stderr: r.stderr || '' };
 }
 
@@ -416,6 +416,152 @@ try {
     } catch { /* leave good = false, reported below */ }
     if (r.code === 0 && good) ok('buildCoverageNote combines screen coverage gaps and network parse failures into one note');
     else bad('buildCoverageNote combines screen coverage gaps and network parse failures into one note', `code=${r.code} stdout=${JSON.stringify(r.stdout)} stderr=${JSON.stringify(r.stderr)}`);
+  }
+
+  // Case 14: session cleanup (spec 2026-10-01 U3). A fake `agent-browser` executable (records its
+  // argv, never starts a real browser) is placed first on the child's PATH. After the session is
+  // built, every exit path must issue a `close` for the ui-sweep session; the close at the very
+  // start of initSession (clearing a stale session) is kept, so a run has one close at the start
+  // and one at the end.
+  const fakeDir = path.join(tmp, 'fakebin');
+  mkdirSync(fakeDir);
+  const fakeLog = path.join(tmp, 'fake-ab.log');
+  const fakeAb = path.join(fakeDir, 'agent-browser');
+  writeFileSync(fakeAb, [
+    '#!/bin/sh',
+    'echo "$@" >> "$FAKE_AB_LOG"',
+    'case "$*" in',
+    '  *" state load "*) echo "fake state load failure" >&2; exit 1;;',
+    '  *" close") [ "$FAKE_AB_CLOSE_FAIL" = "1" ] && exit 1;;',
+    // FAKE_AB_SLEEP=<seconds>: every `wait --load` call sleeps (the first one comes right after `open`), giving the
+    // test a window to send a signal to the sweep.mjs process. Callers keep it <= 5 seconds.
+    '  *" wait --load "*) [ -n "$FAKE_AB_SLEEP" ] && sleep "$FAKE_AB_SLEEP";;',
+    'esac',
+    'exit 0',
+    '',
+  ].join('\n'));
+  chmodSync(fakeAb, 0o755);
+  const fakeEnv = (extra = {}) => ({ PATH: fakeDir + path.delimiter + process.env.PATH, FAKE_AB_LOG: fakeLog, ...extra });
+  const readCalls = () => (existsSync(fakeLog) ? readFileSync(fakeLog, 'utf8').split('\n').filter(Boolean) : []);
+  const isSessionClose = (l) => /^--session ui-sweep .* close$/.test(l);
+  const sessionCfg = path.join(tmp, 'session.config.mjs');
+  writeFileSync(sessionCfg, `export const ROOT = 'https://example.com/';\nexport const SCREENS = [{ id: 'home', path: [], settleMs: 10 }];\nexport const OUT = ${JSON.stringify(path.join(tmp, 'sweep-out-a'))};\n`);
+
+  // Case 14a: normal finish — the last agent-browser call is a close for the ui-sweep session
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([sessionCfg], fakeEnv());
+    const calls = readCalls();
+    const closes = calls.filter(isSessionClose);
+    if (r.code === 0 && /SWEEP DONE/.test(r.stdout) && calls.length > 0 && isSessionClose(calls[calls.length - 1]) && closes.length === 2) ok('normal finish: the last agent-browser call closes the ui-sweep session (plus the initial stale-session close)');
+    else bad('normal finish: the last agent-browser call closes the ui-sweep session (plus the initial stale-session close)', `code=${r.code} closes=${closes.length} calls=${JSON.stringify(calls)} stderr=${JSON.stringify(r.stderr)}`);
+  }
+
+  // Case 14b: failure exit after the session is built (STATE_FILE load fails -> process.exit(1))
+  const failCfg = path.join(tmp, 'session-fail.config.mjs');
+  writeFileSync(failCfg, `export const ROOT = 'https://example.com/';\nexport const SCREENS = [{ id: 'home', path: [], settleMs: 10 }];\nexport const STATE_FILE = '/nonexistent/state.json';\nexport const OUT = ${JSON.stringify(path.join(tmp, 'sweep-out-b'))};\n`);
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([failCfg], fakeEnv());
+    const calls = readCalls();
+    const closes = calls.filter(isSessionClose);
+    if (r.code === 1 && /STATE_FILE failed to load/.test(r.stderr) && calls.length > 0 && isSessionClose(calls[calls.length - 1]) && closes.length === 2) ok('failure exit after the session is built still closes the ui-sweep session and keeps exit code 1');
+    else bad('failure exit after the session is built still closes the ui-sweep session and keeps exit code 1', `code=${r.code} closes=${closes.length} calls=${JSON.stringify(calls)} stderr=${JSON.stringify(r.stderr)}`);
+  }
+
+  // Case 14c: a failing close must not change the original exit code. Two assertions: the
+  // normal-finish config (would exit 0) must still exit 0 and print SWEEP DONE when close fails
+  // (this is the one that detects closeOwnSession leaking a non-zero code); the already-failing
+  // config must still exit 1.
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([sessionCfg], fakeEnv({ FAKE_AB_CLOSE_FAIL: '1' }));
+    if (r.code === 0 && /SWEEP DONE/.test(r.stdout)) ok('a failing close does not turn a normal finish (exit 0) into a failure');
+    else bad('a failing close does not turn a normal finish (exit 0) into a failure', `code=${r.code} stdout=${JSON.stringify(r.stdout)} stderr=${JSON.stringify(r.stderr)}`);
+  }
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([failCfg], fakeEnv({ FAKE_AB_CLOSE_FAIL: '1' }));
+    if (r.code === 1) ok('a failing close does not change the exit code of an already-failing run (stays 1)');
+    else bad('a failing close does not change the exit code of an already-failing run (stays 1)', `code=${r.code} stderr=${JSON.stringify(r.stderr)}`);
+  }
+
+  // Case 14d: exits before any session is built (--check-config) — output unchanged, no agent-browser call at all
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([valid, '--check-config'], fakeEnv());
+    const expected = `config OK: ROOT=https://example.com/ SCREENS=1 DENY_EXTRA=no ALLOWED_DOMAINS=example.com STATE_FILE=no ensureBaseline=no\n`;
+    if (r.code === 0 && r.stdout === expected && readCalls().length === 0) ok('--check-config (exits before the session is built) prints the same output and makes no agent-browser call');
+    else bad('--check-config (exits before the session is built) prints the same output and makes no agent-browser call', `code=${r.code} stdout=${JSON.stringify(r.stdout)} calls=${JSON.stringify(readCalls())}`);
+  }
+
+  // Case 14e: when the close of the ui-sweep session fails, the engine prints a one-line hint on
+  // stderr naming the manual command, and the exit code is unchanged. A normal close prints no hint.
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([sessionCfg], fakeEnv({ FAKE_AB_CLOSE_FAIL: '1' }));
+    if (r.code === 0 && /agent-browser --session ui-sweep close/.test(r.stderr)) ok('a failing close prints a stderr hint containing "agent-browser --session ui-sweep close" and keeps the exit code');
+    else bad('a failing close prints a stderr hint containing "agent-browser --session ui-sweep close" and keeps the exit code', `code=${r.code} stderr=${JSON.stringify(r.stderr)}`);
+  }
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([sessionCfg], fakeEnv());
+    if (r.code === 0 && !/agent-browser --session ui-sweep close/.test(r.stderr)) ok('a successful close prints no manual-close hint');
+    else bad('a successful close prints no manual-close hint', `code=${r.code} stderr=${JSON.stringify(r.stderr)}`);
+  }
+
+  // Case 14f: uncaught exception after the session is built. ensureBaseline (a config hook, called
+  // from restore() after `open`) throws; the top-level await rejects, node exits non-zero, and the
+  // last agent-browser call must still be a close for the ui-sweep session.
+  const throwCfg = path.join(tmp, 'session-throw.config.mjs');
+  writeFileSync(throwCfg, `export const ROOT = 'https://example.com/';\nexport const SCREENS = [{ id: 'home', path: [], settleMs: 10 }];\nexport async function ensureBaseline() { throw new Error('smoke-boom'); }\nexport const OUT = ${JSON.stringify(path.join(tmp, 'sweep-out-c'))};\n`);
+  {
+    rmSync(fakeLog, { force: true });
+    const r = run([throwCfg], fakeEnv());
+    const calls = readCalls();
+    const closes = calls.filter(isSessionClose);
+    if (r.code !== 0 && /smoke-boom/.test(r.stderr) && calls.length > 0 && isSessionClose(calls[calls.length - 1]) && closes.length === 2) ok('uncaught exception after the session is built exits non-zero and the last agent-browser call closes the ui-sweep session');
+    else bad('uncaught exception after the session is built exits non-zero and the last agent-browser call closes the ui-sweep session', `code=${r.code} closes=${closes.length} calls=${JSON.stringify(calls)} stderr=${JSON.stringify(r.stderr)}`);
+  }
+
+  // Case 14g: signal paths. sweep.mjs runs agent-browser through execFileSync, so a signal is only
+  // handled after the in-flight call returns; the fake sleeps 3 seconds inside the first `wait`
+  // (after `open`). The test sends the signal to the sweep.mjs child by PID as soon as that call is
+  // logged. The whole case is bounded at 20 seconds; on timeout the child is killed by PID
+  // (SIGKILL) and the case fails, so no process is left behind.
+  const startedPids = [];
+  function runWithSignal(cfgPath, signal) {
+    return new Promise((resolve) => {
+      const child = spawn('node', [SWEEP, cfgPath], { env: { ...process.env, ...fakeEnv({ FAKE_AB_SLEEP: '3' }) }, stdio: ['ignore', 'pipe', 'pipe'] });
+      startedPids.push(child.pid);
+      let stdout = '', stderr = '', sent = false, timedOut = false;
+      child.stdout.on('data', (d) => { stdout += d; });
+      child.stderr.on('data', (d) => { stderr += d; });
+      const poll = setInterval(() => {
+        if (!sent && readCalls().some((l) => / wait --load /.test(l))) { sent = true; child.kill(signal); }
+      }, 50);
+      const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, 20000);
+      const finish = (code, sig) => { clearInterval(poll); clearTimeout(timer); resolve({ code, sig, stdout, stderr, sent, timedOut }); };
+      child.on('error', () => finish(null, null));
+      child.on('close', finish);
+    });
+  }
+  for (const [signal, expectedCode] of [['SIGTERM', 143], ['SIGHUP', 129]]) {
+    rmSync(fakeLog, { force: true });
+    const r = await runWithSignal(sessionCfg, signal);
+    const calls = readCalls();
+    const closes = calls.filter(isSessionClose);
+    const name = `${signal} during a run exits ${expectedCode} and the last agent-browser call closes the ui-sweep session`;
+    if (!r.timedOut && r.sent && r.code === expectedCode && calls.length > 0 && isSessionClose(calls[calls.length - 1]) && closes.length === 2) ok(name);
+    else bad(name, `code=${r.code} signal=${r.sig} sent=${r.sent} timedOut=${r.timedOut} closes=${closes.length} calls=${JSON.stringify(calls)} stderr=${JSON.stringify(r.stderr)}`);
+  }
+
+  // Case 14h: every sweep.mjs child the signal cases started has exited (checked by PID).
+  {
+    const alive = startedPids.filter((pid) => { try { process.kill(pid, 0); return true; } catch { return false; } });
+    console.log(`# signal-case child PIDs: ${startedPids.join(' ')}`);
+    if (alive.length === 0) ok('no sweep.mjs child started by the signal cases is still running');
+    else bad('no sweep.mjs child started by the signal cases is still running', `alive=${JSON.stringify(alive)}`);
   }
 } finally {
   rmSync(tmp, { recursive: true, force: true });
