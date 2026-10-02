@@ -323,3 +323,70 @@ hk-B:
 
 **U4 dev-toolkit**:1 条 P1——为了不超核心 SKILL.md 的 token 上限做的压缩,删掉了 §八 登录规则那句里「不受本节触发条件限制」「细则在 research.md」,只读核心的 agent 做小型登录改动时没有入口去读接入要求 → 退回,修复后跑裁决轮。P2 一并修:恢复「不许」「都是 medium」「因无 plan 失去入口」三处被压坏的措辞;GUARD「测试卫生」行写准「超过核数 70%、按当前值减半、最少 1」并补自己起名的会话与取读数的命令;核心 §四 的指向改成在核心里找得到的写法;process-exit.md 说明 GUARD 已含规则 T1/T2;stellark-parallel-do 的评审条补核对退出要求。spec §5 与 §7 对核心 SKILL.md 的要求互相矛盾(一处说 W1 保留七要素、一处说只留触发条件加指向),已把 §5 改成以 §7 为准。该仓 9 月进度日志归档由主对话收尾时另起提交。
 
+
+## 镜像面第 1 轮修复(U4,claude-opus-5-5 high)
+
+逐字恢复 §八 登录规则句(「任何规模都适用,不受本节触发条件限制」「细则在 research.md」)、§一 评审行的禁令半句、§二 盲审行「都是 medium」、七.6「因无 plan 失去入口」,另自查恢复七.4「只报与前面各轮不同的新发现与推翻项」与七之二首句「对话中」;GUARD「测试卫生」行写准「超过核数 70% 并发按当前值减半(最少 1)」并补自己起名的会话与取读数的命令;§四 指向改成「见 references/process-exit.md 七之五」;process-exit.md 说明 GUARD 已含规则 T1/T2;stellark-parallel-do 评审条补核对退出要求。增量靠删重复的字抵消,核心 token 6534.29 → 6531.0。
+
+## 镜像面第 2 轮 裁决 — U4 dev-toolkit(claude-opus-5-5,high)
+
+结论:**通过**。核心 token 实测 6531(基线 6534.29),无未闭合 P0/P1,无新 P0/P1。
+
+| 发现 | 状态 | 证据 |
+|---|---|---|
+| D1 | 已闭合 | kit spec 第 80 行(§5)现在写『dev-toolkit 的核心 SKILL.md 有 token 上限,按 §7 办:GUARD「测试卫生」行带 T1、T2 的最少要素,W1 只留触发条件加指向,②~⑦ 在它指向的 references 文件里必须全』,与 §7 第 103 行『W1 细则放 references/,核心只留触发条件加指向』一致(kit 提交 f8a1bcf)。核心 SKILL.md 七.4 只有触发句加『细则读 references/process-exit.md』;process-exit.md 第 14 行 ②~⑦ 和容器上限都在,第 18 行有依据句。 |
+| D2 | 已闭合 | SKILL.md 第 19 行:『**重要**评审不许只用 opus 单一模型、不再平行投票,改为**盲审起步+接力续挖+fable 裁决**』。word-diff 显示这半句与 HEAD 逐字相同,不在改动范围里。 |
+| D3 | 已闭合 | SKILL.md 第 52 行改成『开跑前先看负载(见 references/process-exit.md 七之五)』;process-exit.md 第 3 行有『## 七之五、测试的进程清理与并发负载』,第 8 行是第 2 条『并发前先看负载』全文。指向能找到目标。 |
+| D4 | 已闭合 | 留给主对话收尾:按每月首次收尾的规则,另起一个 docs: 提交归档 9 月及更早的日志。本轮不动,也不需要动。 |
+| D5 | 已闭合 | SKILL.md 第 133 行『(任何规模都适用,不受本节触发条件限制;复用后照样登记 used_by,接入单元仍按三.3 评审;细则在 research.md)』。拿 HEAD 版存到 /tmp/skill_head.md,跑 diff <(sed -n '/^## 八/,$p' HEAD) <(… 当前) 无输出:从 §八 到文末都和 HEAD 一致,登录相关的无条件入口已经恢复。 |
+| D6 | 已闭合 | SKILL.md GUARD「测试卫生」行先保留原有三个要素(临时目录/文件自动清理;子进程整组回收;重型用例可跳过并标明),后面新加:『(agent-browser 用自己起名的 --session)』;读数命令『sysctl -n hw.ncpu / nproc;内存 memory_pressure / free -m』;『超过核数 70% 并发按当前值减半(最少 1),超过核数或可用内存低于 20% 串行』。T1 的 ③④⑤⑥⑦(失败或放弃也关、记 PID/端口/会话名、报告前核对已退出、只关自己启动的、不用 pkill -f / killall)和 T2 的 ②③④ 都在。 |
+| D7 | 已闭合 | process-exit.md 第 16 行新加了一句:『本仓 GUARD 模板(核心 SKILL.md 七.4)的「测试卫生」行已经含上节第 1、2 条(spec 规则 T1、T2)的压缩版:派工 prompt 贴了 GUARD 就不必再重复这两条,只需在单元代码启动外部进程时补上本节的退出要求(规则 W1)。』 |
+| D8 | 已闭合 | SKILL.md 第 35 行 effort 列现在是『`medium`(opus 的 effort 与 CLI 的 `model_reasoning_effort` 都是 medium)』。删掉的『规则 3 单元 high』在同一行 stage 列里还有,写作『规则 3 单元三路、每轮 high』;三.3 也写了 opus high。 |
+| D9 | 已闭合 | SKILL.md 第 94 行『subagent-driven-development/executing-plans 因无 plan 失去入口,属预期』,与 HEAD 逐字相同,word-diff 里没有这一行。 |
+
+裁决轮列出的 4 处有损压缩(都判为不影响执行):
+- SKILL.md §二 档位表『计划与架构设计』行的 model 列:「不派发,留主对话;**重要 plan/spec 落盘前过一遍三方异构链式评审**(… → fable 裁决;主对话只裁决)」→「**重要 plan/spec 落盘前过一遍三方异构链式评审**(… → fable 裁决)」。丢了:这一格不再写由谁来做(不派发、留主对话),model 列只剩评审要求。这条信息在同文件 §一 指挥行原样还有(『计划与架构设计一律留在主对话,不派发』),所以整篇文件没丢,只是只看档位表时看不到。不影响执行。
+- SKILL.md 七之二第 2 条:「需判断也只派一个 `sonnet`+`low`;单条需求各派一个代理,禁止。」→「需判断也只派一个 `sonnet`+`low`。」。丢了:明确写出的『禁止』没了。禁令只剩加粗标题『不一条派一个代理』里的一个『不』字。按 D2 的标准,禁令语气变弱了。规则本身还在,不影响执行。
+- SKILL.md 七.5 销账句:「把实现过程中新冒出的目标登记进台账」→「新冒出的目标登记进台账」。丢了:范围限定『实现过程中』没了。上下文就是批次收尾,意思基本不变,不影响执行。
+- SKILL.md 七.2:「spec 写入完成即视为对本次 Workflow 多代理实现(ultracode)的持久授权」→「spec 写入即视为本次 Workflow 多代理实现(ultracode)的持久授权」。丢了:『完成』两个字没了。授权在什么时候生效,写得没原来明确,但实际理解不会出差别,不影响执行。
+
+新发现:
+- P2 plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:106 七之二第 2 条删掉了『单条需求各派一个代理,禁止。』,禁令只剩加粗标题里的『不一条派一个代理』,和 D2 是同一类问题(禁令语气变弱)。规则还在,所以只记 P2;想改的话,把标题改成『禁止一条派一个代理』,花不了几个字。
+- P2 plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:37 档位表『计划与架构设计』行的 model 列删掉了『不派发,留主对话』,这一格现在不写由谁来做,只剩评审要求。§一 指挥行有原句,所以不影响执行;想改的话,在格首补『主对话;』三个字。
+
+复核过的检查点:
+- 亲自算核心 SKILL.md token:6531.0(HEAD 版同一命令算出 6534.2857),没超基线;行数 139,和 HEAD 一样
+- git diff HEAD --word-diff 逐条核对核心里的 23 处压缩:除 lossy_compressions 记的 4 处外,删掉的字在同文件别处原样还在(§一 指挥行和评审行、§二 裁决轮行、三.3、七.4 后半句)
+- 受保护段落:GUARD 除『测试卫生』行外,其余各行都不在 diff 里;取证前置那句在 word-diff 里没有改动;两条工具纪律、[^orch] 脚注、七之三都用 diff 对比 HEAD,结果一致;五.1、五.3、五.4 不在 diff 里;§八 到文末和 HEAD 一致
+- WORKFLOW.md:新增的七之五第 1 条 T1 七个要素齐;第 2 条 T2 五个要素齐;七.4『进程约束』W1 七个要素齐,另有容器上限和点名 hook-writer/hearloop 的依据句;评审半句和 §四『开跑 Workflow 前主对话先看一次负载』也在;编号用七之五,和已有的七之四(会话卫生)不冲突;行数 144 → 153,与 upstream-map 一致
+- references/process-exit.md:七之五 T1、T2 全文;七.4 进程约束 W1 七个要素加容器上限;依据句;GUARD 已含 T1/T2 的说明;评审半句
+- 核心里两个指向都能找到目标:七.4 的『细则读 references/process-exit.md』、§四 的『见 references/process-exit.md 七之五』
+- CLAUDE.md.tmpl 和 kit plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl 对比:新加的第 7、8 条、红线条、评审条、并发条、禁止事项逐字相同,其余 diff 都是这个仓原有的差异(stellark-auth、parallel-do、归档读取句等)
+- mechanical.md 和 kit 对比:新加的两句相同,只有 description 和首句的名字这两处原有差异
+- stellark-parallel-do 和 kit workflow-codex parallel-do 对比:T1、T2、W1 压缩版的要素一致,评审条也补了半句
+- ui-sweep 的 sweep.mjs、smoke-test.mjs、SKILL.md 和 kit 定稿逐字节一致(diff 0 行)
+- sop-generate:probe-login.mjs 和 kit workflow-codex 一致;crawl.mjs 和 kit 差 17 行,与 kit 573cac0(改动前)对比 dev-toolkit HEAD 是同样的差异(300ms 等待、landingHref),属于原有差异;SKILL.md 的差异是 description、建议前置、项目名举例,都是原有差异
+- 串行跑 node plugins/dev-toolkit/skills/ui-sweep/scripts/smoke-test.mjs:35 passed, 0 failed,exit 0(用的是 PATH 上的假 agent-browser,没起真浏览器)
+- git status --short 没有 plugin.json 改动
+- upstream-map.md 与 Progress.md 里的数字(6534.29 → 6531.0、139 行、144 → 153)都和实测一致
+
+## 镜像面第 2 轮之后的处理(主对话)
+
+裁决轮 2 条新 P2 与 4 处有损压缩:在剩余的 3.29 token 余量内改回两处——七之二第 2 条标题「不一条派一个代理」改成「禁止一条派一个代理」,七.2 恢复「写入完成」;核心 token 实测 6534.0(不高于基线 6534.29)。遗留(P2):档位表「计划与架构设计」行的 model 列不再写「不派发,留主对话」(§一 指挥行有原句);七.5 销账句少了「实现过程中」。
+
+dev-toolkit 已并 main(merge 1204dca),该仓 9 月及更早的进度日志另起提交按月归档。
+
+链结束:镜像面共 2 轮(盲审 1 轮 + U4 裁决 1 轮);U5 盲审直接通过。
+
+# 对照实验记录(sonnet+medium 对 opus+medium,本批 5 个单元)
+
+| 组 | 单元 | 实现模型 | 评审退回 |
+|---|---|---|---|
+| S | U1 kit README | claude-sonnet-5-5 | 0 |
+| S | U3 kit ui-sweep 与 sop-generate 代码 | claude-sonnet-5-5 | 1(测试没测到它声称测的东西) |
+| S | U5 huake 两个工具包 | claude-sonnet-5-5 | 0 |
+| O | U2 kit 模板等 | claude-opus-5-5 | 0 |
+| O | U4 dev-toolkit | claude-opus-5-5 | 1(守 token 上限的压缩删掉了一个入口) |
+
+S 组 3 个单元退回 1 个,O 组 2 个单元退回 1 个;样本太小,不足以改起跑档。token:四次 Workflow 运行子代理合计约 185.7 万(57.2 万 + 34.4 万 + 73.2 万 + 20.9 万,19 个 agent);按组拆分这次没做(Workflow 的记录里没有逐 agent 的 token 数,要用 session-report 另算)。
+
