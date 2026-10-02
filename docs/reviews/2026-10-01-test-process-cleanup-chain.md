@@ -215,3 +215,111 @@ code-B:
 
 链结束:kit 面共 2 轮(盲审 1 轮 + 裁决/续挖 1 轮)。
 
+
+# 镜像面(dev-toolkit、huake 两个工具包)
+
+单元与实现模型:U4 dev-toolkit(claude-opus-5-5,medium,O 组);U5 huake Claude 版与 Codex 版(claude-sonnet-5-5,medium,S 组)。执行:2026-10-01 23:15 本机 1 分钟负载 9.9(10 核,超过 70% 未超核数),实现串行、盲审并发从 4 减半到 2。
+
+
+## 第 1 轮 盲审 — U4 dev-toolkit(claude-opus-5-5,medium,2 个)
+
+| # | 严重度 | 位置 | 评审者 | 发现 |
+|---|---|---|---|---|
+| D1 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:77 | dt-A | 核心七.4 的 W1 只保留触发条件和指向 references/process-exit.md,②~⑦(最长存活时间、先正常后强制关闭且等待有上限、同时存活数上限、各失败路径都关、调用带超时、测试覆盖)都不在核心里。这符合 spec §7「核心只留触发条件加指向」,但与 spec §5「压缩版(含核心 SKILL.md)W1 至少保留①~⑦」写法冲突。spec 本身两处矛盾,应在 kit spec 里改成一致(以 §7 为准),否则后面的评审会按 §5 判核心缺要素。 |
+| D2 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:19 | dt-A | 为抵消 token 增量做的压缩把评审行的「评审不许只用 opus 单一模型、不再平行投票」改成「评审不只用 opus、不平行投票」,禁令语气变成了陈述语气。要素还在,但强制性变弱了;建议保留「不许」二字(只多约 2 个 token,改后仍低于 6534.29)。 |
+| D3 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:19 | dt-B | §一 评审行把「评审不许只用 opus 单一模型、不再平行投票」压成「评审不只用 opus、不平行投票」。禁止语气「不许」变成了描述语气,禁令强度下降。应保留「不许」。 |
+| D4 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:52 | dt-A | §四 写「开跑前先看负载(见七之五,references/process-exit.md)」,但核心 SKILL.md 里没有七之五小节(核心的七之四是会话卫生,下一节是 §八),「七之五」只存在于 WORKFLOW.md 和 process-exit.md 的标题里。后面跟着文件路径,还能找到,但光看「见七之五」容易在核心里找不到;建议写成「见 references/process-exit.md 七之五」,与 stellark-parallel-do 的写法一致。 |
+| D5 | P2 | dev-toolkit/docs/Progress.md:20 | dt-A | 这是 10 月首条日志,但 9 月(及更早)的条目仍留在主文件里(18 条 2026-08/09 条目,没有 docs/archive/ 目录)。按每月首次收尾归档的规则,应当另起一个 docs: 提交移到 docs/archive/Progress-2026-09.md(kit 已在 beaf3a8 做了)。这属于收尾步骤,不阻塞本单元,记为遗留项。 |
+| D6 | P2 | dev-toolkit/docs/Progress.md:20 | dt-B | 这是 10 月第一条变更日志,但主文件里还留着 10 条 2026-09 的条目,docs/archive/ 下也没有 Progress-2026-09.md。按 WORKFLOW.md 七.5,本月首次收尾要把上月日志单独提交一次归档。新条目的位置和体例(放在最上面,分现象/决策/验证结果/归类)本身没问题;归档应在收尾时补上(由主对话做)。 |
+| D7 | P1 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:133 | dt-B | 为压 token,§八 删掉了「细则在 research.md」,也删掉了「不受本节触发条件限制」。这样一来,核心里指向 research.md 的入口只剩句末那一处,而且附带条件「brainstorming 意图明确、提候选方案前」。只读核心的 agent 做不走 brainstorming 的小型登录改动(改密、登出、鉴权中间件)时,就没有入口去读 research.md 里的接入要求:login 子包、不重写用户表/密码哈希/令牌签发、非 Go 后端先问、登记 used_by 的包名。被删的这一处恰好是原来不带条件的入口。应恢复「细则在 research.md」这类不带条件的入口(或等价写法),再到别处压措辞来抵消 token 增量。 |
+| D8 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:89 | dt-B | GUARD「测试卫生」行新加的负载规则有歧义、缺少可执行信息。(1)「超过 70% 并发减半」没写 70% 是相对核数,也没写「按当前值、最少 1」;(2)只拿到 GUARD 的 agent 不知道怎么查核数和可用内存(sysctl -n hw.ncpu / nproc、memory_pressure / free -m),「可用内存低于 20%」无法照做;(3) 只写了「记会话名」,没写 agent-browser 必须用自己起名的 --session。agent 如果用默认会话再执行 close,会关掉别人共用的默认会话,与「只关自己启动的」相冲突(完整版七之五第 1 条写明了这一点)。建议改成「超过核数 70%」,并补「agent-browser 用自起名 --session」半句。 |
+| D9 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/references/process-exit.md:14 | dt-B | 七.4「进程约束」要求在 GUARD 模板之后再写一遍「测试启动的进程测完即关、并发前先看负载」。但核心 GUARD 的「测试卫生」行已经含这两条(压缩版),照做的主对话会让同一规则在 prompt 里以两种详略不同的措辞出现两次(70% 的表述也不一致)。本文件应说明:本仓 GUARD 已含 T1/T2,这里只需补 W1 的退出要求。 |
+| D10 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:35 | dt-B | §二 盲审行 effort 列从「都是 medium」压成「(opus 的 effort 与 CLI 的 model_reasoning_effort 同)」。「同」字指代不明:读者可能理解为两者彼此相同(都可以是 high),也可能理解为都等于 medium。应写回「都是 medium」或「同为 medium」。 |
+| D11 | P2 | dev-toolkit/plugins/dev-toolkit/skills/stellark-workflow/SKILL.md:94 | dt-B | 七.6 把「因无 plan 失去入口」压成「因此失去入口」,丢掉了原因(没有 plan 文档)。「因此」现在只能回指前半句的「覆盖 brainstorming 规定」,因果关系不准确。 |
+
+复核过的检查点:
+
+dt-A:
+- WORKFLOW.md 七之五(第116-123行)与 kit README.zh-CN.md 七之四逐字比对:适用范围句、T1 全文(七要素齐,含 npm/npx 包装进程、pkill -f/killall 禁用、残留进程交给用户)、T2 全文(五要素齐,70%/核数/20%/报告负载与并发数)一致;依据句点名 2026-09-19 与 hook-writer,并指向「见七.4」,七.4 确实存在
+- WORKFLOW.md 七.4(第99行)的进程约束与 kit 七.4 逐字一致,W1 七要素与容器上限都在;依据句改成 hook-writer / Docker 虚拟机 / hearloop postgres 的私有面写法;评审半句已补
+- WORKFLOW.md §四(第51行)末句与 kit 一致,其中「见七之五第 2 条」指向真实小节;WORKFLOW.md 小节编号是七之一/二/三/五(本仓七之四在核心里是会话卫生,编号顺延的理由写在 upstream-map 与 Progress)
+- references/process-exit.md 新文件:七之五全文与 WORKFLOW.md 一致,另加「开跑 Workflow 前先看负载」句;七.4 进程约束全文、hook-writer 依据句、评审半句都在;首行有「何时读」触发句
+- 核心 SKILL.md GUARD「测试卫生」行(第89行):原三要素(临时目录/文件自动清理、子进程整组回收、重型用例可跳过并标明)原样保留;T1 ③④⑤⑥⑦ 与 T2 ②③④ 都在
+- 核心 SKILL.md 第52、77行两处 references/process-exit.md 指针对应的文件实际存在;七.4 评审括号补了「启动外部进程的还核对退出要求实现了、测到了」
+- token:改后 6533.29,改前(git show HEAD)6534.29,没有超过上限
+- 逐句核对核心压缩的 word-diff:删掉的「裁决轮由 fable 出 high」「规则 3 单元 high」「主对话只裁决」「主对话用最强模型指挥」「细则在 research.md」在同文件其他位置都有等价表述;§八 删掉的「不受本节触发条件限制」与保留的「任何规模都适用」同义;七之二、台账第3条、七.5 的改写没有丢要素
+- references/upstream-map.md:WORKFLOW.md 实际行数 153(改前 144),与表中数字一致;改前 token 6534.29 与实测一致;新增的三行归位表与实际落点相符
+- scaffold CLAUDE.md.tmpl:§3 新增第7、8条,红线条、评审条、并发上限条、禁止事项的改动与 kit workflow 模板 diff 逐字一致;§3 确实是「修改后质量检查」;{{ 占位符数量改前改后都是 5;没有出现内部项目名
+- agents/mechanical.md 新增两句与 kit workflow/agents/mechanical.md 逐字一致
+- stellark-parallel-do/SKILL.md:步骤5开头加了「开跑前先看负载」(T2 ②③④),边界加了 T1/T2/W1 压缩版(W1 七要素齐),没有出现 hook-writer/hearloop
+- cmp:ui-sweep 的 sweep.mjs、smoke-test.mjs、SKILL.md、export-state.mjs 与 kit plugins/ui-sweep 定稿逐字节一致
+- sop-generate probe-login.mjs 与 kit workflow-codex 定稿逐字节一致;crawl.mjs 与 kit workflow 定稿的差异只有本仓改前就有的 waitForAppReady 300ms 与 landingHref 两处(已用 kit ba145fd 与本仓 HEAD 互相 diff 确认是改前已有的差异),try/finally + closeBrowserBounded + 显式退出码与 kit 一致
+- sop-generate/SKILL.md 与 ui-sweep/SKILL.md 新增的「截完即关」「会话收尾」两段已核对
+- node --check:sweep.mjs、smoke-test.mjs、crawl.mjs、probe-login.mjs 四个文件都通过
+- 串行跑 node plugins/dev-toolkit/skills/ui-sweep/scripts/smoke-test.mjs:35 passed, 0 failed;用 PATH 上的假 agent-browser 隔离,没有启动真实浏览器;信号用例的子进程 57059、57149 已用 ps -p 核对都已退出
+- git diff --name-only 里没有任何 plugin.json;改动文件清单与应改文件范围一致
+
+dt-B:
+- git status --short:只有点名的 13 个文件被改,外加新文件 references/process-exit.md;没有 plugin.json 被改
+- WORKFLOW.md:七之五与 kit README 七之四整段逐行 diff,只有编号和依据句(点名 hook-writer/HAPI)不同;七.4 进程约束与评审半句、§四 并发段末句已核对;WORKFLOW.md 没有七之四(那是核心独有的 delta),编号顺延有意为之,共 153 行
+- 核心 SKILL.md:逐句对照 diff。受保护段落未动:取证前置硬规则、两条工具纪律、五.1/五.3/五.4、七之三、[^orch] 脚注都不在 diff 里;GUARD 模板只改了「测试卫生」一行,其余各行和 text 代码围栏完好
+- 核心 SKILL.md 的 token 用 c1-map.md 公式实测:改前 6534.29、改后 6533.29,没有增加
+- 核心里被压缩的句子逐条核对:前提行、§一 后裁决轮句、§二 省略说明、三.1/三.2 括注、七.2、七.4 /goal 句与「细则同上」、七.5、七.6、七之一、七之二、§八,发现见 findings
+- references/process-exit.md 开头有「何时读」行,体例与其余 references 一致;内含七之五全文、七.4 进程约束、评审半句,以及与重型测试并发约束并存的说明
+- references/upstream-map.md:行数改为 153,新增归位表,说明了「见七之四 → 见七之五」的对应
+- GUARD 新内容与「重型测试并发约束」「不重启任何共享服务」「子进程整组回收」没有逻辑矛盾(只关自己启动的,与不动共享服务一致)
+- CLAUDE.md.tmpl:与 kit 模板 diff 的增量一致;{{...}} 占位符种类和个数改前改后 md5 相同;§3 编号 1–8 连续;全角标点体例一致
+- agents/mechanical.md 新增两句与 kit 逐字一致(按 spec 只要求 T1 的检查完即关、只关自己启动的,以及 T2 的超过核数串行)
+- stellark-parallel-do/SKILL.md:步骤 5 新增「开跑前先看负载」,边界 bullet 与 kit codex 版三条压缩版对照过,与原有 pipeline/重型测试流程不冲突
+- ui-sweep 的 sweep.mjs、smoke-test.mjs、SKILL.md 与 kit 定稿 diff 结果完全一致;sop-generate 的 probe-login.mjs 与 kit workflow-codex 一致;crawl.mjs 与 kit 的差异只有本仓原有的两处(300ms 等待、landingHref),try/finally 与有上限的关闭等待已正确移植(看了 git diff -w)
+- sop-generate/SKILL.md 的「截完即关」一行与 kit 一致
+- docs/Progress.md:新条目在变更日志最上面,体例与相邻条目一致;9 月条目未归档(已列为 P2)
+
+## 第 1 轮 盲审 — U5 huake(claude-opus-5-5,medium,2 个)
+
+| # | 严重度 | 位置 | 评审者 | 发现 |
+|---|---|---|---|---|
+| H1 | P2 | codex-toolkit-engineer/README.md:83 | hk-A | 0.13.0 的版本说明只写了三条规则,漏了本版唯一的代码改动:sop-generate 的 crawl.mjs 和 probe-login.mjs 出错时也会关浏览器,而且 close 的等待有 10 秒上限。应补半句,例如「sop-generate 采集脚本出错也关浏览器」。 |
+| H2 | P2 | codex-toolkit-engineer/README.md:83 | hk-B | 0.13.0 的版本说明只写了三条规则，没提 sop-generate 的 crawl.mjs / probe-login.mjs 改成出错也关浏览器、关闭最多等 10 秒，而这是本版实际的代码行为改动。Claude 版 README 的 0.25.0 说明写到了 ui-sweep 的代码改动，Codex 版缺了对应的一句 |
+| H3 | P2 | claude-toolkit-engineer/README.md:208 | hk-A | 0.25.0 的版本说明写了 ui-sweep 引擎跑完自动关会话,但没写 sop-generate 的 crawl.mjs 和 probe-login.mjs 出错也关浏览器(close 等待有上限)这项代码改动。应补上,和实际改动对齐。 |
+| H4 | P2 | claude-toolkit-engineer/plugins/claude-toolkit-engineer/skills/parallel-do/SKILL.md:95 | hk-A | 「边界」这条除了加 T1、T2、W1,还新加了生产红线(FORBIDDEN FILES 等)的内容,这不在 spec §7 给 huake 的改动范围内。内容本身无害,也和 kit 的 Codex parallel-do 一致,但属于超范围改动,提交说明里应写明,或者拆出去单独提交。 |
+| H5 | P2 | claude-toolkit-engineer/plugins/claude-toolkit-engineer/skills/parallel-do/SKILL.md:95 | hk-B | 新增的「开跑前先看负载」写的是「超过核数 70% 就少开并行单元」，没有给出量化做法；同一文件第 95 行边界条和 Codex 版 parallel-do 都写的是「并发按当前值减半（最少 1）」。两处标准不一样，主对话照这句执行时不知道该少开多少，建议改成「超过核数 70% 并行单元数按当前值减半（最少 1）、用顺序 await 分批」 |
+| H6 | P2 | claude-toolkit-engineer/plugins/claude-toolkit-engineer/skills/scaffold/templates/CLAUDE.md.tmpl:97 | hk-B | 这份 Claude 版模板里没有 Workflow 并发上限那一条，所以 kit 接在那条末尾的「开跑前先看一次负载（§3 第 8 条），已高就少开并行单元或分批跑」没有放到别处，主对话开跑前看负载只能靠 §3 第 8 条里「开多个并行单元前先看负载」这半句推出来。Codex 版在 §7 实现那条末尾补了「分批前先看负载（§3 第 7 条）」，建议 Claude 版也在 §7 第 97 行「spec 经用户批准后直接用 ultracode…」末尾补一句「开跑前先看负载（§3 第 8 条），已高就少开并行单元或分批跑」，两版写法保持一致 |
+
+复核过的检查点:
+
+hk-A:
+- Claude 版 CLAUDE.md.tmpl:§3 第 7、8 条和 kit 的 workflow CLAUDE.md.tmpl 逐字一致。T1 的要素③④⑤⑥⑦和 T2 的要素②③④都在;红线那条接的 W1 压缩版 7 个要素全有,条号写的是「§3 第 7、8 条」,实际就在 ## 3 修改后质量检查下面(第 62、63 行)。评审那条补上了「启动外部进程的单元还要核对退出要求有没有实现、有没有测到」;禁止事项加了一行,和 kit 一致。huake 模板本来就没有 Workflow 并发上限那条,所以不用接「开跑前先看负载」
+- Codex 版 AGENTS.md.tmpl:huake 版没有 ui-sweep 那条,所以新规则编号是第 6、7 条;W1 那条写的「§3 第 6、7 条」和 §7 写的「§3 第 7 条」都指向实际存在的条目(T2 在第 58 行)。文本和 kit 的 workflow-codex 模板一致(kit 是 7、8 条)。盲审那条已补退出要求核对;huake 原来没有红线那条,所以 W1 单独新起了一条「派写入子任务的 prompt 边界里写明进程约束」,要素齐全
+- Codex 版 parallel-do/SKILL.md:并发上限处接的看负载那段,以及边界里的 T1、T2、W1,和 kit 的 workflow-codex/parallel-do 一致;kit 版自己也没有评审核测试那一句,所以这里不缺
+- Claude 版 parallel-do/SKILL.md:边界里有 T1、T2、W1 的全部要素;评审 agent 那条补了退出要求核对;新加的「开跑前先看负载」这条内容齐全(uptime 对比核数、超过 70% 减半或分批、超过核数或内存低于 20% 改串行)
+- ui-sweep:worktree 里的 sweep.mjs、smoke-test.mjs、SKILL.md、export-state.mjs 和 kit 的 plugins/ui-sweep/skills/ui-sweep/ 用 diff 比对完全相同
+- sop-generate:Claude 版 crawl.mjs 和 kit 的 workflow 版、Codex 版 crawl.mjs 和 kit 的 workflow-codex 版逐一 diff。剩下的差异只有本批之前就已经分叉的部分(waitForTimeout(300)、landingHref、注释和提示文案);closeBrowserBounded、try/finally、main().then 收尾这几处和 kit 一致。两份 probe-login.mjs 和 kit 的 workflow-codex 版一致;两份 SKILL.md 都加了「截完即关」这一句,和 kit 一致
+- node --check:Claude 版的 sweep.mjs、smoke-test.mjs、crawl.mjs、probe-login.mjs,以及 Codex 版的 crawl.mjs、probe-login.mjs,全部通过
+- 串行跑了一次 Claude 版的 ui-sweep smoke-test.mjs:35 passed, 0 failed,退出码 0。信号用例的子进程 60816、60890 用 ps -p 查过,都已退出
+- plugin.json:claude-toolkit-engineer 是 0.25.0、codex-toolkit-engineer 是 0.13.0,两个文件都能被 JSON.parse 正常解析
+- 两个 README 都在版本说明末尾加了一行;两个模板和两个 parallel-do 里没有出现 hearloop、hook-writer 这类内部项目名
+
+hk-B:
+- 两个 worktree 各跑了 git status --short：Claude 版只改了点名的 10 个文件（README、plugin.json、parallel-do、scaffold 模板、sop-generate 的 SKILL.md 与 crawl.mjs、probe-login.mjs，ui-sweep 的 SKILL.md、sweep.mjs、smoke-test.mjs），Codex 版只改了点名的 7 个文件，两边都没有新文件，也没有新建 mechanical 子代理
+- 在两个 worktree 的 git diff -U0 新增行里查了 hook-writer、hearloop、stellark、gitlab.：都没有出现（gitlab.stellark.io、StellarkTony 只在原有行里，不是本批新增）
+- 在 Codex 版 diff 新增行里查了 Workflow、agent()、mechanical、CLAUDE.md、Claude：都没有出现，「盲审的验收 subagent」等说法已改成 Codex 自己的用词
+- 在两边新增行里查了兜底、落地、落盘、收口、闭环、链路、抓手、拉齐、沉淀、打回：「打回」只出现在原有句子「测试弱视同打回」里；「落地页」是 crawl.mjs 原有注释被重新缩进后出现在 diff 里，不是新增规则文本
+- Claude 版 CLAUDE.md.tmpl 第 7、8 条接在原第 6 条（ui-sweep）后面，编号连续、不冲突；红线条引用的「§3 第 7、8 条」和实际编号一致；禁止事项加了一行
+- Codex 版 AGENTS.md.tmpl 原来只有 5 条，新增编为第 6、7 条；§7 引用的「§3 第 7 条」、§8 新增的进程约束条引用的「§3 第 6、7 条」都对得上；盲审那条括号里的补充和 kit 定稿一致
+- 两份模板的 diff 都只在已有列表里插入行或在行尾追加，模板占位符、表格、代码围栏都没有被改动
+- Codex 版 parallel-do：并发上限条后面接了「分批前先看负载」，边界条接了 T1、T2、W1 压缩版，和原有的 max_threads 默认 6、分批 spawn 的说法不矛盾（kit 版边界条里的生产红线和 TDD 是 Codex 版原来就没有的，不属于本批范围）
+- Claude 版 parallel-do：评审条、边界条加了退出核对、T1、T2、W1，新增的「开跑前先看负载」和档位表、pipeline 的说法不冲突
+- Claude 版 ui-sweep 的 sweep.mjs、smoke-test.mjs、SKILL.md 和 kit plugins/ui-sweep 定稿逐字节相同（diff 无输出）；smoke 用的是 PATH 上放假 agent-browser，本次没有运行 smoke
+- 两边的 probe-login.mjs 和 kit workflow-codex 定稿完全相同；Codex 版 crawl.mjs 和 kit workflow-codex 定稿相比，关浏览器那部分逻辑一致，剩下的差异是原有的（等待一拍、landingHref、MCP 措辞），不是本批新增
+- Claude 版 crawl.mjs 用 git diff -w 看过：只加了 try/finally、closeBrowserBounded（最多等 10 秒）、超时后显式退出，其余 366 行变化都是缩进；出错时退出码 1、正常时 0 的路径都能对上
+- 对两边改过的 crawl.mjs、probe-login.mjs、sweep.mjs 跑了 node --check，全部通过
+- 两边 sop-generate SKILL.md 的「截完即关」那行内容和 kit 一致，只说只关自己启动的
+- 版本号：Claude 版 plugin.json 改成 0.25.0、Codex 版改成 0.13.0，两边都没有其他需要同步的 version 字段（只剩 package-lock）；两边 README 的版本说明都加在已有版本说明的最后
+
+## 镜像面第 1 轮分流(主对话)
+
+**U5 huake**:无 P0/P1、无 conflict → 判通过。P2 都在提交前改掉:两个 README 的版本说明补「sop-generate 采集脚本出错也关浏览器、关闭最多等 10 秒」;Claude 版 parallel-do 的「少开并行单元」改成「并行单元数按当前值减半(最少 1)」;Claude 版模板 §7 实现那条接「开跑前先看一次负载」。Claude 版 parallel-do 的边界条顺带补了 kit 已有的生产红线列表(超出本批范围,内容与 kit 一致,提交说明里已写明)。主对话验证:Claude 版 smoke 35 通过 / 0 失败,ui-sweep 两个脚本与 probe-login.mjs 与 kit 定稿逐字节一致。已并入两仓 main(claude-toolkit-engineer 0.25.0、codex-toolkit-engineer 0.13.0)。
+
+**U4 dev-toolkit**:1 条 P1——为了不超核心 SKILL.md 的 token 上限做的压缩,删掉了 §八 登录规则那句里「不受本节触发条件限制」「细则在 research.md」,只读核心的 agent 做小型登录改动时没有入口去读接入要求 → 退回,修复后跑裁决轮。P2 一并修:恢复「不许」「都是 medium」「因无 plan 失去入口」三处被压坏的措辞;GUARD「测试卫生」行写准「超过核数 70%、按当前值减半、最少 1」并补自己起名的会话与取读数的命令;核心 §四 的指向改成在核心里找得到的写法;process-exit.md 说明 GUARD 已含规则 T1/T2;stellark-parallel-do 的评审条补核对退出要求。spec §5 与 §7 对核心 SKILL.md 的要求互相矛盾(一处说 W1 保留七要素、一处说只留触发条件加指向),已把 §5 改成以 §7 为准。该仓 9 月进度日志归档由主对话收尾时另起提交。
+
