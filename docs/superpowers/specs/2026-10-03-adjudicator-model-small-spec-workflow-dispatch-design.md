@@ -104,6 +104,45 @@
 - 模板压缩句结尾「→ 批量机械活优先走 Workflow 编排」改成「→ 批量与并行任务一律走 Workflow 编排」(英文 "→ batch and parallel work always goes through Workflow orchestration")。
 - 点名覆盖 superpowers:dispatching-parallel-agents 的那句已在 3.2 的覆盖段里。
 
+### 3.4 第 1 轮评审后的修订(2026-10-03;评审链第 1 轮)
+
+(a) **README 第九节的 whats-next 判断表**(README.zh-CN.md 与 README.md):「spec 是否已获批准拿不准时先问一句」改成与插件 whats-next 相同的说法(中文「Progress 或 spec 里记着被用户喊停的除外,那种先问一句」;英文与 workflow-en whats-next 的句子一致)。
+
+(b) **脚手架模板加一条**(本仓中英模板、dev-toolkit 模板、huake 的 Claude 版模板;Codex 版不加),紧跟在「spec 写入后直接用 ultracode…实现」那一条后面,标点沿用该模板的风格:
+
+> - **小改动(brainstorming 的 bounded 路径)也写一份小 spec,写完直接实现、不等用户确认**——这条覆盖 brainstorming 里「不写 spec、停下等批准」的要求
+
+> - **Small changes (brainstorming's bounded path) also get a small spec and are implemented as soon as it is written — don't wait for the user's confirmation.** This overrides brainstorming's "no spec, stop for approval" requirement
+
+(c) **「opus 评审」的旧说法**:模板与 parallel-do 里「每个写入单元(子任务)后面挂一个 opus 评审 stage」改成「…挂一个评审 stage(盲审与续挖 `opus`,裁决轮用主对话当前的模型)」;parallel-do 里「sonnet 实现 → opus 评审」这类流水线说法、「逐单元评审已经…由 opus agent 做完了」去掉模型名或加同样的括注;README 流程图里的「opus 逐单元评审」改成「逐单元评审链」(英文对应);README 中英与全局规则里「所有 / 全部评审(`opus`)照旧加载 CLAUDE.md」去掉「(`opus`)」。
+
+(d) **英文面轮次名统一叫 verdict round**(README.md 与英文模板原本的叫法);3.1 里的 "adjudication round" 只是说明,不作为用词。
+
+(e) **「按点名的方式执行」那一句**:本仓 README 中英去掉「/ 并行分派」("parallel dispatch")这一项;dev-toolkit 的 WORKFLOW.md 与核心 SKILL.md 把「并行分派」写成「parallel-do」(与全局规则一致)。
+
+(f) **第四节标题**:中文「四、批量与并行任务走 Workflow,不走裸 Agent」,英文 "4. Batch and parallel work goes through Workflow, not bare Agent";dev-toolkit 的 WORKFLOW.md 与核心 SKILL.md 的同名标题同样改(核心受 token 上限约束,见 k)。
+
+(g) **覆盖段补一处**(全文面:全局规则、README 中英、dev-toolkit WORKFLOW.md):在「HARD-GATE 里「每条路径都要先获批准才能实现」」之后加「(含「Too Simple To Need Approval」一节的同一要求)」;英文在 HARD-GATE 那一项后加 (including the same requirement in its "Too Simple To Need Approval" section)。
+
+(h) **全局规则**:「省略 `model` 继承主会话的 Fable、不会落到 opus」改成「省略 `model` 继承主会话当前的模型、不会落到 opus」。
+
+(i) **parallel-do(dev-toolkit 与 huake 的 Claude 版)**:写着「`model` / `effort` 每个 stage 都必须显式写」的两处,各加「(裁决轮的 `model` 例外:省略,继承主会话)」;三层分工句里「评审=`opus` agent」后加「(裁决轮用主对话当前的模型)」;「修完仍挂 `opus` + `high` 复审」改成「修完接回原链:修的是 P1 就跑裁决轮(省略 `model`、`effort: 'high'`),修的是 P0 先跑一轮续挖(`opus` + `medium`)再裁决」。示例脚本的结构不动。
+
+(j) **driving-codex**:「`high` for the verdict round and security verdicts」改成不暗示 codex 跑裁决轮的说法(codex 只参与盲审与续挖)。
+
+(k) **dev-toolkit 核心 `stellark-workflow/SKILL.md`**:
+- 恢复首轮为省 token 删掉的两处:第一节主对话职责里的「评审裁决、」;七.4 开头指向 stellark-parallel-do 的入口括注。
+- 第一节评审行的「谁来做」写成「`opus` + 外部 CLI 盲审,主对话模型裁决」(不再叫「异构三方」);该行说明里去掉「、不再平行投票,改为」这类相对旧版本的说法,直接写现行流程。
+- 七.6 改成压缩的覆盖句:「本流程覆盖 brainstorming 的 writing-plans 交接、spec 审阅关口、bounded 停下等批准与 HARD-GATE(spike 照原样),也覆盖 dispatching-parallel-agents(并行一律走 Workflow);subagent-driven-development/executing-plans 因无 plan 失去入口,属预期。」
+- 第四节「每个 `agent()` 按档位表显式写 `model`+`effort`」后加「(裁决轮 `model` 例外)」。
+- token 仍然只许不增加(基线:该仓 origin/main 上这个文件的 6534.0)。允许用来抵消的只有两类:本批决定已经取代的字眼(把裁决写死成 fable / opus 的说法、「不再平行投票,改为」);与同一文件别处逐字重复、且不是入口句的字眼。不许删约束、理由、禁令词、指向 references 或别的 skill 的入口句。做不到就停下,把每一处增减的 token 数和差额报出来,不硬塞。
+
+(l) **huake 两个 README**:Claude 版「brainstorming → spec 获批 → ultracode 直接实现」改成「brainstorming → spec 写入 → ultracode 直接实现」;两个 README 的版本说明区按各仓以往的写法各加一行(Claude 版 0.26.0、Codex 版 0.14.0),写明镜像 kit 2026-10-03 的内容(Claude 版:裁决轮用主对话当前的模型、spec 写入后直接实现且小改动也写小 spec、批量与并行任务一律走 Workflow;Codex 版:spec 写入后直接实现且小改动也写小 spec)。
+
+(m) **workflow-en whats-next**:分号后悬空的 unless 从句改通顺(例如 "…directly from that spec, unless Progress or the spec records that the user called a halt — in that case ask first")。
+
+所有权随之扩大:U2 含 README 中英的第九节表、流程图、「所有评审」一句、七.7、第四节标题;U3 含三个模板的新增条目与「opus 评审 stage」一句、英文模板的轮次名、workflow-en whats-next;U1 含全局规则里 (c)(g)(h) 涉及的三句;U4 含 dev-toolkit 的 WORKFLOW.md、核心 SKILL.md、parallel-do、driving-codex、脚手架模板里上面各条涉及的句子;U5 含 huake Claude 版的 parallel-do、模板与两个仓库的 README.md。
+
 ## 4. 要素清单(各面逐条落实,评审逐面核对)
 
 **第 1 条**
