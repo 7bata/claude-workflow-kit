@@ -6,7 +6,8 @@
 ## 当前状态
 
 - 最新发布:**v2026.09.01**(汇总 8/13 以来五批:门禁分流、截图 HTML 交付与交付前视觉预审、S4~S6、docs-capture);2026-09-05 后未发布:需求先复述再动手、worktree 用完即删 + worktree-sweep hook(workflow 0.10.0 / codex 0.10.7);2026-09-07 进度日志按月归档 + 评审轮次压进单元提交(workflow 0.11.0 / codex 0.11.0)
-- 插件版本:workflow / workflow-en `0.11.0` · workflow-codex `0.11.0` · ui-sweep / ui-sweep-en `0.2.0` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
+- 插件版本:workflow / workflow-en `0.15.0` · workflow-codex `0.14.0` · ui-sweep / ui-sweep-en `0.2.1` · send-to / send-to-en `0.6.0` · speak-human `0.7.0` / speak-human-en `0.6.0`
+- 发版前检查:README「维护者:发版前检查」两步(`claude plugin validate --strict` 全过;`claude plugin details` 的常驻 token 记进 Progress 当次日志)
 
 ## Phase 路线
 
