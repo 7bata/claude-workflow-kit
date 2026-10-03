@@ -2,6 +2,12 @@
 
 > 条目格式:`## 日期 - 类型(域): 标题` + What/Why/Changes,最新在上。由 `docs/DECISIONS.inbox.md` 的问答草稿消化而来;日常小决定与过程性确认不进本表。
 
+## 2026-10-03 - tooling(mods): workflow-guard 并进内部工具包主插件(改掉同日「只在本机用」的决定;公开 kit 仍不进)
+
+- **What**:本机试用后,workflow-guard 并进内部工具包的主插件(1.11.0 起),所有人更新就有,五个开关默认都开;本机单独装的那份与本地市场卸掉。公开 kit 与 huake 两个工具包仍不放。
+- **Why**:Tony 2026-10-03 用过之后说「我觉得mods不错,直接更新到dev-toolkit里面吧」。当初只装本机的顾虑有两条——接口还在早期阶段、出问题会不会连累原有钩子——后一条真机验证过不会(旧版本跳过 mod、mod 写坏时旧式钩子照常),前一条靠「mod 加载失败引擎会跳过它」与五个开关接住。并进主插件而不是另起一个插件,是主对话的判断:市场清单是「全员唯一工具包」,CI 自动升版只管主插件。
+- **Changes**:本仓只有 spec、评审链与进度文档;代码与说明在内部工具包。见 Progress 2026-10-03「workflow-guard 并进内部工具包主插件」。
+
 ## 2026-10-03 - tooling(mods): Claude Code mods 只在本机用,第一个是 workflow-guard;不进公开 kit 与内部工具包
 
 - **What**:Claude Code 2.1.287 起的 mods(插件里的 TypeScript 钩子模块)先只做本机用途:新建本机仓 `claude-local-mods`(本地插件市场),第一个 mod `workflow-guard` 做 Workflow 开跑前检查、输入框上方状态栏、会话结束关掉本会话自己起的起名浏览器。内置的 You should know 不动,开不开遥测由 Tony 定。现有 shell 钩子不改写成 mod。

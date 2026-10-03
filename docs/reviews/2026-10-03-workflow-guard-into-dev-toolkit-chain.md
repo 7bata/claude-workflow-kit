@@ -24,3 +24,28 @@ spec:`docs/superpowers/specs/2026-10-03-workflow-guard-into-dev-toolkit-design.m
 - Y4 真机验证(2.1.280 与 2.1.284,真实 mod 文件加两条探测用旧式钩子):旧式钩子照常运行,mod 被跳过,只多一行提示;2.1.280 只有 `plugin validate` 这条静态检查会报错。结论:放法不用改,README 写准验证过的范围。
 - Y2、Y3 主对话直接改三处示例(核心 token 6449.71 → 6453.14),Y9 直接改 README;提交 a 见分支。
 - Y1、Y5、Y6、Y7、Y8 进修复轮(spec 4.6 (a)(d)(e)(f)(h)):测试与实现分开两个 agent(opus + high)。
+
+补记(Y4 的验证用的是什么):探测插件用的是工作分支里真实的 `plugin.json`(含 `types` 与五个 `userConfig` 开关,插件名 dev-toolkit)、真实的 `types/index.d.ts` 与 `hooks/workflow-guard/` 三个文件;`hooks.json` 换成两条探测用的旧式钩子(SessionStart、PreToolUse 各写一个标记文件)加真实的 `modules` 一行。2.1.280 与 2.1.284 上两条旧式钩子都运行了,输出里有「hooks module not loaded: hooks modules are not turned on for installed plugins in this process」。
+
+## 修复(测试与实现分开两个 agent,都是 claude-opus-5-5 + high)
+
+测试 agent 补了 12 条用例(7 条在旧实现上失败),假主机加了「本进程的 pid 活着」的开关;实现 agent 改了 `isTakenByOther`(记录的 pid 是本进程就按自己的记录处理)、`confirmLeftovers`(复查时重读记录、核对会话 id)、新增 `dropClosedOrphan`(成功关掉残留后从名单与记录里去掉),注释与已知限制写准;改写了 1 条与 4.6 (d) 冲突的旧用例(理由:同一模块实例里那个名字还在本会话清单)。389 条全过。提交压进单元首个提交。约 22.7 万 token。
+
+副作用与处理:主对话用 2.1.280 / 2.1.284 的二进制做兼容性探测时没有换配置目录,旧版把「mods 关闭」写进了当前配置档的缓存,之后 `claude plugin test` 报「hooks modules are turned off in this process」;修复轮的两个 agent 用临时配置目录绕过,裁决 agent 没能跑测试。主对话用当前版本联网启动一次后恢复,自己重跑 `claude plugin test`:389 过 0 败。mod 的 README 已写上这条注意事项。
+
+## 第 2 轮:裁决(省略 model,实际运行在 claude-fable-5-1,high;高风险单元必跑)
+
+Y1~Y9 全部闭合;核心 token 实算 6453.14,低于 6500;`hooks.json` 的 hooks 部分与主干逐字相同;回滚步骤可执行。结论:**通过**。(裁决没能跑测试,用逐条手工走查代替;主对话事后重跑确认 389 条全过。)新发现都是 P2:
+
+- mod 自己的 README 版本范围没按 4.6 (c) 同步、「五个开关全关等于停用」说过头——主对话已直接改。
+- Y4 的验证用的清单内容记录里没写——已补记在上面。
+- `/clear` 交出去没关成的浏览器,记录带的是本进程的 pid,同一进程里后续会话不会提示,要换一个进程才提示(本机版就这样)。
+- 3 秒复查的加回只重新核对会话 id、不重新核对启动进程;两个进程恢复同一个会话 id 且落在 3 秒窗口里才会出现。
+- 没有总开关。
+
+## 真机核对(AC6,主对话做,合并前,Claude Code 2.1.288)
+
+先卸掉本机单独装的 `workflow-guard@tony-local-mods` 与本地市场。嵌套 `claude -p --plugin-dir <工作分支>/plugins/dev-toolkit`:漏写 effort 的 Workflow 被拦(「workflow-guard: Workflow 没有运行,请先改:第 2 行的 agent() 没写 effort…」);`agentType: 'mechanical'` 被拦并给出 `dev-toolkit:mechanical`;写 `agentType: 'dev-toolkit:mechanical'` 的合规脚本放行并跑完;主对话开的一个与 Workflow 子代理开的一个起名浏览器,会话结束后 4 秒内都不在会话清单里,没有残留进程。没做真机核对的:`wgCloseBrowsersAtEnd` 关掉时不关(只有测试)。安装后的核对见 Progress。
+
+链共 2 轮(盲审、裁决)。用量合计约 97 万 token:实现 17.2 万、盲审 3 个 39.3 万、修复(测试 + 实现)22.7 万、裁决 17.7 万。实现与修复 claude-opus-5-5,盲审 claude-opus-5-5,裁决 claude-fable-5-1。
+
