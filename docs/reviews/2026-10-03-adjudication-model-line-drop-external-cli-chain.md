@@ -1,6 +1,6 @@
 # 评审链:提交里加记裁决模型
 
-spec:`docs/superpowers/specs/2026-10-03-adjudication-model-line-drop-external-cli-design.md`。本仓单元 U1(README 中英规则 4 各一句,提交 01dae87,主对话直接改,实现模型 claude-opus-5-5);本机全局规则同一句同步改。同一批里只涉及内部工具包的单元,评审记录在内部仓库。规则文字单元,没有测试,对照实验不计入。
+spec:`docs/superpowers/specs/2026-10-03-adjudication-model-line-drop-external-cli-design.md`。本仓单元 U1(README 中英规则 4 各一句,提交 6fba19e,主对话直接改,实现模型 claude-opus-5-5);本机全局规则同一句同步改。同一批里只涉及内部工具包的单元,评审记录在内部仓库。规则文字单元,没有测试,对照实验不计入。
 
 ## 第 1 轮:盲审(2 个 opus + medium,互不可见,顺序跑)
 
