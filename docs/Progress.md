@@ -32,6 +32,10 @@
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
 
+### 2026-10-02 — 仓库目录搬到 Stellark/Projects 下
+
+Tony 要求把本仓从 `~/Tony/Proj/claude-workflow-kit` 搬到 `~/Tony/Proj/Stellark/Projects/claude-workflow-kit`。搬前检查:目标无重名、同一磁盘、仓库干净、只有一个 worktree,没有软链接、定时任务、别的仓库或配置写死旧路径。搬后核对:提交号、远端、工作区状态不变,8 个插件 `--strict` 校验全过。Claude 的项目状态按路径存放:记忆目录已挪到新路径对应的状态目录,旧位置留软链接,新旧路径开的会话共用一份记忆;旧会话记录留在旧路径对应的状态目录。
+
 ### 2026-10-02 — prompt 审计(`/doctor prompt-audit`,只出报告与建议改法,没有改文件)
 
 起因:2.1.288 对照里的 E 项,Tony 在会话里敲了 `/doctor prompt-audit`。范围是本项目会话会加载的 Claude Code 配置文字,共 123 个文件:本机全局规则、用户级 skill、账号同步的 skill、四个插件自带的 skill 与子代理定义。目标模型 Claude Fable 5.1。
