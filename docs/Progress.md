@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.14.0;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.15.0;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.14.0;测试进程清理、并发前看负载、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -19,11 +19,32 @@
 | 内部版 CI 令牌 `dev-toolkit-ci-bot` **2027-04-20 到期**,到期后 auto-bump 会再次全红 | 2026-08-13 修 auto-bump 时建 | 到期前 |
 | Phase 4 方向未定 | — | 待规划 |
 | 本机 docs-capture 双重注册风险:dev-toolkit 1.3.0 插件版将来在本机拉取后,与 settings.json 直接注册二存一(dev-toolkit README 已写注意) | 2026-08-14 U6 评审 | 拉取插件版时 |
+| Claude Code 2.1.288 对照里先放着的三项:C 盲审轮做成插件命名 workflow(先统计各项目评审链月跑次数,再单独出 spec)、D `/verify` 一句话(等下一个有测试命令的新项目实测)、G sonnet 别名复查(放对照实验两批之间) | 2026-10-02 调研稿 | 时机到了再做 |
+| E:Tony 在会话里跑一次 `/doctor prompt-audit`,主对话甄别结果记进 Progress,不写进规则 | 2026-10-02 Tony「按推荐做」 | 等 Tony |
+| 2026-10-02 批次遗留(都是 P2):README.md 第 202 行 "mechanical work" 紧挨 mechanical 类型的说明,容易误读;「N 等于插件个数」没写清是带 `.claude-plugin` 的 8 个;mechanical 定义的 description 与三处模板里「不自动加载 CLAUDE.md」没补「子目录规则仍按需加载」;「裸 Agent 派 mechanical 按 low 跑」对 haiku 不适用(该模型不接收档位) | 2026-10-02 评审链 | 低 |
+| dev-toolkit `hooks/hooks.json` 两处 `${CLAUDE_PLUGIN_ROOT}` 没加引号(validate 有警告,`--strict` 不通过) | 2026-10-02 评审链 L12 | 低 |
+| 本机全局 CLAUDE.md 第 29 行说 mechanical 是「kit 的 workflow / workflow-en 插件里」的类型,本机实际启用的是 dev-toolkit 的同名类型 | 2026-10-02 评审链 L1 | 等 Tony 定 |
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-10-02 — Claude Code 2.1.288 对照:发版前检查 + mechanical 固定 low 档 + 档位句补充(workflow/-en 0.15.0)
+
+起因:Tony 问「最近 claude code 新版本出了什么新功能,你觉得可以加到这个 workflow 里的」,随后升到 2.1.288。上次对照是 2026-09-19(审到 2.1.278)。
+
+- 调研:2.1.280→2.1.288 共 320 行新功能、217 行相关修复;5 个主题各 1 个 sonnet medium 调查员 + 2 个互不可见的 opus medium 盲审,15 个 agent 约 111 万 token,盲审修正 19 条。研究稿 `docs/superpowers/research/2026-10-02-cc-288-feature-review.md`,候选 A~H。Tony「按推荐做」:A、B、H 一个批次,F 的冒烟并入 B,E 由 Tony 手动跑,C、D、G 先放着。
+- 取证(真机):插件子代理定义 frontmatter 写了 `effort: low` 的,主会话 high 时裸 Agent 派它实际按 low 跑,没写的继承 high;`omitClaudeMd` 只屏蔽开局加载,子代理读写到的子目录 CLAUDE.md 与带 `paths:` 的规则仍按需加载。证据 `docs/reviews/2026-10-02-cc288-smoke-evidence.md`。
+- 改动(spec `docs/superpowers/specs/2026-10-02-cc288-validate-effort-frontmatter-design.md`):README 中英新增「维护者:发版前检查」两步(`claude plugin validate --strict` 全过并数出插件个数;`claude plugin details` 看每个插件的常驻 token);两份 mechanical 定义加 `effort: low`;规则句改成「按次指定 effort 只有 Workflow 的 agent() 支持」,补「定义里写了 effort 的子代理类型,裸 Agent 派它也按该档位跑」的例外(README 中英、两份脚手架模板);mechanical 说明补「omitClaudeMd 只管开局那次加载」;档位句补「按模型分别保存、ultracode 不等于 xhigh、以 /effort 为准」。
+- 镜像:本机全局 CLAUDE.md 第 16、29、39、43 行(备份 `~/.claude/CLAUDE.md.bak-20261002-cc288-abh`);dev-toolkit(mechanical 定义、WORKFLOW.md 三行、README 子代理表一格、脚手架模板一行;并 main 后 CI 升到 1.7.4,本机插件已更新)。huake 两个 engineer 插件没有 mechanical 子代理、模板压缩句字面仍成立,不改;workflow-codex 不涉及。
+- 验收:README 两段命令从仓库根逐字执行,第一段末行 `ALL PASSED (8 plugins)`;kit 两份 mechanical 真机冒烟均为 low(主会话 high);本机已装的 `dev-toolkit:mechanical`(1.7.4)真机冒烟为 low;haiku 实测不报错(该模型不接收档位)。测试进程已关。
+- 发版前检查第二步的数字(常驻 token,Claude Code 2.1.288):workflow 约 465、workflow-en 约 442、speak-human 约 181、speak-human-en 约 174、send-to 约 177、send-to-en 约 154、ui-sweep 约 159、ui-sweep-en 约 164。
+- 编排:取证 1 个 agent(5.6 万 token);实现 4 个单元 + 盲审 4 个(57.7 万);修复 3 个 + 独立测试 1 个 + 裁决 2 个(39.0 万)。评审链 `docs/reviews/2026-10-02-cc288-abh-chain.md`。
+- 对照实验:S 组 U1、U3(claude-sonnet-5-5),O 组 U2、U4(claude-opus-5-5)。有修复轮的是 U1、U3、U4,原因都是 spec 缺口或部署时序,没有一条是实现偏离 spec;样本太小,不改起跑档。
+- 不覆盖与遗留:见上面「待办」表新增的五行。
+
+评审 1 轮:同一句里保留的「mechanical 类型同理」与新例外矛盾(四个面);发版前检查两段命令的两个边界;dev-toolkit README 子代理表漏改。
 
 ### 2026-10-01 — 测试启动的进程测完即关 + 并发前先看负载 + 外部进程必须写退出(workflow/-en/codex 0.14.0,ui-sweep/-en 0.2.1)
 
