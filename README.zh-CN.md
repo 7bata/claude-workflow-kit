@@ -200,7 +200,7 @@ docs 八件套各自的职责:
 
 ## 二、档位表(`model` 与 `effort` 都必须显式写,不许省略)
 
-省略 `model` 继承主会话模型;省略 `effort` 继承主会话思考档位——主会话若挂着高档位,机械活就会按高档深度跑,比选错模型还烧钱、还慢。
+省略 `model` 继承主会话模型;省略 `effort` 继承主会话思考档位——主会话若挂着高档位,机械活就会按高档深度跑,比选错模型还烧钱、还慢。会话档位按模型分别保存(新出的模型从它自己的默认档起跑),ultracode 是独立开关、不等于 xhigh(Claude Code 2.1.284 起)——会话实际挂在哪一档以 `/effort` 为准,不论哪一档,Workflow 里都逐 stage 显式写。
 
 | Stage 类型 | model | effort |
 |---|---|---|
@@ -213,7 +213,7 @@ docs 八件套各自的职责:
 | 评审链的裁决轮(链的最后一轮;盲审无 P0/P1 且无矛盾时可不开;规则 3 单元必跑):终审、验收裁决、安全类评审 | `opus` | `high` |
 | 计划与架构设计 | 不派发,留主对话 | — |
 
-上表两条纯机械 stage(定位文件/列清单/盘点;批量迁移/重命名/模板化改码)派发时走 `agent(prompt, { agentType: 'mechanical', model: 'sonnet' 或 'haiku', effort: 'low' })`。这用的是 `workflow` 与 `workflow-en` 插件里自带的 `mechanical` agent 类型,其 frontmatter 设了 `omitClaudeMd: true`,会跳过自动加载的 CLAUDE.md,省 token。只有这两类纯机械 stage 用 `agentType: 'mechanical'`;常规实现(`sonnet`)与所有评审(`opus`)照旧加载 CLAUDE.md。`mechanical` 的定义里自带五条通用要求:结论必须来自本次实际跑出的工具输出;改了能运行、构建或类型检查的东西,报告完成前跑一次真实检查(prompt 禁止执行的不跑),跑不了就明说未验证;prompt 范围内的步骤做完再报告;为检查启动的进程检查完就关、只关自己启动的;要并行跑检查先看负载,超过核数就串行。
+上表两条纯机械 stage(定位文件/列清单/盘点;批量迁移/重命名/模板化改码)派发时走 `agent(prompt, { agentType: 'mechanical', model: 'sonnet' 或 'haiku', effort: 'low' })`。这用的是 `workflow` 与 `workflow-en` 插件里自带的 `mechanical` agent 类型,其 frontmatter 设了 `omitClaudeMd: true` 与 `effort: low`:开局不加载 CLAUDE.md,省 token;裸 Agent 按 `subagent_type` 派它时也按 `low` 跑。`omitClaudeMd` 只管开局那次加载——它读写到的目录里有子目录 CLAUDE.md 或带 `paths:` 的 `.claude/rules` 规则时,这些文件仍会按需加载。只有这两类纯机械 stage 用 `agentType: 'mechanical'`;常规实现(`sonnet`)与所有评审(`opus`)照旧加载 CLAUDE.md。`mechanical` 的定义里自带五条通用要求:结论必须来自本次实际跑出的工具输出;改了能运行、构建或类型检查的东西,报告完成前跑一次真实检查(prompt 禁止执行的不跑),跑不了就明说未验证;prompt 范围内的步骤做完再报告;为检查启动的进程检查完就关、只关自己启动的;要并行跑检查先看负载,超过核数就串行。
 
 ## 三、升降档四原则
 
@@ -224,7 +224,7 @@ docs 八件套各自的职责:
 
 ## 四、批量活走 Workflow,不走裸 Agent
 
-`effort` 只有 Workflow 脚本的 `agent()` 支持;裸 Agent 工具没有这个参数,派出去的子代理只能继承主会话档位、降不下来。所以批量/并行任务一律优先 Workflow 编排,别用裸 Agent 分叉。Workflow 脚本里每个 `agent()` 按档位表逐 stage 显式写 `model` + `effort`(省略 `effort` 继承的是会话档位,不是 API 默认——Opus 5.5 的 API 默认 effort 已降为 medium,别拿它当依据;省略 `model` 继承主会话模型、不会落到 opus;`mechanical` 类型同理);编排逻辑与最终汇总不进 workflow,由主对话亲自做。
+按次指定 `effort` 只有 Workflow 脚本的 `agent()` 支持;裸 Agent 工具没有这个参数,派出去的子代理默认继承主会话档位、降不下来。例外:子代理类型定义(插件 `agents/*.md`)的 frontmatter 写了 `effort:` 的,裸 Agent 按 `subagent_type` 派它时就按该档位跑——本 kit 的 `mechanical` 已写 `effort: low`。所以批量/并行任务仍一律优先 Workflow 编排,别用裸 Agent 分叉。Workflow 脚本里每个 `agent()` 按档位表逐 stage 显式写 `model` + `effort`(省略 `effort` 继承的是会话档位,不是 API 默认——Opus 5.5 的 API 默认 effort 已降为 medium,别拿它当依据;省略 `model` 继承主会话模型、不会落到 opus,`mechanical` 类型也一样;`mechanical` 的 `effort` 在定义里已写 `low`,脚本里仍显式写 `low`,两处同值);编排逻辑与最终汇总不进 workflow,由主对话亲自做。
 
 Workflow 工具单次运行的并发 agent 数上限默认约为 `min(16, 核数 − 2)`。环境变量 `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`(合法范围 1–256)可以调高这个上限。这里只是记录这个开关的存在——不改任何默认值。只在机器有富余 CPU 和内存余量时才调高;在已经吃紧的机器上调高会招致过载。开跑 Workflow 前主对话先看一次负载(见七之四第 2 条),已高就少开并行单元或分批跑,不调高上限。
 
@@ -400,6 +400,35 @@ claude-workflow-kit/
     │       └── references/          # report-template.md(报告骨架)
     └── ui-sweep-en/                 # 英文版 ui-sweep 插件(结构同 ui-sweep,scripts 与中文版逐字节一致)
 ```
+
+## 维护者:发版前检查
+
+改了任何插件(清单、hook、skill、子代理定义)之后、发版之前,在仓库根目录跑两步,都是只读命令:
+
+1. **校验**——`--strict` 把警告也当失败;末行出现 `ALL PASSED (N plugins)`、且 N 等于插件个数才算过:
+
+   ```bash
+   fail=0; n=0
+   for p in plugins/*/; do
+     [ -d "$p.claude-plugin" ] || continue
+     n=$((n+1))
+     claude plugin validate "$p" --strict || fail=1
+   done
+   claude plugin validate . --strict || fail=1
+   [ "$fail" = 0 ] && [ "$n" -gt 0 ] && echo "ALL PASSED ($n plugins)" || echo "FAILED"
+   ```
+
+2. **常驻 token 成本**——逐个插件看「每个会话固定多占多少 token」,把数字记进 `docs/Progress.md` 当次变更日志。`--plugin-dir` 是全局选项,必须写在 `plugin` 子命令前面:
+
+   ```bash
+   for p in plugins/*/; do
+     [ -d "$p.claude-plugin" ] || continue
+     n=$(basename "$p")
+     printf '%s: ' "$n"; claude --plugin-dir "$p" plugin details "$n" 2>&1 | grep "Always-on" || echo "NO Always-on LINE - check this plugin"
+   done
+   ```
+
+需要 Claude Code 2.1.281 及以上(校验里的 MCP 配置检查与 hook 路径引号检查是这一版加的)。`workflow-codex` 不是 Claude Code 插件(没有 `.claude-plugin` 目录),循环会自动跳过它。
 
 ## License
 

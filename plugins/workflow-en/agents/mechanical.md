@@ -2,6 +2,7 @@
 name: mechanical
 description: Mechanical task executor for the workflow kit — runs with no auto-loaded CLAUDE.md; project rules come from the prompt.
 omitClaudeMd: true
+effort: low
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 

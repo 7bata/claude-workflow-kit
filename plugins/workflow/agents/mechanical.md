@@ -2,6 +2,7 @@
 name: mechanical
 description: workflow kit 的机械执行子代理——不自动加载 CLAUDE.md,项目规则来自 prompt。
 omitClaudeMd: true
+effort: low
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 

@@ -199,7 +199,7 @@ Responsibilities of each file in the eight-doc set:
 
 ## 2. Tier table (both `model` and `effort` must be written explicitly — never omit either)
 
-Omitting `model` inherits the main session's model; omitting `effort` inherits the main session's reasoning effort (the session's tier, not the API default — Opus 5.5's API default effort dropped to medium, so don't reason from it; an omitted `model` never falls through to opus; the `mechanical` agent type behaves the same) — if the main session is running at a high tier, mechanical work would run at that same depth, burning more money and time than picking the wrong model would.
+Omitting `model` inherits the main session's model; omitting `effort` inherits the main session's reasoning effort (the session's tier, not the API default — Opus 5.5's API default effort dropped to medium, so don't reason from it; an omitted `model` never falls through to opus, and the same goes for the `mechanical` agent type; `mechanical`'s `effort` is already set to `low` in its definition, and scripts still write `low` explicitly, so the two agree) — if the main session is running at a high tier, mechanical work would run at that same depth, burning more money and time than picking the wrong model would. The session tier is saved per model (a newly released model starts at its own default), and ultracode is a separate toggle that no longer implies xhigh (since Claude Code 2.1.284) — check `/effort` for the tier a session is actually on; whatever it is, write `effort` explicitly per stage in a Workflow.
 
 | Stage type | model | effort |
 |---|---|---|
@@ -212,7 +212,7 @@ Omitting `model` inherits the main session's model; omitting `effort` inherits t
 | Verdict round of a review chain (the last round; may be skipped when the blind round has nothing at P0/P1 and no contradictions; mandatory for principle-3 units): final review, acceptance verdict, security-related review | `opus` | `high` |
 | Planning and architecture design | Not dispatched, stays in the main conversation | — |
 
-For the two purely mechanical rows above (locating/listing/inventory; batch migration/renaming/templated edits), dispatch through `agent(prompt, { agentType: 'mechanical', model: 'sonnet' or 'haiku', effort: 'low' })`. This uses the `mechanical` agent type shipped in the `workflow` and `workflow-en` plugins, whose frontmatter sets `omitClaudeMd: true`, so it skips the auto-loaded CLAUDE.md and saves tokens. Only these pure-mechanical stages use `agentType: 'mechanical'`; regular implementation (`sonnet`) and all review (`opus`) agents keep loading CLAUDE.md as usual. The `mechanical` definition itself carries five general requirements: findings must come from tool output actually produced in this run; anything runnable, buildable, or type-checkable it changes gets a real check before it reports done (never running what the prompt forbids — otherwise it says "not verified"); it finishes every step the prompt covers before reporting; it shuts down any process it started for a check once the check is done, and only those; and before running checks in parallel it looks at the load and runs serially when the load exceeds the core count.
+For the two purely mechanical rows above (locating/listing/inventory; batch migration/renaming/templated edits), dispatch through `agent(prompt, { agentType: 'mechanical', model: 'sonnet' or 'haiku', effort: 'low' })`. This uses the `mechanical` agent type shipped in the `workflow` and `workflow-en` plugins, whose frontmatter sets `omitClaudeMd: true` and `effort: low`: it skips the CLAUDE.md that is auto-loaded at start, which saves tokens, and a bare Agent call that names it via `subagent_type` also runs at `low`. `omitClaudeMd` only covers that start-up load — when a directory it reads or writes in has its own nested CLAUDE.md or a `paths:`-scoped `.claude/rules` rule, those files still load on access. Only these pure-mechanical stages use `agentType: 'mechanical'`; regular implementation (`sonnet`) and all review (`opus`) agents keep loading CLAUDE.md as usual. The `mechanical` definition itself carries five general requirements: findings must come from tool output actually produced in this run; anything runnable, buildable, or type-checkable it changes gets a real check before it reports done (never running what the prompt forbids — otherwise it says "not verified"); it finishes every step the prompt covers before reporting; it shuts down any process it started for a check once the check is done, and only those; and before running checks in parallel it looks at the load and runs serially when the load exceeds the core count.
 
 ## 3. Four principles for escalating/de-escalating tiers
 
@@ -223,7 +223,7 @@ For the two purely mechanical rows above (locating/listing/inventory; batch migr
 
 ## 4. Batch work goes through Workflow, not bare Agent
 
-`effort` is only supported by the Workflow script's `agent()`; the bare Agent tool has no such parameter — subagents dispatched that way can only inherit the main session's tier and can't be lowered. So batch/parallel tasks should always go through Workflow orchestration first — don't fork off with a bare Agent. Every `agent()` in a Workflow script writes `model` + `effort` explicitly per stage according to the tier table; orchestration logic and final synthesis never go inside the workflow — they're done by the main conversation itself.
+Per-call `effort` is only supported by the Workflow script's `agent()`; the bare Agent tool has no such parameter — subagents dispatched that way inherit the main session's tier by default and can't be lowered. Exception: when an agent type's definition (a plugin `agents/*.md` file) sets `effort:` in its frontmatter, a bare Agent call that names it via `subagent_type` runs at that tier — this kit's `mechanical` sets `effort: low`. So batch/parallel tasks should still always go through Workflow orchestration first — don't fork off with a bare Agent. Every `agent()` in a Workflow script writes `model` + `effort` explicitly per stage according to the tier table; orchestration logic and final synthesis never go inside the workflow — they're done by the main conversation itself.
 
 The Workflow tool's per-run concurrent-agent cap defaults to about `min(16, cores − 2)`. The env var `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (valid range 1–256) raises that cap for a run. This only documents the knob — no default is being changed here. Raise it only when the machine has CPU and memory headroom to spare; raising it on an already-loaded machine invites overload. Before kicking off a Workflow, the main conversation checks the load once (see Section 7d, item 2); if it is already high, open fewer parallel units or run in batches, and do not raise the cap.
 
@@ -403,6 +403,35 @@ claude-workflow-kit/
     │       └── references/           # report-template.md (report skeleton)
     └── ui-sweep-en/                  # English ui-sweep plugin (same layout; scripts byte-identical to the Chinese version)
 ```
+
+## Maintainers: pre-release checks
+
+After changing any plugin (manifest, hook, skill, subagent definition) and before releasing, run two steps from the repository root; both are read-only:
+
+1. **Validation** — `--strict` treats warnings as failures; the check passes only when the last line reads `ALL PASSED (N plugins)` and N matches the number of plugins:
+
+   ```bash
+   fail=0; n=0
+   for p in plugins/*/; do
+     [ -d "$p.claude-plugin" ] || continue
+     n=$((n+1))
+     claude plugin validate "$p" --strict || fail=1
+   done
+   claude plugin validate . --strict || fail=1
+   [ "$fail" = 0 ] && [ "$n" -gt 0 ] && echo "ALL PASSED ($n plugins)" || echo "FAILED"
+   ```
+
+2. **Always-on token cost** — for each plugin, see how many tokens it adds to every session, and record the numbers in the current change-log entry of `docs/Progress.md`. `--plugin-dir` is a global option and must come before the `plugin` subcommand:
+
+   ```bash
+   for p in plugins/*/; do
+     [ -d "$p.claude-plugin" ] || continue
+     n=$(basename "$p")
+     printf '%s: ' "$n"; claude --plugin-dir "$p" plugin details "$n" 2>&1 | grep "Always-on" || echo "NO Always-on LINE - check this plugin"
+   done
+   ```
+
+Requires Claude Code 2.1.281 or later (that release added the MCP config checks and the hook-path quoting check to validation). `workflow-codex` is not a Claude Code plugin (it has no `.claude-plugin` directory), so the loops skip it automatically.
 
 ## License
 

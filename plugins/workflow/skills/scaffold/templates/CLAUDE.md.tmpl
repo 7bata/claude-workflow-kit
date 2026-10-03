@@ -121,7 +121,7 @@
   - 评审报告只报差异（与前面各轮不同的新发现与推翻项），禁止"检查了一遍没问题"式摘要；无新发现要明说并列出复核点
   - 派实现 agent 的 prompt 除 spec 段落与本文件硬规则外，必须点名生产红线与文件所有权：FORBIDDEN FILES 清单、绝不重启共享服务、绝不读写生产数据、禁止 force push 与丢改动的历史改写、只改分给本单元的文件；测试启动的进程测完即关、并发前先看负载（§3 第 7、8 条）；单元代码要启动外部进程（无界面浏览器、子进程、常驻 worker）时写明必须实现退出：最长存活时间到点结束整个进程组、关闭先正常后强制且等待有上限、同时存活数有上限、出错/超时/取消/启动失败的路径都关、每次调用带超时、容器加内存与进程数上限，测试覆盖卡住或出错后进程确实退出
   - 前端视觉 stage（`'opus'`）的 prompt 先给设计方向（引用 hallmark / frontend-design skill），再点名本项目首轮产出里出现过的默认样式让它避开，逐轮补清单；"别像 AI 做的"这类泛指令对 Opus 5.5 基本无效
-  - `effort` 只有 Workflow 的 `agent()` 支持，裸 Agent 工具没这个参数 → 批量机械活优先走 Workflow 编排
+  - 按次指定 `effort` 只有 Workflow 的 `agent()` 支持，裸 Agent 工具没这个参数（子代理类型定义的 frontmatter 写了 `effort:` 的除外，如 `mechanical` 固定 `low`）→ 批量机械活优先走 Workflow 编排
   - 纯机械 stage（定位/清单、批量迁移/重命名/模板化）用 `agent(..., { agentType: 'mechanical', effort: 'low' })`——`mechanical` 是本 workflow 插件里带 `omitClaudeMd: true` 的子代理，不自动加载 CLAUDE.md、省 token；正因它不载 CLAUDE.md，可写的机械 stage 必须把生产红线写进它自己的 prompt，常规实现与评审照旧带 CLAUDE.md
   - Workflow 单次运行并发子代理上限默认约 `min(16, 核数-2)`，可用环境变量 `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`（1–256）调高，机器 CPU/内存有余量再调，别在已吃紧时调；开跑前先看一次负载（§3 第 8 条），已高就少开并行单元或分批跑
   - 档位表是有日期的经验校准，主力模型换代后用会话用量数据复盘更新——凭数据改表，不凭手感
