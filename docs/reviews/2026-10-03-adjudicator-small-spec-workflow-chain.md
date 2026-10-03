@@ -66,3 +66,82 @@ spec:`docs/superpowers/specs/2026-10-03-adjudicator-model-small-spec-workflow-di
 - 修复内容写进 spec 3.4(a ~ m)。漏改与口径残留(P1、P2、P3、P5、Q2、Q5、Q6、H1、H2、H4、H5 等)直接修;两条 spec 没说清的也定了:脚手架模板加一条「小改动也写小 spec」(P6 / Q7 / H6);dev-toolkit 核心 skill 的覆盖句用压缩版,token 只许不增加,做不到就停下报数字(Q1、Q3)。
 - 记为遗留、不在本批改:裁决轮模型跟着主对话变之后,规则 4 按评审模型分段统计打回率做不到了(全局规则第 36 行,Q 组 B 评审提出)——提交正文目前只记实现模型;主对话是 Opus 且外部 CLI 不可用时,dev-toolkit 的三轮都会是 opus,「不许只用 opus 单一模型」做不到(Q4)——属于盲审怎么组成的问题,Tony 还没定。
 - 修复轮的档位:U2、U4、U5 的 P1 里有实现时漏改或没按要求停下的,按「退回重跑升 high」;U1、U3 的修复来自 spec 没说清,维持 medium。
+
+
+## 第 2 轮 修复 + 独立测试 + 裁决(2026-10-03)
+
+执行:开跑前 1 分钟负载 10.0(等于核数),全程串行。修复:U2、U4 claude-opus-5-5 + high;U5 claude-sonnet-5-5 + high;U3、U1 claude-sonnet-5-5 + medium。独立测试:claude-sonnet-5-5 + medium。裁决:三个都省略 model,实际运行在 claude-fable-5-1(主对话当前的模型)+ high——本批新规则的第一次实际使用,继承成立。提交:本仓 f16ecbd(squash 到 8a67151)、d73bb55(squash 到 c359cbc);dev-toolkit b7b48ea(squash 到 e1242d6);huake Claude 版 115681e、Codex 版 6bc71bb。
+
+**独立测试**:T1 通过、T2 通过、T3 通过、T4 通过、T5 未通过、T6 通过、T7 通过、T8 通过、T9 未通过。未通过的两项都指向同一件事:dev-toolkit 核心 SKILL.md 的 3.4(k) 没有落实(修复 agent 因 token 上限停下并把核心恢复原状)。
+
+
+**裁决 — 公开面(U2 + U3)**
+
+| # | 成立 | 最终严重度 | 闭合 |
+|---|---|---|---|
+| P1 | 是 | P1 | 已闭合 |
+| P2 | 是 | P1 | 已闭合 |
+| P3 | 是 | P2 | 已闭合 |
+| P4 | 是 | P2 | 已闭合 |
+| P5 | 是 | P2 | 已闭合 |
+| P6 | 是 | P1 | 已闭合 |
+| P7 | 是 | P2 | 已闭合 |
+| P8 | 是 | P2 | 已闭合 |
+| P9 | 是 | P2 | 已闭合 |
+| P10 | 是 | P2 | 已闭合 |
+
+新发现:
+- [P2] plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl:103 —— 修复轮把主对话职责句里的 "conflict adjudication" 改成了 "conflict resolution"(main 上是 adjudication)。这句不是轮次名,不在 3.4(d) 范围内,违反「规范文本之外的句子不动」;README.md:195 同一句仍是 "conflict adjudication",两个英文面现在用词不一致。含义没变,建议改回,或记为遗留。
+- [P2] plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl:103 —— 多代理分工一条的标题仍是「ultracode 及其他并行分派一律照此」(英文模板同一行 "ultracode and any other parallel dispatch"),与同一条末尾「批量与并行任务一律走 Workflow 编排」并排,读起来像 Workflow 之外还有别的并行分派。P7 在 README 去掉了同类字眼,模板这里没跟着改。旧句,不改变行为,建议改成「Workflow 并行派活一律照此」或记为遗留。
+- [P2] plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl:120 —— 新括注后面紧跟原有括注,成了「评审 stage(…裁决轮用主对话当前的模型)(用 `pipeline` 逐条目流过…)」两个括号相连;括注里写的是 `opus`,而同一模板别处都写 `'opus'`(带引号)。英文模板第 120 行也有同样的引号不一致。纯体例。
+
+单元结论:U2:通过;U3:通过。
+
+**裁决 — 本机与 dev-toolkit(U1 + U4)**
+
+| # | 成立 | 最终严重度 | 闭合 |
+|---|---|---|---|
+| Q1 | 是 | P1 | 未闭合 |
+| Q2 | 是 | P1 | 已闭合 |
+| Q3 | 是 | P1 | 未闭合 |
+| Q4 | 是 | P2 | 未闭合 |
+| Q5 | 是 | P2 | 已闭合 |
+| Q6 | 是 | P2 | 已闭合 |
+| Q7 | 是 | P2 | 已闭合 |
+| Q8 | 是 | P2 | 已闭合 |
+| Q9 | 是 | P2 | 未闭合 |
+| Q10 | 是 | P2 | 已闭合 |
+| Q11 | 是 | P2 | 已闭合 |
+| Q12 | 是 | P2 | 已闭合 |
+
+新发现:
+- [P2] WORKFLOW.md:38 —— dev-toolkit 的 WORKFLOW.md:38 仍写「常规实现(`sonnet`)与全部评审(`opus`)照旧加载 CLAUDE.md」。它的镜像源 kit README.zh-CN.md:216 已是「与所有评审照旧加载」,全局规则 :29 也已去掉「(`opus`)」。3.4(c) 只点名了 README 与全局规则,漏了这个镜像面;结果是同一文件里与 :21、:35 的裁决轮新写法口径不一(要素 5、12),镜像两边也不一致。独立测试 agent 的 T9 没搜到这一句。
+- [P2] plugins/dev-toolkit/skills/driving-codex/SKILL.md:69 —— 修复轮把「`high` for the verdict round and security verdicts」整句换成「`high` for a high-risk unit's blind or dig round」,顺带去掉了安全类评审用 high 这一层。核心档位表把「安全类评审」列在 high 一行,review-chain.md 把「安全类终审」与三.3 高风险单元并列为三路到底;codex 在安全类评审的盲审位上该用哪一档现在没有写。建议写成 a high-risk unit's or a security review's blind or dig round。
+- [P2] plugins/dev-toolkit/skills/stellark-parallel-do/SKILL.md:77 —— 示例脚本的评审 stage 仍是 `{ model: 'opus', effort: 'high', phase: '评审' }`,而 :62 现在写「评审 stage(盲审与续挖 `opus`,裁决轮用主对话当前的模型)」、:85 写修完「跑裁决轮(省略 `model`)」。opus + high 这个组合按新规则既不是盲审(medium)也不是裁决轮(省略 model),照抄骨架的人得到的是由 opus 给出通过 / 不通过的单个 stage。spec 第 2 节把示例脚本列为不覆盖,所以只记 P2;但链文件 H2 记着 huake 版的示例已改成省略 model,两个仓的同一段示例现在不一样,需要主对话定一个口径。
+- [P2] docs/reviews/2026-10-03-adjudicator-small-spec-workflow-chain.md:67 —— 第 1 轮分流的遗留项「主对话是 Opus 且外部 CLI 不可用时,dev-toolkit 的三轮都会是 opus,『不许只用 opus 单一模型』做不到」标注为 (Q4),但发现表里的 Q4 是核心 §四 缺裁决轮例外,两者不是一回事;这条遗留在表里没有对应编号。追加本轮记录时请改正编号或单列,否则 Q4 会被误读成已按遗留处理。
+
+单元结论:U1:通过;U4:未通过。
+
+**裁决 — huake(U5)**
+
+| # | 成立 | 最终严重度 | 闭合 |
+|---|---|---|---|
+| H1 | 是 | P1 | 已闭合 |
+| H2 | 是 | P2 | 已闭合 |
+| H3 | 是 | P1 | 已闭合 |
+| H4 | 是 | P1 | 已闭合 |
+| H5 | 是 | P2 | 已闭合 |
+| H6 | 是 | P2 | 已闭合 |
+
+新发现:
+- [P2] plugins/claude-toolkit-engineer/skills/parallel-do/SKILL.md:168 —— 「opus 的意见不是圣旨」仍把评审意见统称为 opus 的意见。同一节 164、167 行已写明裁决轮用主对话当前的模型,评审结论可能出自非 opus 的裁决 agent,这里的叫法偏窄(要素 12 的同类残留)。dev-toolkit 的对应句是「误判可驳回但要说明理由」,不带模型名。建议改成「评审的意见不是圣旨」。不影响行为,记遗留即可。
+- [P2] plugins/claude-toolkit-engineer/.claude-plugin/plugin.json:2 —— 与本批改动无关的既有问题,顺带记录:claude plugin validate plugins/claude-toolkit-engineer 返回 1,报插件名以「claude-」开头属保留名(Plugin name "claude-toolkit-engineer" is reserved)。本批只改了第 3 行版本号,name 没动,origin/main 上同样会报。AC3 只针对 kit 本仓,不影响本单元结论;是否改名交主对话与 Tony 定。
+
+单元结论:U5(huake Claude 版 claude-toolkit-engineer):通过;U5(huake Codex 版 codex-toolkit-engineer):通过。
+
+
+### 第 2 轮分流(主对话)
+
+- U1、U2、U3、U5 通过,新发现都是 P2,记为遗留(清单见 spec 3.5 末条)。
+- U4 未通过(Q1、Q3 两条 P1 未闭合,原因是核心 token 上限)。按 spec 3.5 修:主对话已算出一组不超上限的写法(6532.0),派机械子代理照单套用,再测一次、再跑一次裁决轮。计入上限后本链到第 3 轮。
+- 更正:第 1 轮分流里「主对话是 Opus 且外部 CLI 不可用时,dev-toolkit 的三轮都会是 opus」那条遗留误标成了 (Q4)。它对应的是 Q3 行里评审 B 提的那一点(「异构三方」与「不许只用 opus」在该边界情况下做不到),不是 Q4。Q4 是核心第四节缺裁决轮例外的括注,本轮裁定 P2,因 token 上限记为遗留。

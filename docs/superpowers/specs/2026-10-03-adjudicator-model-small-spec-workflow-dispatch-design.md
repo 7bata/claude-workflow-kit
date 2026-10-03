@@ -143,6 +143,16 @@
 
 所有权随之扩大:U2 含 README 中英的第九节表、流程图、「所有评审」一句、七.7、第四节标题;U3 含三个模板的新增条目与「opus 评审 stage」一句、英文模板的轮次名、workflow-en whats-next;U1 含全局规则里 (c)(g)(h) 涉及的三句;U4 含 dev-toolkit 的 WORKFLOW.md、核心 SKILL.md、parallel-do、driving-codex、脚手架模板里上面各条涉及的句子;U5 含 huake Claude 版的 parallel-do、模板与两个仓库的 README.md。
 
+### 3.5 第 2 轮裁决后的处理(2026-10-03)
+
+裁决结果:U1、U2、U3、U5 通过;U4 未通过——dev-toolkit 核心 SKILL.md 按 3.4(k) 全部落实会到 6593.1,比基线 6534.0 多 59.1,修复 agent 按要求停下报了数字。主对话定的做法:
+
+- 核心 SKILL.md 落实这几项:恢复「评审裁决、」与七.4 开头的 parallel-do 入口括注;评审行改写(「谁来做」写成「`opus`+外部 CLI 盲审,主对话模型裁决」,说明里去掉「、不再平行投票,改为」,裁决模型指到第二节);七.6 换成 3.4(k) 的压缩覆盖句;七.7「并行分派」写成 parallel-do。
+- 为守 token 上限,按该仓「换短说法、不丢要素」的既有做法再缩两句:计划与架构设计一行的括注缩成「盲审→续挖(可选)→裁决轮」;五.4 的依据句去掉核查日期与数字,只留原因。主对话按该仓公式实算:6532.0,不超过基线。
+- 塞不下、记为遗留的两处:核心第四节标题不改;核心第四节「显式写 `model`+`effort`」后不加裁决轮例外的括注(例外已在第二节标题与档位表里)。这两处差异写进 references/upstream-map.md。
+- 顺带改掉裁决轮新报的三处小问题:dev-toolkit WORKFLOW.md「全部评审(`opus`)照旧加载」去掉「(`opus`)」;driving-codex 那句补回安全类评审用 high;本仓英文模板把修复轮超范围改掉的 "conflict resolution" 改回 "conflict adjudication"。
+- 不改、记为遗留:dev-toolkit parallel-do 示例脚本里单个 `opus` + `high` 的评审 stage(huake 版示例注明画的是裁决轮,已省略 model;dev-toolkit 版是泛指的单轮评审,要不要换成评审链还没定);模板标题里「其他并行分派」的字眼;本仓模板里两个括注相连与引号体例;huake parallel-do「opus 的意见不是圣旨」;huake 的 Claude 版插件名以 claude- 开头被校验判为保留名(本批之前就有)。
+
 ## 4. 要素清单(各面逐条落实,评审逐面核对)
 
 **第 1 条**
