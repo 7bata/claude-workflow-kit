@@ -25,8 +25,8 @@ ARCHITECTURE.md / DEPLOYMENT.md are design and deployment docs, not progress —
 
 | State | Next step |
 |---|---|
-| The latest spec is not yet implemented (Progress has no matching implementation record) | Use ultracode (Workflow multi-agent orchestration) to implement directly from that spec; if it's unclear whether the spec has been approved by the user, ask first before starting |
-| All specs are implemented (or there isn't one yet), and PLAN.md still has a Phase not marked ✅ | Run superpowers:brainstorming for the next Phase to produce a design spec (write it to `docs/superpowers/specs/`), then go straight to ultracode implementation once approved — skip writing-plans; register the spec in the Spec Index |
+| The latest spec is not yet implemented (Progress has no matching implementation record) | Use ultracode (Workflow multi-agent orchestration) to implement directly from that spec, unless Progress or the spec records that the user called a halt — in that case ask first |
+| All specs are implemented (or there isn't one yet), and PLAN.md still has a Phase not marked ✅ | Run superpowers:brainstorming for the next Phase to produce a design spec (write it to `docs/superpowers/specs/`), then go straight to ultracode implementation once the spec is written — skip writing-plans; register the spec in the Spec Index |
 | PLAN.md's Overall Roadmap is still `<!-- TBD -->` | First read REQUIREMENTS.md's "Phased Roadmap" as input, then use superpowers:brainstorming to define the phased roadmap |
 | All Phases are ✅ | The project is complete per plan; suggest a retrospective or starting a new Phase |
 

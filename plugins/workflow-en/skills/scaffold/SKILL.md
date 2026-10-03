@@ -159,7 +159,7 @@ grep -rl '{{' .claude docs README.md 2>/dev/null && echo "⚠ Unreplaced placeho
 LC_ALL=C grep -rl $'\xef\xbf\xbd' .claude docs README.md 2>/dev/null && echo "⚠ Garbled text found" || echo "No garbled text ✓"
 ```
 
-Report to the user: which files were generated, the tech stack/DB decisions, and next-step suggestions (`/brainstorming` to start design — once the spec is approved, go straight into ultracode implementation; you may skip the spec and work directly only when the change fits in a single atomic commit and adds no new modules or public interfaces — note in `docs/Progress.md` why you skipped; otherwise always write a spec first).
+Report to the user: which files were generated, the tech stack/DB decisions, and next-step suggestions (`/brainstorming` to start design — once the spec is written, go straight into ultracode implementation; small changes also get a small spec (a few paragraphs are enough) — write it, then go straight ahead).
 
 If, as the project progresses, a reusable component/module gets distilled out (not part of this scaffolding pass — a reminder for the future): **if the team maintains a component index, register it there** so other projects can discover and reuse it during research.
 

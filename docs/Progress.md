@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.15.0;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
-| workflow-codex(Codex CLI 移植版) | done | 0.14.0;测试进程清理、并发前看负载、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.16.0;评审链裁决轮用主对话当前的模型、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.15.0;spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前看负载、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.1;引擎跑完(含失败退出、收到信号)自动关掉自己的浏览器会话;引擎 smoke 35 例,三入口接进主流程 |
@@ -20,7 +20,11 @@
 | Phase 4 方向未定 | — | 待规划 |
 | 本机 docs-capture 双重注册风险:dev-toolkit 1.3.0 插件版将来在本机拉取后,与 settings.json 直接注册二存一(dev-toolkit README 已写注意) | 2026-08-14 U6 评审 | 拉取插件版时 |
 | Claude Code 2.1.288 对照里先放着的三项:C 盲审轮做成插件命名 workflow(先统计各项目评审链月跑次数,再单独出 spec)、D `/verify` 一句话(等下一个有测试命令的新项目实测)、G sonnet 别名复查(放对照实验两批之间) | 2026-10-02 调研稿 | 时机到了再做 |
-| prompt 审计的建议改法待 Tony 定:全局规则 27 个改动块、用户级 skill 17 个改动块(都只是建议,文件未动);三处要拍板的冲突——评审由谁裁决(全局写 opus,内部工作流 skill 写 fable 加外部 CLI)、小改动要不要写 spec 与等批准(superpowers 6.3.0 分三条路径后各处说法不一)、并行派活用裸子代理还是 Workflow | 2026-10-02 prompt 审计 | 等 Tony |
+| prompt 审计的建议改法待 Tony 定:全局规则 27 个改动块、用户级 skill 17 个改动块(都只是建议,文件未动)。三处冲突已在 2026-10-03 定下并实现;全局规则里讲评审裁决、brainstorming 覆盖段、并行派活的句子已被那一批改写,采纳这些改动块前要对着新文件重新核一遍 | 2026-10-02 prompt 审计 | 等 Tony |
+| 裁决轮的模型随会话变之后,规则 4「评审模型换代时基线清零、不跨代比较」没法按评审模型分段统计:提交正文只记「实现模型」,不记裁决用的模型 | 2026-10-03 评审链 Q12 | 等 Tony 定 |
+| 内部工作流 skill 的盲审里要不要保留外部 CLI(cwcode / codex):主对话是 Opus 且外部 CLI 用不了时,三轮都会是 opus,「重要评审不许只用 opus 单一模型」做不到;它的 parallel-do 示例脚本仍是单个 `opus` + `high` 的评审 stage,要不要换成评审链一起定(huake 版示例已省略 model,两边不一样) | 2026-10-03 评审链 | 等 Tony 定 |
+| 2026-10-03 批次遗留(都是 P2):中英脚手架模板「多代理分工」标题里还有「其他并行分派」;中文模板一处两个括注相连、`opus` 带不带引号不统一;内部工作流核心 skill 第四节标题与「显式写 model+effort」后的裁决轮例外括注没改(token 上限放不下,现在只剩约 2 token 余量,再加内容要先找能缩的句子或放宽上限);huake parallel-do「opus 的意见不是圣旨」;本机全局规则标题与几处「主对话(Fable)」字样 | 2026-10-03 评审链 | 低 |
+| huake 的 Claude 版插件名以 `claude-` 开头,`claude plugin validate` 判为保留名并返回失败(本批之前就有;改名会影响已安装的人) | 2026-10-03 评审链 | 等 Tony 定 |
 | 本仓 README 中英与脚手架模板写的 `agentType: 'mechanical'` 不带插件名前缀;workflow 插件里它的注册名实测是 `workflow:mechanical` / `workflow-en:mechanical`,不带前缀在本机实测解析不到,要核对后改 | 2026-10-02 prompt 审计 | 中 |
 | 内部工具包四处按原文执行会出错的地方(两个不可逆操作的确认步骤用交互式 read、生产状态 skill 把人指到测试环境的部署命令、缺令牌时提示用一个做不到这件事的命令、一个自己承认会失败的示例);本机杂项:speak-human 全文开局被注入两次、28 个 lark skill 是失效软链接、sop-generate 用户级副本落后于插件副本 | 2026-10-02 prompt 审计 | 中 |
 | 2026-10-02 批次遗留(都是 P2):README.md 第 202 行 "mechanical work" 紧挨 mechanical 类型的说明,容易误读;「N 等于插件个数」没写清是带 `.claude-plugin` 的 8 个;mechanical 定义的 description 与三处模板里「不自动加载 CLAUDE.md」没补「子目录规则仍按需加载」;「裸 Agent 派 mechanical 按 low 跑」对 haiku 不适用(该模型不接收档位) | 2026-10-02 评审链 | 低 |
@@ -31,6 +35,21 @@
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-10-03 — 裁决轮用主对话当前的模型 + 小改动也写小 spec 直接实现 + 并行派活统一走 Workflow(workflow/-en 0.16.0,codex 0.15.0)
+
+起因:2026-10-02 prompt 审计报出三处跨文件说法不一,Tony 逐条拍板:「按照当前这个对话model来当评审裁决」「小改动就写一个小的spec,但是这个就不用让我看了,直接写spec就直接开干」「统一走workflow」。
+
+- 规则(spec `docs/superpowers/specs/2026-10-03-adjudicator-model-small-spec-workflow-dispatch-design.md`):① 评审链只有最后一轮裁决改用主对话当前的模型(脚本里这一个 stage 省略 `model`、`effort: 'high'`;主对话是 Fable 就由 Fable 裁决,是 Opus 就由 Opus 裁决),盲审与续挖仍是 `opus`;② brainstorming 的小改动(bounded)路径也写一份小 spec,写完直接实现、不等用户确认,覆盖段逐个点名 brainstorming 里要等批准的四处(writing-plans 交接、User Review Gate、bounded 停下等批准、HARD-GATE 含「Too Simple To Need Approval」一节),spike 路径照原样;③ 批量与并行任务一律走 Workflow,不在一条回复里平行派裸子代理(单个子代理的一次性委派不在此列),点名覆盖 superpowers:dispatching-parallel-agents。
+- 改动:README 中英第一、二、三、四、七节,第九节 whats-next 表与使用方式流程图;三份脚手架模板(Codex 版只做第 ② 条的措辞)、whats-next、scaffold 汇报句、PLAN 模板;三个插件版本号。
+- 镜像:本机全局 CLAUDE.md 11 行(备份 `~/.claude/CLAUDE.md.bak-20261003-adjudicator`);dev-toolkit(WORKFLOW.md、核心 stellark-workflow 及其 review-chain / upstream-map、parallel-do、whats-next、scaffold 与模板、driving-codex;核心 token 6534.0 → 6532.0);huake Claude 版 0.26.0、Codex 版 0.14.0(README 各加一行版本说明)。
+- 验收(主对话在最终状态上重跑):全局文件与备份都是 111 行,差异只在点名的 11 行;README 发版前检查第一段末行 `ALL PASSED (8 plugins)`;各仓改动文件都在 spec 点名范围内;旧说法(「获批」「fable 裁决」「异构三方」「opus 评审 stage」「并行分派」)的剩余命中只有引用原话、历史说明与下面登记的遗留。新规则当批就用上了:四个裁决 agent 都省略 model,实际运行在 claude-fable-5-1。全程没有启动服务或浏览器,测试进程已关。
+- 编排:三次 Workflow 运行、23 个 agent、约 213.7 万 token(实现 5 个 43.8 万;盲审 6 个 65.0 万;修复 5 个 37.7 万;独立测试 2 次 19.0 万;裁决 4 个 47.4 万;套用 0.9 万)。机器负载 5~10(10 核),实现与盲审并发 2,修复之后全部顺序跑。评审链 `docs/reviews/2026-10-03-adjudicator-small-spec-workflow-chain.md`。
+- 对照实验:S 组 U1、U3、U5(claude-sonnet-5-5 + medium),O 组 U2、U4(claude-opus-5-5 + medium)。五个单元都有修复轮(U3、U4 各两轮);P1 里一半以上是 spec 自身的缺口或写得不清,U4 第 2 轮修复换成机械子代理、单列不归组。本批是规则文字单元、没有测试,不拿来定起跑档。
+- dev-toolkit 核心 skill 的 token 上限这次卡了两轮:修复 agent 两次都按要求停下报数字。最后的做法是主对话自己按该仓公式在草稿上算好一组「恢复被删内容 + 另两句换短说法」的精确替换清单,交机械子代理照单套用。
+- 遗留:见「待办」表 2026-10-03 的四行。
+
+评审 2 轮:第 1 轮(盲审 6 个)——README 第九节 whats-next 一行与流程图漏改、脚手架模板缺「小改动也写小 spec」一条、huake README 的版本说明行与开发流程句漏改、parallel-do「修完仍挂 opus high 复审」、dev-toolkit 核心为守 token 上限删了不该删的内容。第 2 轮(裁决)——dev-toolkit 核心按上限重排(恢复被删内容、覆盖段换成压缩句、另两句换短说法);英文模板一处超范围改词改回。
 
 ### 2026-10-02 — 仓库目录搬到 Stellark/Projects 下
 

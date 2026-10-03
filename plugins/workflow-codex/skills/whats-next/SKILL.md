@@ -25,8 +25,8 @@ ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档,不含进度,不读;REQ
 | 状态 | 下一步 |
 |---|---|
 | 存量详细计划(`docs/plans/`,旧流程遗留)有未勾选任务 | 第一个未勾选任务,先收尾存量计划 |
-| 最新 spec 尚未实现(Progress 无对应实现记录) | 按 spec 拆独立单元,用同插件 parallel-do 分波并行 spawn subagent 直接实现;该 spec 是否已获用户批准拿不准时,先问一句再开 |
-| spec 全部已实现(或还没有 spec),PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 与用户把设计聊透、写出 design spec(落 `docs/specs/`),获批后直接并行实现——不再写详细实现计划文档;spec 登记进 Spec 索引 |
+| 最新 spec 尚未实现(Progress 无对应实现记录) | 按 spec 拆独立单元,用同插件 parallel-do 分波并行 spawn subagent 直接实现;Progress 或 spec 里记着被用户喊停的除外,那种先问一句 |
+| spec 全部已实现(或还没有 spec),PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 与用户把设计聊透、写出 design spec(落 `docs/specs/`),写入后直接并行实现——不再写详细实现计划文档;spec 登记进 Spec 索引 |
 | PLAN.md 总体路线还是 `<!-- 待补 -->` | 先读 REQUIREMENTS.md「分期路线图」作输入,与用户讨论定分阶段路线图 |
 | 所有 Phase 都 ✅,且没有游离在路线图外的待办 | 项目按计划已完成;建议复盘或开新 Phase |
 | 所有 Phase 都 ✅,但仍有 Backlog(未纳入任何 Phase 的登记项,权威来源是 REQUIREMENTS.md 目标台账的 open 项与 MEETINGS.md 未勾选行动项——前者只在第⑤部分列出,不重复)未完成 | 先报告主路线已完成,再把 Backlog 按登记出现的顺序原样列出——**不擅自判断哪个更该先做、不替用户排优先级**,交给用户自己挑 |

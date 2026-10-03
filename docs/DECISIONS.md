@@ -2,6 +2,12 @@
 
 > 条目格式:`## 日期 - 类型(域): 标题` + What/Why/Changes,最新在上。由 `docs/DECISIONS.inbox.md` 的问答草稿消化而来;日常小决定与过程性确认不进本表。
 
+## 2026-10-03 - process(review): 裁决轮用主对话当前的模型;小改动也写小 spec、写完直接实现;批量与并行任务一律走 Workflow
+
+- **What**:① 评审链最后一轮裁决不再写死 `opus`,改用主对话当前的模型(Workflow 脚本里这一个 stage 省略 `model`,`effort: 'high'`);盲审与续挖仍是 `opus` + `medium`。② brainstorming 的小改动(bounded)路径也写一份小 spec(几段即可),写完直接实现,不在对话里等用户说 yes;覆盖段逐个点名 brainstorming 里要等批准的四处,spike 路径照原样。③ 批量与并行任务一律走 Workflow,不在一条回复里平行派裸子代理;单个子代理的一次性委派不在此列。
+- **Why**:2026-10-02 prompt 审计报出三处跨文件说法不一——评审由谁裁决(全局规则写 opus,内部工作流 skill 写 fable 子代理加外部 CLI)、小改动要不要写 spec 与等批准(superpowers 6.3.0 把 brainstorming 分成三条路径、每条都要先获批准,和「spec 写入即授权」的直通流程冲突)、并行派活用裸子代理还是 Workflow。Tony 2026-10-03 逐条拍板:「按照当前这个对话model来当评审裁决」「小改动就写一个小的spec,但是这个就不用让我看了,直接写spec就直接开干」「统一走workflow」。只把裁决轮改成跟随主对话(盲审、续挖不动)是主对话对第 1 条的理解,动手前已告诉 Tony。
+- **Changes**:README zh/en、三份脚手架模板、whats-next、scaffold(workflow/-en 0.16.0,codex 0.15.0);镜像到本机全局 CLAUDE.md、dev-toolkit、huake 两个工具包。没定的:裁决轮模型随会话变后按评审模型分段统计怎么做;内部工作流 skill 的盲审要不要保留外部 CLI。见 Progress 2026-10-03。
+
 ## 2026-09-28 - process(tiers): Sonnet 5.5 换代——本机把 sonnet 别名钉到 5.5;机械与 low 档 stage 加验证要求;规则 4 补实现模型分段;对照实验 S 组改 medium
 
 - **What**:① 本机 settings.json 加 env `ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5-5`(本机设置,不进公开 kit;官方把别名切到 5.5 或出下一代时删,已登记复查)。② mechanical 子代理定义自带验证要求(改完跑真实检查、结论来自本次工具输出、范围内做完再报告);不走 mechanical 的 sonnet+low stage 在派工说明里写同样要求。③ 规则 4:实现模型换代按实现模型分段统计、可以跨代比较,每单元首个提交正文记「实现模型:」行(取实际模型 ID,不记别名);评审模型换代才清零、不跨代比较。④ 对照实验改为 sonnet+medium 对 opus+medium,从下一批重新计数,Sonnet 5 那批单独留作参考。
