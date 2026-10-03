@@ -59,5 +59,5 @@
 | 2026-10-02 | Claude Code 2.1.288 对照里推荐先放着的三项:C 盲审轮做成插件命名 workflow、D `/verify` 一句话、G sonnet 别名复查 | 调研稿推荐,Tony「按推荐做」(本会话) | open — C 先统计各项目评审链月跑次数再单独出 spec;D 等下一个有测试命令的新项目实测;G 放对照实验两批之间做 |
 | 2026-10-02 | dev-toolkit `hooks/hooks.json` 两处 `${CLAUDE_PLUGIN_ROOT}` 没加引号(`claude plugin validate` 有警告,`--strict` 不通过;安装路径不含空格时不出问题) | 评审链第 1 轮 L12(本会话) | open — 属 dev-toolkit 仓,待单独处理 |
 | 2026-10-02 | 本机全局 CLAUDE.md 第 29 行说 mechanical 是「kit 的 workflow / workflow-en 插件里」的类型,而本机实际启用的是 dev-toolkit 的同名类型 | 评审链第 1 轮 L1(本会话) | open — 本批之前就有的说法,改不改等 Tony 定 |
-| 2026-10-02 | "另外帮我把这个/Users/tbata/Tony/Proj/claude-workflow-kit路径移动到/Users/tbata/Tony/Proj/Stellark/Projects这个底下" | Tony 原话(本会话) | open — 搬动前检查已做(目标无重名、同一磁盘、仓库干净、无软链接与配置写死旧路径);排在 prompt 审计跑完之后做,搬完把记忆复制到新路径对应的项目状态目录 |
+| 2026-10-02 | "另外帮我把这个/Users/tbata/Tony/Proj/claude-workflow-kit路径移动到/Users/tbata/Tony/Proj/Stellark/Projects这个底下" | Tony 原话(本会话) | done — 2026-10-02 已搬到 /Users/tbata/Tony/Proj/Stellark/Projects/claude-workflow-kit:同盘原子改名,提交号、远端、工作区状态不变,新位置 8 个插件校验全过;记忆目录挪到新路径对应的项目状态目录,旧位置留软链接(两边共用一份);旧会话记录仍在旧路径对应的状态目录 |
 | 2026-10-02 | prompt 审计的后续:建议改法采纳哪些、三处冲突怎么定(评审由谁裁决;小改动要不要写 spec 与等批准;并行派活用哪种工具);本仓 README 与模板里不带前缀的 `agentType: 'mechanical'` 要核对后改;内部工具包四处功能性问题与本机三件杂项 | prompt 审计(本会话) | open — 等 Tony 看过报告后定;细项见 Progress「待办」表 |
