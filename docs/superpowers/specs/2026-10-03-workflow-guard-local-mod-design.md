@@ -78,6 +78,24 @@ plugins/workflow-guard/
 
 mod 自己起的外部命令只有:`sysctl` / `nproc`、`uptime`、`memory_pressure`、`sh -c 'echo $PPID'`、`kill -0`、`agent-browser session list`、`agent-browser --session <名> close`。每次调用都带 `timeoutMs`(查询类 5000,close 15000),都是一次性命令,不留常驻进程;同一时刻最多一个刷新在跑;任何失败、超时、取消都被接住并返回。
 
+### 4.7 评审第 1 轮修订(以本节为准,与 4.1~4.6 不一致处按本节)
+
+实现时已做、认可的两处偏离:`scriptPath` 与 `script` 同时给时 `scriptPath` 优先(Workflow 工具自己的规定);`session`(含 `session list`)、`help`、`--help`、`--version` 这类不起浏览器的子命令不记账。
+
+- (a) 只在调用成功时记账:`ran.deny === undefined` 且 `ran.isError !== true`。失败或被拒的打开不加入;失败的 close 不移除(名字与 store 记录都留着)。
+- (b) 没写会话名的调用不记账、不在结束时关、状态栏不计入:agent-browser 的默认会话全机共用,关它可能关掉别的会话正在用的浏览器。README 已知限制写明。
+- (c) 会话名不匹配 `^[A-Za-z0-9._:-]+$`(含 `$`、反引号等要 shell 展开的写法)→ 判断不了,不记账,`$.ui.log` 记一行。
+- (d) 切段前去掉 heredoc 正文(`<<`、`<<-`,定界符带不带引号都算),正文里的行不当命令。
+- (e) 子命令判定要跳过带值选项的值。带值选项的清单按 `/tmp/agent-browser-help.txt`(本机 `agent-browser --help` 的输出)整理;清单外的 `--opt` 按不带值处理。
+- (f) 认得常见包装写法:段首的 `timeout <n>`、`env A=B`、`command`、`exec`、`nohup`、`npx [-y] agent-browser[@版本]`;`$(...)`、反引号、`( ... )` 里的命令;`bash -c "..."` / `sh -c '...'` 引号内的文本再解析一层。
+- (g) `close --all`:以应用完这条命令各段之后的清单为准,把本会话记录的名字全部从 `$.state` 与 `$.store` 去掉(含同一条命令里刚加入的)。
+- (h) 4.3 加总时长上限:开始关浏览器后超过 30 秒就不再发起新的 close,剩下的记录留在 store。
+- (i) `session.start` 不等残留扫描与首次刷新:取 `ownerPid` 之后,残留扫描与首次负载刷新用 `$.clock.after(0, ...)` 放到后面跑,`session.start` 立即 `next(e)`。残留扫描里 `kill -0` 最多查 20 条记录,多出来的当作判断不了(不算残留、不删)。
+- (j) 定时器在模块重载后要能重新起来:AbovePrompt 的 `ui.render` 钩子里,发现本模块实例还没起定时器就起(这个钩子只在交互界面触发)。
+- (k) 扫描器:`agent(...)` 的右括号后紧跟 `{` 的是方法定义,不算调用;`.` 与 `agent` 之间有空白也算成员调用,不算;`return`、`typeof`、`case`、`in`、`of`、`void`、`throw`、`yield`、`await`、`delete`、`do`、`else` 后面的 `/` 按正则字面量读。
+- (l) 负载解析接受逗号小数(macOS `load averages: 4,80 6,16 8,12`,Linux `load average: 0,52, 0,48, 0,40`)。
+- (m) 测试补齐:(a)~(l) 各有用例;状态栏在很窄的宽度(如 12 列)下不抛错、有合理输出;原来「不是文本」那条用例换成真的走到出错路径的输入。
+
 ## 5. 单元与档位
 
 一个单元 U1(整个 mod 连同测试、市场清单、README),`sonnet` + `medium`(对照实验 S 组),TDD:先写 `tests/`,`claude plugin test` 看失败,再实现。评审:2 个 `opus` + `medium` 盲审(负载高时顺序跑)→ 按分流修复 / 裁决(省略 model,high)。
@@ -91,7 +109,7 @@ mod 自己起的外部命令只有:`sysctl` / `nproc`、`uptime`、`memory_press
 - AC5 4.3 有测试:会话结束时逐个 close;某个 close 失败或超时时不抛错、其余照关、失败的记录留在 store。
 - AC6 4.4 有测试:残留只提示不关;已不存在的记录被清掉;当前会话自己的不算残留。
 - AC7 状态栏在 terminal 与 desktop 两个界面上都能挂载(测试里循环两个界面),各项有无对应画或不画。
-- AC8 真机(主对话做,嵌套 `claude -p --plugin-dir`):漏写 effort 的 Workflow 被拦且文字点名行号;写 `agentType: 'mechanical'` 被拦并给出 `dev-toolkit:mechanical`;合规的顺序脚本放行并真的跑起来;Workflow 里的子代理跑 Bash 时 `tool.call` 触发与否记录在案;一个真实的 `agent-browser --session wg-probe` 在会话结束后已不在 `agent-browser session list` 里。交互会话里状态栏的实际样子用 tmux 抓屏贴给 Tony 看。
+- AC8 真机(主对话做,嵌套 `claude -p --plugin-dir`):先在不带 mod 的会话里确认用 `agentType: 'mechanical'` 的 Workflow 在本机确实报解析不到(不成立就把第 2 项检查默认关掉);漏写 effort 的 Workflow 被拦且文字点名行号;写 `agentType: 'mechanical'` 被拦并给出 `dev-toolkit:mechanical`;合规的顺序脚本放行并真的跑起来;Workflow 里的子代理跑 Bash 时 `tool.call` 触发与否记录在案;一个真实的 `agent-browser --session wg-probe` 在会话结束后已不在 `agent-browser session list` 里。交互会话里状态栏的实际样子用 tmux 抓屏贴给 Tony 看。
 - AC9 4.6 每条外部命令调用都带 `timeoutMs`;没有常驻进程;非交互会话不起定时器。
 
 ## 7. 安装与回滚
@@ -105,4 +123,5 @@ mod 自己起的外部命令只有:`sysctl` / `nproc`、`uptime`、`memory_press
 - 状态栏只在终端和桌面端画;HAPI 网页和手机上看不到,检查与关浏览器不受影响。
 - 会话被强制杀掉时 `session.end` 不触发,浏览器关不了,只能靠下个会话的残留提示。
 - 第 1 项检查对经变量或包装函数传入的参数判断不了,按放行处理。
+- 没起名的 agent-browser 会话(默认会话)不跟踪也不关;会话名要靠 shell 展开才知道的(`$NAME`)也不跟踪。按全局规则,浏览器一律用自己起名的 `--session <名字>`。
 - 「本会话开着的后台进程数」这次不做:mod 接口里没有后台任务的清单,靠猜会不准。
