@@ -45,3 +45,4 @@
 - [docs-capture 决策/文档采集三层 hook](superpowers/specs/2026-08-14-docs-capture-hooks-design.md) — AskUserQuestion 拍板自动记入 inbox + 信号词软提醒 + commit 门禁催消化;四面已交付(kit wip 分支 / dev-toolkit 1.3.0 wip / claude-toolkit-engineer 0.15.0 wip / 本机 settings.json,三仓待 Tony 门禁并 main)
 - [进度日志按月归档 + 评审轮次压进单元提交](superpowers/specs/2026-09-07-progress-archive-and-review-squash-design.md) — Progress.md 只留当月、上月剪到 docs/archive/;评审打回修复 --squash= 挂单元提交,并 main 前 autosquash;源自 stella 八月代码量审查诊断
 - [测试的进程清理、并发前看负载、外部进程必须写退出](superpowers/specs/2026-10-01-test-process-cleanup-and-load-design.md) — 测试启动的进程测完即关、并发前按 1 分钟负载调小并发、单元代码启动外部进程时派工 prompt 写明退出要求;ui-sweep 引擎跑完关会话
+- [发版前检查 + mechanical 固定 low 档 + 档位句补充](superpowers/specs/2026-10-02-cc288-validate-effort-frontmatter-design.md) — Claude Code 2.1.288 对照批次:README 加发版前两步只读检查;mechanical 子代理定义加 `effort: low`,裸 Agent 规则句补例外;`omitClaudeMd` 只管开局加载的说明;档位句补「按模型保存、ultracode 不等于 xhigh」
