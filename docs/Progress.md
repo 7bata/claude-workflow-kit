@@ -20,21 +20,34 @@
 | Phase 4 方向未定 | — | 待规划 |
 | 本机 docs-capture 双重注册风险:dev-toolkit 1.3.0 插件版将来在本机拉取后,与 settings.json 直接注册二存一(dev-toolkit README 已写注意) | 2026-08-14 U6 评审 | 拉取插件版时 |
 | Claude Code 2.1.288 对照里先放着的三项:C 盲审轮做成插件命名 workflow(先统计各项目评审链月跑次数,再单独出 spec)、D `/verify` 一句话(等下一个有测试命令的新项目实测)、G sonnet 别名复查(放对照实验两批之间) | 2026-10-02 调研稿 | 时机到了再做 |
-| prompt 审计的建议改法待 Tony 定:全局规则 27 个改动块、用户级 skill 17 个改动块(都只是建议,文件未动)。三处冲突已在 2026-10-03 定下并实现;全局规则里讲评审裁决、brainstorming 覆盖段、并行派活的句子已被那一批改写,采纳这些改动块前要对着新文件重新核一遍 | 2026-10-02 prompt 审计 | 等 Tony |
-| 裁决轮的模型随会话变之后,规则 4「评审模型换代时基线清零、不跨代比较」没法按评审模型分段统计:提交正文只记「实现模型」,不记裁决用的模型 | 2026-10-03 评审链 Q12 | 等 Tony 定 |
-| 内部工作流 skill 的盲审里要不要保留外部 CLI(cwcode / codex):主对话是 Opus 且外部 CLI 用不了时,三轮都会是 opus,「重要评审不许只用 opus 单一模型」做不到;它的 parallel-do 示例脚本仍是单个 `opus` + `high` 的评审 stage,要不要换成评审链一起定(huake 版示例已省略 model,两边不一样) | 2026-10-03 评审链 | 等 Tony 定 |
-| 2026-10-03 批次遗留(都是 P2):中英脚手架模板「多代理分工」标题里还有「其他并行分派」;中文模板一处两个括注相连、`opus` 带不带引号不统一;内部工作流核心 skill 第四节标题与「显式写 model+effort」后的裁决轮例外括注没改(token 上限放不下,现在只剩约 2 token 余量,再加内容要先找能缩的句子或放宽上限);huake parallel-do「opus 的意见不是圣旨」;本机全局规则标题与几处「主对话(Fable)」字样 | 2026-10-03 评审链 | 低 |
-| huake 的 Claude 版插件名以 `claude-` 开头,`claude plugin validate` 判为保留名并返回失败(本批之前就有;改名会影响已安装的人) | 2026-10-03 评审链 | 等 Tony 定 |
+| prompt 审计的建议改法:2026-10-03 Tony「按照推荐改」,已采纳四个(本机全局规则的机械子代理调用名、两处固定回复句;sop-generate 用户级副本同步成插件版);其余 38 个只让文字更短、不改行为,没有采纳(其中 4 个属第三方 skill,上游一更新就被覆盖)。采纳后本仓与内部工具包里的镜像句(固定回复句「已记入目标台账」;不带前缀的调用名,见下面一行)要不要跟着改,等 Tony 定 | 2026-10-02 prompt 审计 | 等 Tony |
+| 内部工具包 parallel-do 的示例脚本仍是单个 `opus` + `high` 的评审 stage,要不要换成评审链(huake 版示例已省略 model,两边不一样) | 2026-10-03 评审链 | 等 Tony 定 |
+| 2026-10-03 批次遗留(都是 P2):中英脚手架模板「多代理分工」标题里还有「其他并行分派」;中文模板一处两个括注相连、`opus` 带不带引号不统一;内部工作流核心 skill 第四节标题与「显式写 model+effort」后的裁决轮例外括注没改(当时 token 上限放不下;同日去掉外部 CLI 后核心降到 6449.71,已有余量,下次动内部工具包时补上);huake parallel-do「opus 的意见不是圣旨」;本机全局规则标题与几处「主对话(Fable)」字样 | 2026-10-03 评审链 | 低 |
+| 2026-10-03 第二批遗留(都是 P2):英文 README 规则 4 新句用 adjudication round,其余处叫 verdict round;「裁决模型」行只记裁决轮,盲审直接判通过的单元没有这一行、盲审与续挖的 opus 换代也不反映(下次复盘时定要不要再记盲审模型);内部工具包 README 的 1.1.0 历史说明仍写「异构评审票」;review-chain 七之一(甲)缩短后,外部 CLI 包装 agent 的两条回报纪律没有去处 | 2026-10-03 评审链 | 低 |
+| Stella 记录子代理语言规定的遗留(都是 P2):批次收尾「新冒出」的新建标题算子代理自己组织(用中文)还是清单原文没说清;「原因不改写」比 examples 里精简原因的样例更严;项目的当前判断、阻塞方等自由文本字段没点名 | 2026-10-03 评审链 | 低 |
+| huake 的 Claude 版插件名以 `claude-` 开头,`claude plugin validate` 判为保留名并返回失败(本批之前就有;改名会影响已安装的人) | 2026-10-03 评审链 | Tony 2026-10-03:先不管 |
 | 本仓 README 中英与脚手架模板写的 `agentType: 'mechanical'` 不带插件名前缀;workflow 插件里它的注册名实测是 `workflow:mechanical` / `workflow-en:mechanical`,不带前缀在本机实测解析不到,要核对后改 | 2026-10-02 prompt 审计 | 中 |
-| 内部工具包四处按原文执行会出错的地方(两个不可逆操作的确认步骤用交互式 read、生产状态 skill 把人指到测试环境的部署命令、缺令牌时提示用一个做不到这件事的命令、一个自己承认会失败的示例);本机杂项:speak-human 全文开局被注入两次、28 个 lark skill 是失效软链接、sop-generate 用户级副本落后于插件副本 | 2026-10-02 prompt 审计 | 中 |
+| 内部工具包四处按原文执行会出错的地方(两个不可逆操作的确认步骤用交互式 read、生产状态 skill 把人指到测试环境的部署命令、缺令牌时提示用一个做不到这件事的命令、一个自己承认会失败的示例);本机杂项:speak-human 全文开局被注入两次、28 个 lark skill 是失效软链接 | 2026-10-02 prompt 审计 | 中 |
 | 2026-10-02 批次遗留(都是 P2):README.md 第 202 行 "mechanical work" 紧挨 mechanical 类型的说明,容易误读;「N 等于插件个数」没写清是带 `.claude-plugin` 的 8 个;mechanical 定义的 description 与三处模板里「不自动加载 CLAUDE.md」没补「子目录规则仍按需加载」;「裸 Agent 派 mechanical 按 low 跑」对 haiku 不适用(该模型不接收档位) | 2026-10-02 评审链 | 低 |
 | dev-toolkit `hooks/hooks.json` 两处 `${CLAUDE_PLUGIN_ROOT}` 没加引号(validate 有警告,`--strict` 不通过) | 2026-10-02 评审链 L12 | 低 |
-| 本机全局 CLAUDE.md 第 29 行说 mechanical 是「kit 的 workflow / workflow-en 插件里」的类型,本机实际启用的是 dev-toolkit 的同名类型 | 2026-10-02 评审链 L1 | 等 Tony 定 |
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-10-03 — 提交里加记裁决模型 + 内部工作流 skill 的盲审去掉外部 CLI + 采纳 prompt 审计四个改动块
+
+起因:上一批留给 Tony 的几件事,他逐条答复:「1. 加上 2. 去掉 3. 先不管 4. 关 5. 有哪些审计的改动? 6. 这个仓库对应的不就是claude workflow kit吗?你再看看」,看过审计清单后又说「两个进程你关一下,然后这个里面的审计,你按照推荐改吧」。
+
+- 规则(小 spec `docs/superpowers/specs/2026-10-03-adjudication-model-line-drop-external-cli-design.md`):① 跑过裁决轮的单元,首个提交正文在「实现模型:」之外再记一行「裁决模型:<裁决轮实际运行的模型 ID>」,评审基线按它分段;② 内部工具包的评审链回到与本仓相同的形态(盲审 2 个 opus、高风险单元 3 个、默认上限 4 轮),外部 CLI 不再是评审链的一方,两个驱动 skill 保留、只在用户点名时用。
+- 改动:本仓 README 中英规则 4 各一句;本机全局规则同一句(备份 `~/.claude/CLAUDE.md.bak-20261003-adjudicator-model-line`);内部工具包的 WORKFLOW.md 规则 4、核心 skill 六处、review-chain 细则重写、对照表、两个驱动 skill、README、parallel-do 档位表一行,版本升到 1.8.0。核心 token 6532.0 → 6449.71,已低于 6500。huake 两个工具包只有压缩句,不动。
+- 审计:四个改动块套用到本机(全局规则三处,备份 `~/.claude/CLAUDE.md.bak-20261003-audit-g24-g25`;sop-generate 用户级副本的 SKILL.md 与两个脚本同步成插件版,旧版备份在审计目录)。其余 38 个没有采纳。
+- 评审:盲审 2 个(opus medium,顺序跑)同报 2 条 P1(codex 驱动 skill 正文还把它写成评审链一方;核心一处括注还指向已删掉的撤方与链数上限)、2 条 P2;修复后裁决(省略 model,实际运行在 claude-fable-5-1,high)两个单元都通过,新 P2 四条记入「待办」表。评审链 `docs/reviews/2026-10-03-adjudication-model-line-drop-external-cli-chain.md`。新规则当批就用上:两个单元的提交正文都记了「裁决模型:claude-fable-5-1」。
+- 编排:两次 Workflow 运行、5 个 agent、约 41.6 万 token。机器 1 分钟负载 11~13(10 核),全程顺序跑。对照实验不计入(规则文字单元,没有测试)。
+- 其他:三个残留的 agent-browser 进程(连同带起的无界面浏览器)按 Tony 的话关掉,它们都不是本会话启动的;huake 插件名的保留名问题按 Tony 说的先不管;本仓在 Stella 里对应项目「Claude Workflow Kit」,上一批说没有对应项目是错的,这次收尾补更新待办。本批没有启动服务或浏览器,测试进程已关。
+- 追加(同一分支):Tony 在 hapi 窗口说「更新stella的为啥是英文,调成中文的」,由该窗口转来。内部工具包的 Stella 记录子代理定义加一条语言规定:给用户的话与自己组织后写进 Stella 的文字一律用中文,别人给的原文(用户原话、批次清单条目、已有待办标题、工具返回的原文、人名与专有名词)照原样。盲审一位判 P1、一位判 P2(与「用户原话直接用」没写清谁优先),改写后裁决通过(claude-fable-5-1);3 个 agent 约 22.3 万 token。原稿在 stella 仓,已通知那边写回。
+- 遗留:见「待办」表(镜像句要不要跟着改、parallel-do 示例脚本、四条 P2、语言规定的三条 P2)。
 
 ### 2026-10-03 — 裁决轮用主对话当前的模型 + 小改动也写小 spec 直接实现 + 并行派活统一走 Workflow(workflow/-en 0.16.0,codex 0.15.0)
 
