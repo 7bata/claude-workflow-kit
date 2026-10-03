@@ -96,6 +96,19 @@ mod 自己起的外部命令只有:`sysctl` / `nproc`、`uptime`、`memory_press
 - (l) 负载解析接受逗号小数(macOS `load averages: 4,80 6,16 8,12`,Linux `load average: 0,52, 0,48, 0,40`)。
 - (m) 测试补齐:(a)~(l) 各有用例;状态栏在很窄的宽度(如 12 列)下不抛错、有合理输出;原来「不是文本」那条用例换成真的走到出错路径的输入。
 
+### 4.8 评审第 2 轮修订(裁决轮报出两条新 P1;与前文不一致处以本节为准)
+
+真机事实(2026-10-03,agent-browser 0.27,主对话量的):有会话时 `agent-browser session list` 首行是 `Active sessions:`,之后每行两个空格缩进加会话名;没有时只有一行 `No active sessions`。close 一个约 0.4 秒;刚 close 完的一两秒内名字可能还在清单里。接口声明写明 `session.end` 整条链(所有钩子、其中的 `$` 等待、引擎自己的收尾)共用约 1.5 秒,到点在途的 `$` 调用被中止,只有命令放手的进程能活过它。
+
+- (n) **会话结束不在钩子里等 close**(改写 4.3,4.7 (h) 的 30 秒总上限作废)。本会话清单非空时,用一次 `$.process.run`(`timeoutMs: 1000`)起一个放手的短命进程:perl 脚本 fork 后父进程立即退出;子进程 `setsid`、标准输入输出指到 `/dev/null`,按顺序对每个名字 fork、`alarm 20`、exec `agent-browser --session <名> close`,全部跑完自己退出。名字作为参数传入,不拼进脚本文本。perl 起不来(调用被拒或非零退出)时回落到 `sh -c '( for n in "$@"; do agent-browser --session "$n" close; done ) </dev/null >/dev/null 2>&1 &' sh <名字…>`(同样 `timeoutMs: 1000`)。交出去之后清空本会话清单,**不删 store 记录**(关没关成不知道):下个交互会话的残留扫描里,不在活着清单里的记录会被删,还活着且启动方已结束的当残留提示。两种起法都失败 → 记日志,照常 `next(e)`。4.6 相应放宽:允许这一个放手的进程,寿命上限是 名字数 × 20 秒,跑完自己退出。
+- (o) **出错的调用以实际为准**(改写 4.7 (a))。`{ deny }`(确实没跑)→ 什么都不记。成功 → 按解析结果记。`isError`(命令可能已经跑了一部分)→ 跑一次 `agent-browser session list`(5 秒超时),对这条命令点到的每个可用名字:活着 → 记为本会话的(仅当这条命令里对它有打开类操作,或它本来就在本会话清单里);不在 → 本来在清单里的就去掉(连同 store 记录)。`session list` 自己失败 → 打开类操作照记,close 不应用。
+- (p) 会话清单按上面的真实格式解析(`Active sessions:` 之后的缩进行),不再按词匹配。
+- (q) **不接管别的会话的名字**。记账前看 store 的 `browser:<名>`:已有记录、`sessionId` 不是当前会话、且 `ownerPid` 还活着(`kill -0`,5 秒超时)→ 不记账、不覆盖记录,`$.ui.log` 记一行;`ownerPid` 为 null 或已不在 → 可以接手。
+- (r) 切段前去掉 shell 注释:引号之外、位于词首的 `#` 到行尾。
+- (s) 可用的会话名首字符必须是字母或数字:`^[A-Za-z0-9][A-Za-z0-9._:-]*$`。
+- (t) 残留扫描遇到 `sessionId` 与当前相同、还活着、不在本会话清单里的记录(恢复的会话)→ 加回本会话清单。`ownerPid` 改成按需取:第一次要写 store 记录或做残留扫描时还没有就取一次,模块没经过 `session.start` 也能有。
+- (u) 测试补齐 (n)~(t);原 (h) 的用例换成 (n) 的。
+
 ## 5. 单元与档位
 
 一个单元 U1(整个 mod 连同测试、市场清单、README),`sonnet` + `medium`(对照实验 S 组),TDD:先写 `tests/`,`claude plugin test` 看失败,再实现。评审:2 个 `opus` + `medium` 盲审(负载高时顺序跑)→ 按分流修复 / 裁决(省略 model,high)。
@@ -109,7 +122,7 @@ mod 自己起的外部命令只有:`sysctl` / `nproc`、`uptime`、`memory_press
 - AC5 4.3 有测试:会话结束时逐个 close;某个 close 失败或超时时不抛错、其余照关、失败的记录留在 store。
 - AC6 4.4 有测试:残留只提示不关;已不存在的记录被清掉;当前会话自己的不算残留。
 - AC7 状态栏在 terminal 与 desktop 两个界面上都能挂载(测试里循环两个界面),各项有无对应画或不画。
-- AC8 真机(主对话做,嵌套 `claude -p --plugin-dir`):先在不带 mod 的会话里确认用 `agentType: 'mechanical'` 的 Workflow 在本机确实报解析不到(不成立就把第 2 项检查默认关掉);漏写 effort 的 Workflow 被拦且文字点名行号;写 `agentType: 'mechanical'` 被拦并给出 `dev-toolkit:mechanical`;合规的顺序脚本放行并真的跑起来;Workflow 里的子代理跑 Bash 时 `tool.call` 触发与否记录在案;一个真实的 `agent-browser --session wg-probe` 在会话结束后已不在 `agent-browser session list` 里。交互会话里状态栏的实际样子用 tmux 抓屏贴给 Tony 看。
+- AC8 真机(主对话做,嵌套 `claude -p --plugin-dir`):先在不带 mod 的会话里确认用 `agentType: 'mechanical'` 的 Workflow 在本机确实报解析不到(不成立就把第 2 项检查默认关掉);漏写 effort 的 Workflow 被拦且文字点名行号;写 `agentType: 'mechanical'` 被拦并给出 `dev-toolkit:mechanical`;合规的顺序脚本放行并真的跑起来;Workflow 里的子代理跑 Bash 时 `tool.call` 触发与否记录在案;一个真实的 `agent-browser --session wg-probe` 在会话结束后已不在 `agent-browser session list` 里。交互会话里状态栏的实际样子用 tmux 抓屏贴给 Tony 看。评审第 2 轮追加:开 3 个起了名字的真实浏览器的会话结束后,约 10 秒内三个都不在会话清单里,放手的进程也已退出;命令出错(非零退出)但浏览器已起来时仍被记下并在结束时关掉。
 - AC9 4.6 每条外部命令调用都带 `timeoutMs`;没有常驻进程;非交互会话不起定时器。
 
 ## 7. 安装与回滚
