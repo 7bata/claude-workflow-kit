@@ -209,7 +209,7 @@ S / O 分组是档位表规则 4 的对照实验(sonnet + medium 对 opus + medi
 - AC4:全局 CLAUDE.md 与备份文件的 diff 只有第 16、29、39、43 四行(第 43 行是第 1 轮评审后追加的),行数不变。
 - AC5:dev-toolkit worktree 的 diff 只有 `mechanical.md` 加一行与 `WORKFLOW.md` 第 25、38、49 三行,`WORKFLOW.md` 行数不变(153);第 1 轮评审后追加 `README.md` 子代理表一格与脚手架模板一行;`claude plugin validate` 的结果不比改动前差;`claude --plugin-dir <worktree>/plugins/dev-toolkit plugin details dev-toolkit` 的 Agents 里列出 mechanical(validate 不检查 agents 目录,所以加这一步)。
 - AC6:第 6 节七条要素全部成立;盲审无 P0 / P1 未闭合。
-- AC7(收尾步骤,dev-toolkit 并 main 之后):等该仓 CI 自动升版 → 本机 `claude plugin marketplace update stellark-dev-toolkit` 与 `claude plugin update dev-toolkit@stellark-dev-toolkit` → 在临时项目里不带 `--plugin-dir` 起一个嵌套会话(`--effort high`),裸 Agent 派 `dev-toolkit:mechanical` 读子目录文件,hook 载荷里 effort 为 low。本机实际启用的是 dev-toolkit 插件(kit 的 workflow 插件本机没装),所以全局 CLAUDE.md 第 39 行「`mechanical` 已写 `effort: low`」要到这一步做完才对本机成立;做不完就在收尾汇报里写明还差哪一步。
+- AC7(收尾步骤,dev-toolkit 并 main 之后):等该仓 CI 自动升版 → 本机 `claude plugin marketplace update stellark-dev-toolkit` 与 `claude plugin update dev-toolkit@stellark-dev-toolkit` → 在临时项目里不带 `--plugin-dir` 起一个嵌套会话(`--effort high`),裸 Agent 派 `dev-toolkit:mechanical` 读子目录文件,hook 载荷里 effort 为 low。本机实际启用的是 dev-toolkit 插件(kit 的 workflow 插件本机没装),所以全局 CLAUDE.md 第 39 行「`mechanical` 已写 `effort: low`」要到这一步做完才对本机成立;做不完、或冒烟结果不是 low,就在同一次收尾里把全局第 39 行那半句改成带版本条件的说法(dev-toolkit 升到含 `effort: low` 的版本之后才成立),或按备份把这一行退回,并在收尾汇报里写明(裁决轮对 L1 的闭合条件)。
 - AC8(只记录,不卡通过):裸 Agent 派 `workflow:mechanical` 且 `model` 指定 haiku 时是否报错、hook 载荷里 effort 是什么。档位表允许 mechanical 用 haiku,取证只测过 sonnet。
 
 ## 8. 回滚

@@ -63,3 +63,9 @@
 
 ## 进程核对
 全部嵌套 claude 均已正常退出(exit 0);结束后 `ps -axo pid,command | grep -F /tmp/cc288smoke.bdwfR6` 无输出。未启动浏览器、服务、容器。测试进程已关。
+
+## 补充:实现后的冒烟(2026-10-02)
+
+- **AC3(kit 的 mechanical 定义,实现单元 U2 跑)**:`--plugin-dir plugins/workflow --model sonnet --effort high`,裸 Agent 派 `workflow:mechanical` 读 sub/a.txt,hook 载荷 `"agent_type": "workflow:mechanical", "effort": {"level": "low"}`;换 `plugins/workflow-en` 与 `workflow-en:mechanical`,同为 `{"level": "low"}`。日志 `$T/hook-u2zh.jsonl`、`$T/hook-u2en.jsonl`(各 3 行,前 2 行是主会话 session_start)。
+- **AC8(haiku,独立测试 agent 跑)**:同上命令,Agent 工具的 `model` 设 haiku。嵌套会话正常结束;子代理转录的模型是 claude-haiku-4-5-20251001;hook 载荷里该子代理那一行没有 effort 字段。日志 `$T/hook-tester-haiku.jsonl`。
+- 两次都核对过没有残留的嵌套 claude 进程。
