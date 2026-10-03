@@ -20,7 +20,9 @@
 | Phase 4 方向未定 | — | 待规划 |
 | 本机 docs-capture 双重注册风险:dev-toolkit 1.3.0 插件版将来在本机拉取后,与 settings.json 直接注册二存一(dev-toolkit README 已写注意) | 2026-08-14 U6 评审 | 拉取插件版时 |
 | Claude Code 2.1.288 对照里先放着的三项:C 盲审轮做成插件命名 workflow(先统计各项目评审链月跑次数,再单独出 spec)、D `/verify` 一句话(等下一个有测试命令的新项目实测)、G sonnet 别名复查(放对照实验两批之间) | 2026-10-02 调研稿 | 时机到了再做 |
-| E:Tony 在会话里跑一次 `/doctor prompt-audit`,主对话甄别结果记进 Progress,不写进规则 | 2026-10-02 Tony「按推荐做」 | 等 Tony |
+| prompt 审计的建议改法待 Tony 定:全局规则 27 个改动块、用户级 skill 17 个改动块(都只是建议,文件未动);三处要拍板的冲突——评审由谁裁决(全局写 opus,内部工作流 skill 写 fable 加外部 CLI)、小改动要不要写 spec 与等批准(superpowers 6.3.0 分三条路径后各处说法不一)、并行派活用裸子代理还是 Workflow | 2026-10-02 prompt 审计 | 等 Tony |
+| 本仓 README 中英与脚手架模板写的 `agentType: 'mechanical'` 不带插件名前缀;workflow 插件里它的注册名实测是 `workflow:mechanical` / `workflow-en:mechanical`,不带前缀在本机实测解析不到,要核对后改 | 2026-10-02 prompt 审计 | 中 |
+| 内部工具包四处按原文执行会出错的地方(两个不可逆操作的确认步骤用交互式 read、生产状态 skill 把人指到测试环境的部署命令、缺令牌时提示用一个做不到这件事的命令、一个自己承认会失败的示例);本机杂项:speak-human 全文开局被注入两次、28 个 lark skill 是失效软链接、sop-generate 用户级副本落后于插件副本 | 2026-10-02 prompt 审计 | 中 |
 | 2026-10-02 批次遗留(都是 P2):README.md 第 202 行 "mechanical work" 紧挨 mechanical 类型的说明,容易误读;「N 等于插件个数」没写清是带 `.claude-plugin` 的 8 个;mechanical 定义的 description 与三处模板里「不自动加载 CLAUDE.md」没补「子目录规则仍按需加载」;「裸 Agent 派 mechanical 按 low 跑」对 haiku 不适用(该模型不接收档位) | 2026-10-02 评审链 | 低 |
 | dev-toolkit `hooks/hooks.json` 两处 `${CLAUDE_PLUGIN_ROOT}` 没加引号(validate 有警告,`--strict` 不通过) | 2026-10-02 评审链 L12 | 低 |
 | 本机全局 CLAUDE.md 第 29 行说 mechanical 是「kit 的 workflow / workflow-en 插件里」的类型,本机实际启用的是 dev-toolkit 的同名类型 | 2026-10-02 评审链 L1 | 等 Tony 定 |
@@ -29,6 +31,16 @@
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-10-02 — prompt 审计(`/doctor prompt-audit`,只出报告与建议改法,没有改文件)
+
+起因:2.1.288 对照里的 E 项,Tony 在会话里敲了 `/doctor prompt-audit`。范围是本项目会话会加载的 Claude Code 配置文字,共 123 个文件:本机全局规则、用户级 skill、账号同步的 skill、四个插件自带的 skill 与子代理定义。目标模型 Claude Fable 5.1。
+
+- 做法:10 个扫描员逐文件对照内置审计指南(9 个 sonnet medium 加 1 个 opus medium 查跨文件冲突,约 115 万 token);4 个 opus medium 逐条回到原文复核(全局规则两位互不可见),另实测了一次子代理类型名解析(约 45 万 token)。扫描员报 141 条,复核推翻 3 条、改写 15 条的替换文本、补报 4 条。
+- 结果:旧模型脚手架、退役模型名、含糊措辞、身份套话都是 0 命中;账号同步的 14 个 skill 全部干净。问题集中在三类——规则里的历史叙述与「相对旧版本」的说法、跨文件冲突与失效的交叉引用、内部工具包里几处按原文执行会出错的步骤。
+- 最要紧的三条:全局规则里机械子代理的调用名 `agentType: 'mechanical'` 在本机解析不到(实测报 not found,带插件名前缀才行);评审由谁裁决有两套互相冲突的规则同时加载;superpowers 6.3.0 的 brainstorming 分成三条路径后,全局的覆盖说明只管到其中一条。
+- 产出:完整报告、逐块的原文与替换文本、两份差异文件放在本机私有目录(含内部运维细节,不进本仓)。建议改法共 44 块(全局规则 27、用户级 skill 17),插件与同步文件只报告。
+- 对本仓的后续:README 中英与脚手架模板里不带前缀的 `agentType: 'mechanical'` 要核对后改;全局规则采纳哪些改动块定了之后,README 里的对应句再跟着改。见「待办」表新增的三行。
 
 ### 2026-10-02 — Claude Code 2.1.288 对照:发版前检查 + mechanical 固定 low 档 + 档位句补充(workflow/-en 0.15.0)
 
