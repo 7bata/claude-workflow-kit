@@ -25,8 +25,8 @@ ARCHITECTURE.md / DEPLOYMENT.md 是设计与部署文档，不含进度，不读
 
 | 状态 | 下一步 |
 |---|---|
-| 最新 spec 尚未实现（Progress 无对应实现记录） | 用 ultracode（Workflow 多代理编排）直接从该 spec 实现；该 spec 是否已获用户批准拿不准时，先问一句再开 |
-| spec 全部已实现（或还没有 spec），PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 用 superpowers:brainstorming 出 design spec（落 `docs/superpowers/specs/`），获批后直接 ultracode 实现——不走 writing-plans；spec 登记进 Spec 索引 |
+| 最新 spec 尚未实现（Progress 无对应实现记录） | 用 ultracode（Workflow 多代理编排）直接从该 spec 实现；Progress 或 spec 里记着被用户喊停的除外，那种先问一句 |
+| spec 全部已实现（或还没有 spec），PLAN.md 还有未 ✅ 的 Phase | 对下一个 Phase 用 superpowers:brainstorming 出 design spec（落 `docs/superpowers/specs/`），写入后直接 ultracode 实现——不走 writing-plans；spec 登记进 Spec 索引 |
 | PLAN.md 总体路线还是 `<!-- 待补 -->` | 先读 REQUIREMENTS.md「分期路线图」作输入，再用 superpowers:brainstorming 定分阶段路线图 |
 | 所有 Phase 都 ✅ | 项目按计划已完成；建议复盘或开新 Phase |
 

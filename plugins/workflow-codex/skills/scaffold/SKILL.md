@@ -160,7 +160,7 @@ grep -rl '{{' AGENTS.md docs README.md 2>/dev/null && echo "⚠ 有未替换占�
 LC_ALL=C grep -rl $'\xef\xbf\xbd' AGENTS.md docs README.md 2>/dev/null && echo "⚠ 有乱码" || echo "无乱码 ✓"
 ```
 
-向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（先与用户把设计聊透、design spec 请落 `docs/specs/`——获批后按 spec 拆独立单元用 `parallel-do` 分波并行实现；改动小到一个原子 commit 能覆盖、且不新增模块与对外接口时，可跳过 spec 直接做，但要在 `docs/Progress.md` 记一句为什么跳过，否则一律先出 spec）。
+向用户汇报：生成了哪些文件、技术栈/DB 决策、下一步建议（先与用户把设计聊透、design spec 请落 `docs/specs/`——写入后按 spec 拆独立单元用 `parallel-do` 分波并行实现；小改动也写一份小 spec（几段即可），写完直接做）。
 
 若项目推进中沉淀出可复用的组件/模块（不是本次落盘范围，是给未来的提醒）：**若团队维护组件索引库，登记之**，方便其他项目调研时发现并复用。
 
