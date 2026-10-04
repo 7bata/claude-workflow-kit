@@ -10,7 +10,7 @@
 
 ### 1. 新模板 `templates/docs/BUSINESS.md.tmpl`
 
-结构套用《SOP-系统需求采集手册》7 格模型,**去 Stellark 化的通用措辞**(开源版不引用内部手册名),每节配一行"怎么问/怎么填"的引导注释:
+结构套用内部的需求采集手册里的 7 格模型,**措辞改成不带内部说法的通用写法**(开源版不引用内部手册名),每节配一行"怎么问/怎么填"的引导注释:
 
 ```
 # Business — {{PROJECT_NAME}}(业务档案)
@@ -46,7 +46,7 @@
 |---|---|
 | `claude-workflow-kit/plugins/workflow`(开源中文) | 通用措辞 |
 | `claude-workflow-kit/plugins/workflow-en`(开源英文) | 英文翻译,结构一致 |
-| 内部工具包仓(engineer 版)stellark-scaffold | 可引用内部《SOP-系统需求采集手册》作为 intake 指引 |
+| 内部工具包仓(engineer 版)内部版-scaffold | 可引用内部的需求采集手册作为 intake 指引 |
 | kit 根 README.md / README.zh-CN.md | 提及"七件套"处改"八件套"并列出 BUSINESS |
 
 ### 5. 与其他 spec 的衔接(实现时序约束)

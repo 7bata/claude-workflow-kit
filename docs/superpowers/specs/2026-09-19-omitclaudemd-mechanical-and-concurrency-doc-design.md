@@ -50,7 +50,7 @@ implementation (sonnet) and all review (opus) agents keep CLAUDE.md.
 
 ### 1b. Rule / text updates
 - Tier table (README §2 "Tier table", README.zh-CN §2, global CLAUDE.md 档位表,
-  dev-toolkit WORKFLOW.md, huake variant): for the mechanical rows, add guidance to
+  内部工具包 WORKFLOW.md, 内部工作站 variant): for the mechanical rows, add guidance to
   dispatch via `agent(prompt, { agentType: 'mechanical', model: 'sonnet'/'haiku',
   effort: 'low' })`, which skips the auto-loaded CLAUDE.md and saves tokens.
 - Guardrail line (README §3/§4, README.zh-CN, global CLAUDE.md production-red-line
@@ -64,7 +64,7 @@ implementation (sonnet) and all review (opus) agents keep CLAUDE.md.
 ## Change 2 — document CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS
 
 - README §4 ("Batch work goes through Workflow"), README.zh-CN §4, global CLAUDE.md
-  batch rule, dev-toolkit WORKFLOW.md, huake variant: document the env var (1–256):
+  batch rule, 内部工具包 WORKFLOW.md, 内部工作站 variant: document the env var (1–256):
   it raises the Workflow per-run concurrent-agent cap, default about min(16, cores−2).
   Caution to include verbatim in intent: raise it only when the machine has CPU and
   memory headroom; raising it on a loaded machine invites the overload seen on
@@ -79,8 +79,8 @@ implementation (sonnet) and all review (opus) agents keep CLAUDE.md.
 3. Kit `README.zh-CN.md`
 4. `plugins/workflow` (agent def + any tier/batch text in its scaffold template / skills)
 5. `plugins/workflow-en` (agent def + any tier/batch text in its scaffold template / skills)
-6. dev-toolkit `WORKFLOW.md` (and its mirrored plugin copies, if any)
-7. huake variant (locate the huake claude plugin's workflow text at implementation time;
+6. 内部工具包 `WORKFLOW.md` (and its mirrored plugin copies, if any)
+7. 内部工作站 variant (locate the 内部工作站 claude plugin's workflow text at implementation time;
    if absent, report rather than invent a path)
 - **Excluded**: `plugins/workflow-codex` — omitClaudeMd is Claude-Code-specific; the
   Codex variant uses AGENTS.md and a different tool. Leave it untouched.
@@ -104,8 +104,8 @@ implementation (sonnet) and all review (opus) agents keep CLAUDE.md.
   `plugins/workflow-en`. Mechanical. FORBIDDEN: any file outside those two agent files.
 - **Unit 2 — kit README edits**: apply Change 1b + Change 2 to `README.md` and
   `README.zh-CN.md`. FORBIDDEN: any file outside those two.
-- **Unit 3 — mirror edits (dev-toolkit + huake)**: apply Change 1b + Change 2 to
-  dev-toolkit `WORKFLOW.md` (+ mirrored copies) and the huake variant. Work on a wip
+- **Unit 3 — mirror edits (内部工具包 + 内部工作站)**: apply Change 1b + Change 2 to
+  内部工具包 `WORKFLOW.md` (+ mirrored copies) and the 内部工作站 variant. Work on a wip
   branch in each of those repos. FORBIDDEN: touching the kit repo or global CLAUDE.md.
 - **Global CLAUDE.md edit**: done by the main conversation (Fable) directly, not a unit.
 - **Unit 4 — smoke test**: implement and run the composition smoke test above; depends

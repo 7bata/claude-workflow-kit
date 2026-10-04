@@ -6,7 +6,7 @@
 
 ## 1. 背景与目标
 
-非工程用户(典型如 Will)纯 vibe coding:开会话说需求、AI 就干,脑中没有"项目=
+非工程用户(典型如一位非工程同事)纯 vibe coding:开会话说需求、AI 就干,脑中没有"项目=
 文件夹"的意识——不建文件夹、不敲 `/scaffold`、不管 git。结果项目没有 docs,
 某项目的路线图汇总模块(读各项目 docs/REQUIREMENTS、DECISIONS、PLAN、Progress 生成主管级
 路线图)无料可读。
@@ -113,7 +113,7 @@ Important #1/#4)。
 |---|---|
 | 开源 zh `plugins/workflow/` | 新增 hooks 三件(hooks.json / inject.sh / auto-scaffold.md);scaffold SKILL.md 加 Auto 模式节 + description 扩词;plugin.json 版本升、description 提自动铺设;marketplace.json 同步 |
 | 开源 en `plugins/workflow-en/` | 同上全套英文版;**双语两份 README 都要加节 + 目录树**(历史上英文 README 漏更被评审打回,列入验收清单) |
-| 内部工具包仓(vibe 版,plugins/vibe/) | 同款 hook;规则正文中执行器换为 `/stellark-setup` 静默路径:slug 当 `$ARGUMENTS` 传入,其余字段沿用其 schema 默认值;stellark-setup 加 auto 模式小节(语言选择之外不发任何问题)。vibe 仓本机无 checkout:临时 clone,动手前先 fetch 快进(CI 有 [auto-bump] 提交)。共享 skill 只进 vibe 不进 engineer(叠装规则) |
+| 内部工具包仓(vibe 版,plugins/vibe/) | 同款 hook;规则正文中执行器换为 `/内部版-setup` 静默路径:slug 当 `$ARGUMENTS` 传入,其余字段沿用其 schema 默认值;内部版-setup 加 auto 模式小节(语言选择之外不发任何问题)。vibe 仓本机无 checkout:临时 clone,动手前先 fetch 快进(CI 有 [auto-bump] 提交)。共享 skill 只进 vibe 不进 engineer(叠装规则) |
 | 内网工作站 · 内部工具包仓(engineer 版) | 同款 hook + scaffold Auto 节;README「包含的 N 个 skill」计数与表格、plugin.json description 同步 |
 | codex `plugins/workflow-codex/` | **不做自动触发**(Codex CLI 无 SessionStart hook 机制);README 注明原因,附一段可手动粘进全局 AGENTS.md 的规则片段供 opt-in |
 

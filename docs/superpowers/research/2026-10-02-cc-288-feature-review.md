@@ -37,7 +37,7 @@
 
 - 证据:2.1.78 "Added `effort`, `maxTurns`, and `disallowedTools` frontmatter support for plugin-shipped agents";2.1.267 "Fixed `effort:` frontmatter on custom commands, skills, and subagents being ignored on models whose default effort is still pinned";官方 sub-agents 文档 effort 字段写 "Overrides the session effort level";2.1.243 起 `/tasks` 与子代理详情直接显示每个子代理实际的模型与 effort。盲审纠正:2.1.288 那条 "Fixed agent teams: a plugin-defined agent spawned by name now runs with its own ... effort" 修的是 agent teams,不能当裸 Agent 的证据。
 - kit 现状:`plugins/workflow/agents/mechanical.md` frontmatter 只有 name / description / omitClaudeMd / tools;全局 CLAUDE.md 第 39 行与 README 第 227 行写「裸 Agent 工具没有这个参数,派出去的子代理只能继承主会话档位、降不下来」——对自带 `effort:` 的子代理类型这句已不成立。
-- 做法:mechanical.md(workflow 与 workflow-en,镜像 dev-toolkit 与 huake)加一行 `effort: low`;Workflow 里 `opts.effort` 照旧显式写(值与 frontmatter 相同,谁优先都不影响结果);冒烟一次:裸 Agent `subagent_type: mechanical` 在 xhigh 会话里派一个探针,`/tasks` 看实际 effort。通过后第 39 行补例外:「带 `effort:` frontmatter 的子代理类型(如 mechanical)裸派也按声明档位跑」。
+- 做法:mechanical.md(workflow 与 workflow-en,镜像 内部工具包 与 内部工作站)加一行 `effort: low`;Workflow 里 `opts.effort` 照旧显式写(值与 frontmatter 相同,谁优先都不影响结果);冒烟一次:裸 Agent `subagent_type: mechanical` 在 xhigh 会话里派一个探针,`/tasks` 看实际 effort。通过后第 39 行补例外:「带 `effort:` frontmatter 的子代理类型(如 mechanical)裸派也按声明档位跑」。
 - 取舍:frontmatter 写死 low 后 mechanical 不能按 stage 升档;但 mechanical 只服务两类纯机械 stage,档位表对它们本来就定 low,「失败才升档」在这两类上基本不触发。haiku 是否接受 effort 只在真派 haiku 时再测。
 - 文档没写 Workflow `opts.effort` 与 frontmatter 谁优先(model 有顺序:按次传入 > frontmatter > 环境变量 > 会话;effort 没写)。
 
@@ -46,7 +46,7 @@
 - 证据:官方 workflows 文档 "Distribute a workflow in a plugin: Place the script in a `workflows/` directory at the plugin root, or point to a different location with the `workflows` manifest field. Plugin workflows are namespaced by the plugin name ... runs as `/acme-tools:release-audit`";"A saved workflow can accept input through the `args` parameter";对命名的插件 workflow 首次运行可选 "Yes, and don't ask again"。官方 claude-security 插件已经这么做(`workflows/scan.js`,plugin.json 无 workflows 字段)。首次版本 changelog 没查到。
 - kit 现状:评审链(盲审 2~3 + 续挖 + 裁决 + 按 file+line ±3 归并 + conflict 标记)只在全局 CLAUDE.md 规则 2 与 README 用文字描述,每次由主对话临时手写脚本;plugins/workflow 下没有 workflows/ 目录。
 - 做法(盲审缩小后的版本):只固化「盲审 + 归并 + 标 conflict」这一段:`plugins/workflow/workflows/review-blind.js`,args 传 `{unit, files, specPath, chainFile, n: 2|3, effort: 'medium'|'high', lenses}`,脚本内 `parallel()` 跑 n 个 `opus` 评审(统一 schema `findings[{file,line,severity,claim,lens}]`),纯 JS 做归并(file 用仓库相对路径、line 取起始行、±3 视为同一位置、无行号按 file + claim 前 40 字、同位置结论相反或严重度不同标 conflict),返回 `{merged, conflicts}`。分流(通过 / 裁决 / 修复后续挖)与裁决轮仍由主对话决定——这样不违反 CLAUDE.md 第 43 行「编排逻辑与最终汇总不进 workflow」。调用变成 `workflow('workflow:review-blind', {...})` 或 `/workflow:review-blind`。
-- 取舍:评审链跨多次运行(修复后再开一次接原链),命名 workflow 只覆盖一段,链文件 docs/reviews 仍由主对话追加;多一个漂移面(脚本 + 规则 2 + README zh/en + dev-toolkit + huake,改规则要动 6 处);workflow-codex 没有 Workflow 工具,无法对应;脚本里不能读写文件、不能用 Date.now()。收益取决于每月跑多少次评审链——本仓 docs/reviews 只有 1 个链文件,stella 等项目应更多,定之前先数一下。
+- 取舍:评审链跨多次运行(修复后再开一次接原链),命名 workflow 只覆盖一段,链文件 docs/reviews 仍由主对话追加;多一个漂移面(脚本 + 规则 2 + README zh/en + 内部工具包 + 内部工作站,改规则要动 6 处);workflow-codex 没有 Workflow 工具,无法对应;脚本里不能读写文件、不能用 Date.now()。收益取决于每月跑多少次评审链——本仓 docs/reviews 只有 1 个链文件,内部项目管理系统 等项目应更多,定之前先数一下。
 - 冒烟:临时目录建最小插件(plugin.json + workflows/hello.js),`claude --plugin-dir` 加载,确认 `/<plugin>:<name>` 出现、`Workflow({name})` 能调、args 能传、脚本内 agent() 的 model/effort/agentType 生效。
 
 ### D. `verify` skill(考虑,先一次性实测)
@@ -85,11 +85,11 @@
 
 ## 不做的项(附修正后的理由)
 
-- **Claude Mods(2.1.287)与内置 "You should know" 旁观 mod**:kit 四个 shell hook 工作正常;改成 mod 要带 TS 依赖与 ≥2.1.287 版本门槛,还多出 workflow-en 与 dev-toolkit 两份镜像;"You should know" 需要 telemetry 开着,本机 settings.json 没开。DECISIONS.inbox 待消化条数做成状态条也不省 token、不防事故,commit-gate 已在 commit 前挡住。与 AGENTS.md 同属「有了没坏处但没人用」。
+- **Claude Mods(2.1.287)与内置 "You should know" 旁观 mod**:kit 四个 shell hook 工作正常;改成 mod 要带 TS 依赖与 ≥2.1.287 版本门槛,还多出 workflow-en 与 内部工具包 两份镜像;"You should know" 需要 telemetry 开着,本机 settings.json 没开。DECISIONS.inbox 待消化条数做成状态条也不省 token、不防事故,commit-gate 已在 commit 前挡住。与 AGENTS.md 同属「有了没坏处但没人用」。
 - **插件 userConfig + `claude plugin configure`(2.1.285)替代 touch 文件开关**:真实代价是两套开关要兼容并存,外加 README、SKILL、smoke、evals 四五处联动;调查员原先的「四个 profile 配置分裂」理由不成立——labs/long/tech 的 settings.json 软链到同一个文件,touch 文件能共享是因为 hook 里写死 `$HOME/.claude`。
 - **拆 `.claude/rules` 路径条件规则**:kit 的规则绑定动作(派子代理、commit、截图)不绑定文件路径,`paths:` 触发不了;文档明说 `@path` 导入不省上下文;可路径化的段不到 5%。真要瘦身是删段,见 E。
 - **迁到 `claude plugin eval`(2.1.269)**:还在 early access;默认会把 HTML 报告发布到 claude.ai(`--help` 原话 "already the default when your account supports it",试点必须 `--no-publish`,speak-human 的案例来自 Tony 真实抉择);每个用例默认跑 3 次、两臂合计 6 个 claude 子进程;历史分数断档;近一个月 evals 没有改动需求,也没有「自建脚本测不到真实触发」的事故。记为跟踪项。
-- **/code-review `--max-findings`(2.1.288)当评审链第三票**:2.1.215 起它不再自动运行;是会话内 skill,Workflow agent 能否稠定调用未验;评审链已有异构外部评审(codex / cwcode)。
+- **/code-review `--max-findings`(2.1.288)当评审链第三票**:2.1.215 起它不再自动运行;是会话内 skill,Workflow agent 能否稠定调用未验;评审链已有异构外部评审(外部 CLI)。
 - **`--bare` 用于评测隔离(2.1.286)**:需要 API key,不读 OAuth,本机是 claude.ai 登录;run_evals.py 本来就用 HERMETIC 环境变量关 hook、把规则拼进 prompt,与 --bare 不冲突但也不需要。若要更严的隔离,2.1.248 的 `--restricted`(不需要 API key、忽略用户设置)是替代。
 - **后台命令时限写进规则**:2.1.285 加时限(默认 30 分钟、最长 2 小时),三个版本后 2.1.288 改成只在无人值守会话生效、终端无上限——变化太快,规则正文已要求「谁启动谁关」,不写版本行为。
 - **WorktreeCreate / WorktreeRemove hook(2.1.50)强制 worktree 位置与清理**:Stop hook worktree-sweep 已够用。

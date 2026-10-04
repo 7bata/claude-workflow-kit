@@ -6,7 +6,7 @@ Tony 反馈:AI 汇报里的自造比喻词和行话(「随行注意」「踩在�
 
 ## 内部检索
 
-本地 `code-base/components.yaml` 不存在;gitlab.stellark.io 上按 `stellark/code-base` 路径调 API 返回 404。内部组件索引两条路都不可用,如实记录,不阻塞。
+本地 `内部组件索引` 不存在;内部 GitLab 上按 `内部组件索引仓` 路径调 API 返回 404。内部组件索引两条路都不可用,如实记录,不阻塞。
 
 ## 结论
 

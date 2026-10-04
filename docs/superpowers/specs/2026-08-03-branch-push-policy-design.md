@@ -26,15 +26,15 @@
 | 位置 | 内容 |
 |---|---|
 | `claude-workflow-kit/plugins/workflow` + `workflow-en` | CLAUDE.md.tmpl(中英)、SKILL.md 若提及 push |
-| 内部工具包仓(engineer 版,stellark-scaffold 等) | CLAUDE.md.tmpl + 各 skill 中 push 相关措辞 |
-| 内部工具包仓(vibe 版 starters + skills) | starter 模板与 stellark-commit 等 skill 的 push 措辞 |
+| 内部工具包仓(engineer 版,内部版-scaffold 等) | CLAUDE.md.tmpl + 各 skill 中 push 相关措辞 |
+| 内部工具包仓(vibe 版 starters + skills) | starter 模板与 内部版-commit 等 skill 的 push 措辞 |
 | `~/.claude/CLAUDE.md`(用户全局规则) | 新增 5 行「Git push 策略」小节,使**非 scaffold 项目**的会话也遵守新策略 |
 
 ### 3. 与 superpowers 上游 skill 的衔接(只写衔接规则,不改上游插件)
 
 - using-git-worktrees:无需改——分支即推恰好给每个 worktree 分支实时备份
 - finishing-a-development-branch:其「merge 回 base」选项 = main 门禁的确认时刻;CLAUDE.md 模板写明确认后的收尾动作(push main、删远端分支)
-- 存量项目:用 stellark-update skill 把新版 CLAUDE.md 规则同步到已有生产项目(实现阶段列 runbook,不自动批量跑)
+- 存量项目:用 内部版-update skill 把新版 CLAUDE.md 规则同步到已有生产项目(实现阶段列 runbook,不自动批量跑)
 
 ## 验收条款
 

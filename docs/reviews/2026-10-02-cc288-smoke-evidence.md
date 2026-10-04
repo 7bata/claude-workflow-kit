@@ -33,32 +33,32 @@
 
 ### 组 a(只摘子代理触发的行)
 ```json
-{"session_id": "1319c511-5740-488b-ab67-dfe7c2c0c995", "transcript_path": "/Users/tbata/.claude-profiles/labs/projects/-private-tmp-cc288smoke-bdwfR6-P/1319c511-5740-488b-ab67-dfe7c2c0c995.jsonl", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "f6b43e92-640f-40ff-93c4-bf32ab7096db", "agent_id": "a2a05a21327ee5835", "agent_type": "smokeprobe:probe-noeffort", "effort": {"level": "high"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/a.txt"}
+{"session_id": "1319c511-5740-488b-ab67-dfe7c2c0c995", "transcript_path": "<本机会话记录>", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "f6b43e92-640f-40ff-93c4-bf32ab7096db", "agent_id": "a2a05a21327ee5835", "agent_type": "smokeprobe:probe-noeffort", "effort": {"level": "high"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/a.txt"}
 ```
 
 ### 组 b(只摘子代理触发的行)
 ```json
-{"session_id": "37e7b14e-6389-467c-ad10-61f9ebed55bb", "transcript_path": "/Users/tbata/.claude-profiles/labs/projects/-private-tmp-cc288smoke-bdwfR6-P/37e7b14e-6389-467c-ad10-61f9ebed55bb.jsonl", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "26555284-7e10-4f17-8e72-cc251ce3e3da", "agent_id": "a3bc204cae047c515", "agent_type": "smokeprobe:probe-keep", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/a.txt"}
+{"session_id": "37e7b14e-6389-467c-ad10-61f9ebed55bb", "transcript_path": "<本机会话记录>", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "26555284-7e10-4f17-8e72-cc251ce3e3da", "agent_id": "a3bc204cae047c515", "agent_type": "smokeprobe:probe-keep", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/a.txt"}
 ```
 
 ### 组 c(只摘子代理触发的行)
 ```json
-{"session_id": "06f0a719-83a9-493d-9792-2b5ae429fd8a", "transcript_path": "/Users/tbata/.claude-profiles/labs/projects/-private-tmp-cc288smoke-bdwfR6-P/06f0a719-83a9-493d-9792-2b5ae429fd8a.jsonl", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "25fded14-c3d1-4405-bdc5-6c2d62a13e6d", "agent_id": "a294c4e38cc93a6f2", "agent_type": "smokeprobe:probe-omit", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/a.txt"}
+{"session_id": "06f0a719-83a9-493d-9792-2b5ae429fd8a", "transcript_path": "<本机会话记录>", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "25fded14-c3d1-4405-bdc5-6c2d62a13e6d", "agent_id": "a294c4e38cc93a6f2", "agent_type": "smokeprobe:probe-omit", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/a.txt"}
 ```
 
 ### 组 e(只摘子代理触发的行)
 ```json
-{"session_id": "de8147d4-1f00-4ebd-8798-386e424ff50b", "transcript_path": "/Users/tbata/.claude-profiles/labs/projects/-private-tmp-cc288smoke-bdwfR6-P/de8147d4-1f00-4ebd-8798-386e424ff50b.jsonl", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "e3655e28-51f7-4f55-b8ed-a3a4ac1fa4b9", "agent_id": "a605bdab9056c9c53", "agent_type": "smokeprobe:probe-omit", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/.claude/rules/pathrule.md", "memory_type": "Project", "load_reason": "path_glob_match", "globs": ["sub2"], "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub2/c.txt"}
+{"session_id": "de8147d4-1f00-4ebd-8798-386e424ff50b", "transcript_path": "<本机会话记录>", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "e3655e28-51f7-4f55-b8ed-a3a4ac1fa4b9", "agent_id": "a605bdab9056c9c53", "agent_type": "smokeprobe:probe-omit", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/.claude/rules/pathrule.md", "memory_type": "Project", "load_reason": "path_glob_match", "globs": ["sub2"], "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub2/c.txt"}
 ```
 
 ### 组 f(只摘子代理触发的行)
 ```json
-{"session_id": "07c6648f-b010-4212-b79f-0648f1296254", "transcript_path": "/Users/tbata/.claude-profiles/labs/projects/-private-tmp-cc288smoke-bdwfR6-P/07c6648f-b010-4212-b79f-0648f1296254.jsonl", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "b480970c-2cbc-4a8f-9759-95d9909d9d3b", "agent_id": "accef1f56a608040d", "agent_type": "smokeprobe:probe-keep", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/.claude/rules/pathrule.md", "memory_type": "Project", "load_reason": "path_glob_match", "globs": ["sub2"], "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub2/b.txt"}
+{"session_id": "07c6648f-b010-4212-b79f-0648f1296254", "transcript_path": "<本机会话记录>", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "b480970c-2cbc-4a8f-9759-95d9909d9d3b", "agent_id": "accef1f56a608040d", "agent_type": "smokeprobe:probe-keep", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/.claude/rules/pathrule.md", "memory_type": "Project", "load_reason": "path_glob_match", "globs": ["sub2"], "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub2/b.txt"}
 ```
 
 ### 组 g(只摘子代理触发的行)
 ```json
-{"session_id": "ec170739-eb55-4eac-9b65-85da7be6b1c1", "transcript_path": "/Users/tbata/.claude-profiles/labs/projects/-private-tmp-cc288smoke-bdwfR6-P/ec170739-eb55-4eac-9b65-85da7be6b1c1.jsonl", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "87b32741-7b27-4367-b203-23c149153932", "agent_id": "a76b11b4fdd212659", "agent_type": "smokeprobe:probe-omit", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/d.txt"}
+{"session_id": "ec170739-eb55-4eac-9b65-85da7be6b1c1", "transcript_path": "<本机会话记录>", "cwd": "/private/tmp/cc288smoke.bdwfR6/P", "prompt_id": "87b32741-7b27-4367-b203-23c149153932", "agent_id": "a76b11b4fdd212659", "agent_type": "smokeprobe:probe-omit", "effort": {"level": "low"}, "hook_event_name": "InstructionsLoaded", "file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/CLAUDE.md", "memory_type": "Project", "load_reason": "nested_traversal", "trigger_file_path": "/private/tmp/cc288smoke.bdwfR6/P/sub/d.txt"}
 ```
 
 ## 进程核对
@@ -69,4 +69,4 @@
 - **AC3(kit 的 mechanical 定义,实现单元 U2 跑)**:`--plugin-dir plugins/workflow --model sonnet --effort high`,裸 Agent 派 `workflow:mechanical` 读 sub/a.txt,hook 载荷 `"agent_type": "workflow:mechanical", "effort": {"level": "low"}`;换 `plugins/workflow-en` 与 `workflow-en:mechanical`,同为 `{"level": "low"}`。日志 `$T/hook-u2zh.jsonl`、`$T/hook-u2en.jsonl`(各 3 行,前 2 行是主会话 session_start)。
 - **AC8(haiku,独立测试 agent 跑)**:同上命令,Agent 工具的 `model` 设 haiku。嵌套会话正常结束;子代理转录的模型是 claude-haiku-4-5-20251001;hook 载荷里该子代理那一行没有 effort 字段。日志 `$T/hook-tester-haiku.jsonl`。
 - 两次都核对过没有残留的嵌套 claude 进程。
-- **AC7(本机已装的 dev-toolkit 1.7.4,主对话跑)**:不带 `--plugin-dir`,`--model sonnet --effort high`,裸 Agent 派 `dev-toolkit:mechanical`(没传 model)读 sub/a.txt,hook 载荷 `"agent_type": "dev-toolkit:mechanical", "effort": {"level": "low"}`;嵌套会话 exit 0,无残留进程。日志 `$T/hook-ac7.jsonl`。临时目录 $T 在收尾时已删除,本文件的摘录即留存证据。
+- **AC7(本机已装的 内部工具包 1.7.4,主对话跑)**:不带 `--plugin-dir`,`--model sonnet --effort high`,裸 Agent 派 `内部工具包:mechanical`(没传 model)读 sub/a.txt,hook 载荷 `"agent_type": "〔内部工具包〕:mechanical", "effort": {"level": "low"}`;嵌套会话 exit 0,无残留进程。日志 `$T/hook-ac7.jsonl`。临时目录 $T 在收尾时已删除,本文件的摘录即留存证据。

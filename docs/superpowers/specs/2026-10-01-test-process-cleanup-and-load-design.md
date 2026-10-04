@@ -9,7 +9,7 @@
 
 1. **进程没人关**。2026-10-01 22:28 本机有两个 agent-browser 后台进程,一个已存活 1 天 11 小时、父进程是 1(启动它的会话早已结束)。kit 自带的 ui-sweep 引擎 `sweep.mjs` 只在**开跑时**关一次旧会话(`initSession` 里的 `ab(['close'])`),跑完打印 `SWEEP DONE` 就退出,自己起的 `ui-sweep` 会话和 Chrome 留在后台。
 2. **负载已高还在加并发**。2026-10-01 22:32 本机 10 核,`uptime` 1 分钟负载 31.77,69 个 claude 进程,另有别的会话在跑 vitest 与 go test。2026-09-19 已经出过一次过载事故(44 个会话加残留进程,HAPI hub 连不上)。
-3. **代码里启动的浏览器不退出**。内部项目 hook-writer 于 2026-09-27 被整体关停(该仓 `docs/Progress.md` 2026-09-27、提交 ba9c6cb):抓取容器里 13 个无界面 Chrome 常驻,最久 4 天 18 小时、合计约 1.9GB,Docker 虚拟机(4GB 内存)反复内存耗尽,同机另一个项目的 postgres 7 天崩溃 30 次。根因:第三方库的关闭函数出错后无限期等浏览器自己退出、从不强制结束;浏览器调用又没有超时,54 次调用挂住 1~90 小时。修法是补丁自己管浏览器:最长存活时间到点结束整个进程组、关闭先正常后强制且等待有上限、同时最多 2 个、容器加内存与进程数上限。
+3. **代码里启动的浏览器不退出**。内部项目 某内部项目 于 2026-09-27 被整体关停(该仓 `docs/Progress.md` 2026-09-27、提交 ba9c6cb):抓取容器里 13 个无界面 Chrome 常驻,最久 4 天 18 小时、合计约 1.9GB,Docker 虚拟机(4GB 内存)反复内存耗尽,同机另一个项目的 postgres 7 天崩溃 30 次。根因:第三方库的关闭函数出错后无限期等浏览器自己退出、从不强制结束;浏览器调用又没有超时,54 次调用挂住 1~90 小时。修法是补丁自己管浏览器:最长存活时间到点结束整个进程组、关闭先正常后强制且等待有上限、同时最多 2 个、容器加内存与进程数上限。
 
 ## 2. 目标覆盖声明
 
@@ -21,7 +21,7 @@ Prior art:小规则改动,不触发调研。
 
 ## 3. 三条规则(规范文本)
 
-下面是**公开面**的规范文本(kit README、模板用;称呼用「用户」,不出现内部项目名)。私有面(本机全局 CLAUDE.md、dev-toolkit)内容相同,只是依据句点名 hook-writer / hearloop、称呼按该文件原有写法。各面可以按该文件的体例压缩,但 §5 的要素一条都不能丢。
+下面是**公开面**的规范文本(kit README、模板用;称呼用「用户」,不出现内部项目名)。私有面(本机全局 CLAUDE.md、内部工具包)内容相同,只是依据句点名两个内部项目、称呼按该文件原有写法。各面可以按该文件的体例压缩,但 §5 的要素一条都不能丢。
 
 ### 规则 T1 — 测试启动的进程,测完即关
 
@@ -49,7 +49,7 @@ T1、T2 的适用范围句(放在两条之前):
 
 | 面 | 文件 | 改什么 | 谁做 |
 |---|---|---|---|
-| 本机全局 | `~/.claude/CLAUDE.md`(不在 git,改前备份 `CLAUDE.md.bak-20261001-test-process-cleanup`) | 新节「测试的进程清理与并发负载」(T1、T2);直通流程第 2 步加 W1 与评审半句;并发上限那段加一句「开跑前先看负载」 | 主对话 |
+| 本机全局 | `~/.claude/CLAUDE.md`(不在 git,改前备份 `改前备份文件`) | 新节「测试的进程清理与并发负载」(T1、T2);直通流程第 2 步加 W1 与评审半句;并发上限那段加一句「开跑前先看负载」 | 主对话 |
 | kit README | `README.zh-CN.md`、`README.md` | 新增「七之四、测试的进程清理与并发负载」(英文 7d;T1、T2 加适用范围句,末尾一句依据:不点名内部项目);七.4 加 W1 与评审半句;§四 并发上限段末尾加一句「开跑前主对话先看一次负载(见七之四第 2 条),已高就少开并行单元或分批跑,不调高上限」 | U1 |
 | kit 模板 | `plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl`、`plugins/workflow-en/…/CLAUDE.md.tmpl`、`plugins/workflow-codex/skills/scaffold/templates/AGENTS.md.tmpl` | 「修改后质量检查」加两条(T1、T2 压缩版);多代理分工里「派实现 agent 的 prompt…必须点名生产红线」那条末尾接 W1 压缩版;并发上限那条末尾接「开跑前先看负载」;「禁止事项」加一行「测试启动的进程测完不关」 | U2 |
 | kit Codex | `plugins/workflow-codex/skills/parallel-do/SKILL.md` | 步骤 5「边界」那条接 T1、T2、W1 压缩版;并发上限处接「分批前先看负载」 | U2 |
@@ -57,8 +57,8 @@ T1、T2 的适用范围句(放在两条之前):
 | kit 版本号 | `plugins/workflow/.claude-plugin/plugin.json`、`workflow-en` 同名文件、`plugins/workflow-codex/.codex-plugin/plugin.json` | 0.13.1 → 0.14.0(workflow、workflow-en);0.13.0 → 0.14.0(workflow-codex) | U2 |
 | kit ui-sweep | `plugins/ui-sweep/skills/ui-sweep/`、`plugins/ui-sweep-en/skills/ui-sweep/` | 见 §6 | U3 |
 | kit sop-generate | `plugins/workflow/skills/sop-generate/`、`workflow-en`、`workflow-codex` 三份 | 见 §6 | U3 |
-| dev-toolkit | 见 §7 | 镜像 | U4(kit 评审通过后) |
-| huake 两个工具包 | 见 §7 | 镜像 | U5(kit 评审通过后) |
+| 内部工具包 | 见 §7 | 镜像 | U4(kit 评审通过后) |
+| 内部工作站 两个工具包 | 见 §7 | 镜像 | U5(kit 评审通过后) |
 
 模板里的压缩版(中文;英文版对应翻译,Codex 版把 Workflow 说法换成该文件自己的并行说法):
 
@@ -77,7 +77,7 @@ T2 五个要素:①触发场景含并行测试与开多个并行单元;②看 `u
 
 W1 七个要素:①触发条件是单元代码启动外部进程(举例含无界面浏览器);②最长存活时间、到点结束整个进程组;③关闭先正常后强制、等待有上限;④同时存活数有上限;⑤出错/超时/取消/启动失败路径都关;⑥调用带超时;⑦测试覆盖出错后进程确实退出。容器上限与依据句在完整版(README、全局、WORKFLOW.md)必须有,压缩版可省依据句。
 
-完整版(全局 CLAUDE.md、kit README zh/en、dev-toolkit WORKFLOW.md)要素必须全。压缩版(模板、parallel-do)允许压缩措辞,T1 至少保留 ③④⑤⑥⑦,T2 至少保留 ②③④,W1 至少保留 ①②③④⑤⑥⑦。dev-toolkit 的核心 SKILL.md 有 token 上限,按 §7 办:GUARD「测试卫生」行带 T1、T2 的最少要素,W1 只留触发条件加指向,②~⑦ 在它指向的 references 文件里必须全。机械子代理定义只要求 T1 的「检查完就关、只关自己启动的」与 T2 的「超过核数就串行」。
+完整版(全局 CLAUDE.md、kit README zh/en、内部工具包 WORKFLOW.md)要素必须全。压缩版(模板、parallel-do)允许压缩措辞,T1 至少保留 ③④⑤⑥⑦,T2 至少保留 ②③④,W1 至少保留 ①②③④⑤⑥⑦。内部工具包 的核心 SKILL.md 有 token 上限,按 §7 办:GUARD「测试卫生」行带 T1、T2 的最少要素,W1 只留触发条件加指向,②~⑦ 在它指向的 references 文件里必须全。机械子代理定义只要求 T1 的「检查完就关、只关自己启动的」与 T2 的「超过核数就串行」。
 
 ## 6. U3:ui-sweep 引擎跑完关会话;sop-generate 核对
 
@@ -97,32 +97,32 @@ W1 七个要素:①触发条件是单元代码启动外部进程(举例含无界
 
 ## 7. 镜像(kit 评审通过后做,文本以 kit 定稿为准)
 
-**dev-toolkit**(`~/Tony/Proj/Stellark/Platform/dev-toolkit`,worktree 放它的 `.worktrees/`;不改 version,CI 自动升):
+**内部工具包**(`<本机仓库目录>/内部工具包`,worktree 放它的 `.worktrees/`;不改 version,CI 自动升):
 
-- `WORKFLOW.md`:完整版 T1、T2 新小节(编号取该文件下一个空号,别与已有「七之四」冲突)、七.4 加 W1(可点名 hook-writer 依据)、§四 并发段加「开跑前先看负载」。
-- `plugins/dev-toolkit/skills/stellark-workflow/SKILL.md`:核心压缩版。**有 token 上限**:按 `docs/reviews/2026-09-23-slim-c/c1-map.md` 的公式算,改后不得高于改前。GUARD 模板现有「测试卫生:临时目录/文件自动清理;子进程整组回收;重型用例可跳过并标明」一行,在这一行上改写并入 T1(测试启动的服务/浏览器测完即关、只关自己启动的)与 T2(并发前看负载);W1 细则放 `references/`(新文件或并入现有),核心只留触发条件加指向;用别处等量压缩抵消增量,压缩不得丢要素。
+- `WORKFLOW.md`:完整版 T1、T2 新小节(编号取该文件下一个空号,别与已有「七之四」冲突)、七.4 加 W1(可点名 某内部项目 依据)、§四 并发段加「开跑前先看负载」。
+- `plugins/内部工具包/skills/内部版-workflow/SKILL.md`:核心压缩版。**有 token 上限**:按 `docs/reviews/2026-09-23-slim-c/c1-map.md` 的公式算,改后不得高于改前。GUARD 模板现有「测试卫生:临时目录/文件自动清理;子进程整组回收;重型用例可跳过并标明」一行,在这一行上改写并入 T1(测试启动的服务/浏览器测完即关、只关自己启动的)与 T2(并发前看负载);W1 细则放 `references/`(新文件或并入现有),核心只留触发条件加指向;用别处等量压缩抵消增量,压缩不得丢要素。
 - `references/upstream-map.md`:归位表补本批三条,核心句数与 WORKFLOW.md 行数跟着改。
-- `plugins/dev-toolkit/skills/stellark-scaffold/templates/CLAUDE.md.tmpl`、`plugins/dev-toolkit/agents/mechanical.md`、`plugins/dev-toolkit/skills/stellark-parallel-do/SKILL.md`:同 kit 对应文件。
-- `plugins/dev-toolkit/skills/ui-sweep/`、`sop-generate/`:同 §6(以 kit 定稿的代码为准)。
+- `plugins/内部工具包/skills/内部版-scaffold/templates/CLAUDE.md.tmpl`、`plugins/内部工具包/agents/mechanical.md`、`plugins/内部工具包/skills/内部版-parallel-do/SKILL.md`:同 kit 对应文件。
+- `plugins/内部工具包/skills/ui-sweep/`、`sop-generate/`:同 §6(以 kit 定稿的代码为准)。
 
-**huake**(`~/Tony/Proj/Stellark/Platform/claude-toolkit-engineer`、`codex-toolkit-engineer`;手动升版本号并在各自 README 版本记录加一行):
+**内部工作站**(`<本机仓库目录>/内部工作站工具包(Claude 版)`、`内部工作站工具包(Codex 版)`;手动升版本号并在各自 README 版本记录加一行):
 
 - claude 版:`skills/scaffold/templates/CLAUDE.md.tmpl`(质量检查两条、红线条接 W1、禁止事项一行)、`skills/parallel-do/SKILL.md`、`skills/ui-sweep/`、`skills/sop-generate/`(同 §6)。没有 mechanical 子代理,不加。
 - codex 版:`skills/scaffold/templates/AGENTS.md.tmpl`、`skills/parallel-do/SKILL.md`、`skills/sop-generate/`(同 §6);没有 ui-sweep。
-- huake 面不点名 stellark 内部项目(用公开面的依据句)。
+- 内部工作站 面不点名内部项目(用公开面的依据句)。
 
 ## 8. 验收条款
 
 1. 全局 CLAUDE.md、kit README zh/en 三处完整版里,T1、T2、W1 要素(§5)全部在;README 英文版与中文版逐条对应,阈值数字一致(70%、核数、20%)。
 2. 三份 scaffold 模板、Codex parallel-do、两份 mechanical 定义按 §4 加好,压缩版保留 §5 规定的最少要素;英文模板不夹中文,Codex 版不出现 Claude 专有说法(Workflow `agent()`、`mechanical`)。
-3. 公开面(本仓 `README*`、`plugins/`)不出现 hook-writer、hearloop 及任何内部主机名/仓路径。
+3. 公开面(本仓 `README*`、`plugins/`)不出现内部项目名及任何内部主机名/仓路径。
 4. `sweep.mjs`(中英)会话建立后的所有结束路径都会关 `ui-sweep` 会话;smoke 测试新增用例覆盖正常结束与失败退出两条路径并通过,原有用例全过。
 5. 三份 `crawl.mjs` 出错路径也关浏览器。
 6. 版本号按 §4、§6 升好;`docs/Progress.md`、`docs/PLAN.md` Spec 索引更新;目标清单三行改 done 并附证据。
-7. dev-toolkit 核心 SKILL.md 的 token 数不高于改前;镜像面要素齐全。
+7. 内部工具包 核心 SKILL.md 的 token 数不高于改前;镜像面要素齐全。
 8. 新增规则文本不使用 speak-human S5 词库左列的词(兜底、落地、收口、闭环、链路等),引用既有章节名除外。
 
 ## 9. 回滚
 
-- 全局 CLAUDE.md:`cp ~/.claude/CLAUDE.md.bak-20261001-test-process-cleanup ~/.claude/CLAUDE.md`。
-- kit / dev-toolkit / huake 两仓:各自 `git revert -m 1 <merge sha>`;手动管版本号的插件回滚时版本号继续往上加。dev-toolkit 回滚后等 CI 升版再更新本机插件。
+- 全局 CLAUDE.md:`cp 改前备份文件 ~/.claude/CLAUDE.md`。
+- kit / 内部工具包 / 内部工作站 两仓:各自 `git revert -m 1 <merge sha>`;手动管版本号的插件回滚时版本号继续往上加。内部工具包 回滚后等 CI 升版再更新本机插件。
