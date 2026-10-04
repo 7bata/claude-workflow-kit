@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.16.0;评审链裁决轮用主对话当前的模型、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
-| workflow-codex(Codex CLI 移植版) | done | 0.15.0;spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前看负载、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.17.0;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.16.0;spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.1;引擎跑完(含失败退出、收到信号)自动关掉自己的浏览器会话;引擎 smoke 35 例,三入口接进主流程 |
@@ -29,11 +29,39 @@
 | 内部工具包四处按原文执行会出错的地方(两个不可逆操作的确认步骤用交互式 read、生产状态 skill 把人指到测试环境的部署命令、缺令牌时提示用一个做不到这件事的命令、一个自己承认会失败的示例);本机杂项:speak-human 全文开局被注入两次、28 个 lark skill 是失效软链接 | 2026-10-02 prompt 审计 | 中 |
 | 2026-10-02 批次遗留(都是 P2):README.md 第 202 行 "mechanical work" 紧挨 mechanical 类型的说明,容易误读;「N 等于插件个数」没写清是带 `.claude-plugin` 的 8 个;mechanical 定义的 description 与三处模板里「不自动加载 CLAUDE.md」没补「子目录规则仍按需加载」;「裸 Agent 派 mechanical 按 low 跑」对 haiku 不适用(该模型不接收档位) | 2026-10-02 评审链 | 低 |
 | 内部工具包 `hooks/hooks.json` 两处 `${CLAUDE_PLUGIN_ROOT}` 没加引号(validate 有警告,`--strict` 不通过) | 2026-10-02 评审链 L12 | 低 |
+| 2026-10-03 第三批遗留(都是 P2):mechanical 那一句没写 `top` 取不到读数时怎么办;模板与 parallel-do 的一行写法没带「没设过就按工具默认值算」;Linux 逐核显示、busybox 的 top、逗号小数点的语言环境下取不到 `%Cpu(s)` 行(有退回办法,Linux 没实测);内存读数取不到时没有规定 | 2026-10-03 评审链 | 低 |
+| docs 换成中性叫法后的遗留(都是 P2):内部仓库的提交号与版本号未逐条删;三份 spec 的回滚命令里备份文件位置是占位说法;非原话处〔〕标注不统一 | 2026-10-03 评审链 | 低 |
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-10-03 — 评审链的裁决轮改回固定用 opus(workflow/-en 0.17.0)
+
+起因:同日早些时候把裁决轮改成了「用主对话当前的模型」。Tony:「把审查模型放回opus吧,fable消耗量太大了,默认主模型为审查模型不太行」——主对话用最高档模型时,每个单元的裁决都落在它上面。
+
+- 规则(小 spec `docs/superpowers/specs/2026-10-03-adjudication-round-back-to-opus-design.md`):裁决轮固定 `opus` + `high`,脚本里显式写 `model: 'opus'`,不随主对话的模型变。提交正文的「裁决模型」一行保留(`opus` 别名解析到哪一代由服务端决定)。同一批的另外两条规则(小改动也写小 spec、并行派活走 Workflow)不变。
+- 改动:README 中英第三节与七.4(各约 8 处)、workflow 与 workflow-en 的脚手架模板(各 5 处)。Codex 版没有这条写法。本机全局规则与内部的几处副本同步改。
+- 评审:与下一条同一个单元,盲审 2 个(opus medium)无 P0 / P1,判通过。评审链 `docs/reviews/2026-10-03-cpu-usage-and-opus-adjudication-chain.md`。
+
+### 2026-10-03 — 并发前先看 CPU 占用,不再用负载平均值当依据(workflow/-en 0.17.0,codex 0.16.0)
+
+起因:Tony 指出「负载计算不太准」,随后定「改成先看 CPU占用」。实测一台 10 核、600 多个进程的机器:`uptime` 的 1 分钟负载平均值约 10 时,CPU 实际占用只有 43%~53%——负载平均值数的是排队的任务,不是 CPU 用了多少。
+
+- 规则(小 spec `docs/superpowers/specs/2026-10-03-cpu-usage-before-concurrency-design.md`):并行之前取 1 秒 CPU 采样(macOS `top -l 2 -n 0 -s 1`、Linux `top -bn2 -d1`,取最后一条 CPU 行,占用 = 100 − idle);超过 70% 并发按当前值减半,超过 90% 或可用内存低于 20% 串行;`uptime` 的负载平均值只在 `top` 取不到读数时才用。
+- 改动:README 中英七之四第 2 条全文与三处短句;三份脚手架模板;两份 mechanical 定义;codex 的 parallel-do。章节标题「测试的进程清理与并发负载」没改名。
+- 评审:spec 第一版把短写法写成「取最后一行」,在内部副本上先被盲审查出(照字面取到的是磁盘统计),改成「取最后一条 CPU 行」后本仓才实现。本仓单元盲审 2 个(opus medium)无 P0 / P1,4 条 P2(1 条已改,3 条记入「待办」表)。评审 1 轮:英文 mechanical 定义的减号统一。
+- 对照实验:本批实现单元都是 sonnet + medium(规则文字改动,没有分组)。
+
+### 2026-10-03 — 记录文档里的内部标识换成中性叫法
+
+起因:Tony 问公开仓库里有没有写进内部的东西,核对后定「清了」。
+
+- 做法(小 spec `docs/superpowers/specs/2026-10-03-docs-neutral-wording-design.md`):用脚本按固定对照,把 `docs/` 里的内部域名、内网地址、带用户名的本机路径、组名、同事的名字与账号编号、内部工具包与内部项目的名字、内部组件名统一换成中性叫法;Tony 原话引用里被替换的词用〔〕标注;一份文件名带内部项目名的 spec 改了名;三份评审记录里整段只讲内部副本的章节换成一句结论(原文存在内部仓库)。README 与 `plugins/` 没有改动;已推送的提交历史不改写。
+- 规模:约 30 个文件、900 多处替换。
+- 评审:盲审 2 个(opus medium)6 条 P1(4 类内部组件名与工具名没换、一个通用默认路径被误换、一段证据里的 JSON 被换坏)→ 修复 → 裁决(claude-fable-5-1)又查出 1 条 P1(一位同事的名字)→ 修复 → 再裁决(claude-opus-5-5)通过。评审链 `docs/reviews/2026-10-03-docs-neutral-wording-chain.md`。评审 3 轮。
+- 以后:往本仓写记录直接用中性叫法;只涉及内部的批次不在本仓留细节。
 
 ### 2026-10-03 — 内部工具包的几批改动(本仓无改动)
 

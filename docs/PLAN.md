@@ -49,3 +49,6 @@
 - [发版前检查 + mechanical 固定 low 档 + 档位句补充](superpowers/specs/2026-10-02-cc288-validate-effort-frontmatter-design.md) — Claude Code 2.1.288 对照批次:README 加发版前两步只读检查;mechanical 子代理定义加 `effort: low`,裸 Agent 规则句补例外;`omitClaudeMd` 只管开局加载的说明;档位句补「按模型保存、ultracode 不等于 xhigh」
 - [裁决轮用主对话模型 + 小改动也写小 spec + 并行派活统一走 Workflow](superpowers/specs/2026-10-03-adjudicator-model-small-spec-workflow-dispatch-design.md) — 评审链最后一轮裁决改用主对话当前的模型;brainstorming 的小改动路径也写小 spec、写完直接实现不等确认;批量与并行任务一律走 Workflow,点名覆盖 superpowers 的并行派发 skill
 - [提交里加记裁决模型](superpowers/specs/2026-10-03-adjudication-model-line-drop-external-cli-design.md) — 跑过裁决轮的单元在提交正文再记一行裁决模型,评审基线按它分段
+- [记录文档里的内部标识换成中性叫法](superpowers/specs/2026-10-03-docs-neutral-wording-design.md) — `docs/` 里只属于内部的名字统一换成中性叫法,README 与插件不动
+- [并发前先看 CPU 占用](superpowers/specs/2026-10-03-cpu-usage-before-concurrency-design.md) — 并行之前看实际 CPU 占用(超过 70% 减半、超过 90% 或可用内存低于 20% 串行),负载平均值只作退回
+- [裁决轮改回固定用 opus](superpowers/specs/2026-10-03-adjudication-round-back-to-opus-design.md) — 评审链的裁决轮固定 `opus` + `high`,不再跟随主对话的模型
