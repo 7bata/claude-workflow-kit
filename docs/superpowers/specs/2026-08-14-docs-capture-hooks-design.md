@@ -2,22 +2,22 @@
 
 ## 1. 背景与目标覆盖声明
 
-stella 符合度审计发现方法论 docs 全靠 Claude 自觉更新;本仓审计报告
+内部项目管理系统 符合度审计发现方法论 docs 全靠 Claude 自觉更新;本仓审计报告
 `docs/superpowers/research/2026-08-14-docs-auto-update-audit.md` 确认:**写入侧零自动化**,
-且 stella portfolio 每 10 分钟轮询 PLAN/Progress——失真会自动扩散成对外错误。
+且 内部项目管理系统 portfolio 每 10 分钟轮询 PLAN/Progress——失真会自动扩散成对外错误。
 
 **本次覆盖目标台账条目**(docs/REQUIREMENTS.md):
-- ✅ DECISIONS 自动采集(Tony 经 stella 转达的主任务)
+- ✅ DECISIONS 自动采集(Tony 经 内部项目管理系统 转达的主任务)
 - ✅ docs 审计后补齐之「漏更提醒门禁」+「REQUIREMENTS 台账捕获」(Tony 2026-08-14 选项拍板)
-- ✅ 「huake/stellark/github/本机四个版本全部更新」(Tony 开场指示)
-- ❌ 不覆盖:两套文档契约收敛(kit 八件套 vs stellark starter 六件套)——已登台账,单独批次;
-  方案 3 转录后处理(kpi-measure JSONL 解析器路线)——二期,见 §7。
+- ✅ 「〔内部工作站〕/〔内部〕/github/本机四个版本全部更新」(Tony 开场指示)
+- ❌ 不覆盖:两套文档契约收敛(kit 八件套 vs 内部 starter 六件套)——已登台账,单独批次;
+  方案 3 转录后处理(内部的会话记录解析组件路线)——二期,见 §7。
 
 ## 2. Prior art(github-research 结论)
 
-- 内部:`kpi-measure-claude-session-jsonl-parser`(二期地基)、send-to 注册 hook(失败静默范式)、
-  auto-scaffold hook(默认开 + 标志文件关 + 评测隔离 env var 范式)、dev-toolkit 凭据拦截 hook
-  (PreToolUse 范式)。`stella-roadmap-llm-deriver` 与 stella portfolio 是 DECISIONS/PLAN/Progress
+- 内部:内部的会话记录解析组件(二期地基)、send-to 注册 hook(失败静默范式)、
+  auto-scaffold hook(默认开 + 标志文件关 + 评测隔离 env var 范式)、内部工具包 凭据拦截 hook
+  (PreToolUse 范式)。`内部组件` 与 内部项目管理系统 portfolio 是 DECISIONS/PLAN/Progress
   的下游消费方——失真代价的实证。
 - 外部:adr-tools(5.6k⭐,停更)/ log4brains(1.5k⭐)管存储展示不管采集;everything-claude-code
   与 madappgang 的 ADR skill 靠模型自觉识别拍板时刻——正是本次要治的病,不采用;Claude Code
@@ -105,9 +105,9 @@ plugins/workflow/hooks/
 | 面 | 落法 | 红线 |
 |---|---|---|
 | github kit | 上述目录 + `workflow-en` 英文文案同步;`workflow-codex` **不移植**(无 hooks 机制,README 注明,维持纪律条款——send-to 先例);双语 README 加节 + 目录树 | 英文 README 漏更曾被打回,列验收 |
-| stellark dev-toolkit | 三脚本 + 词表并入 `plugins/dev-toolkit/hooks/`,hooks.json **JSON 合并** | 该文件已有 PreToolUse 凭据拦截段与 SessionStart 三注入,**只增不改不覆盖**;wip 分支 + Tony 门禁 |
-| huake claude-toolkit-engineer | 同上并入其 hooks.json;README 能力节 + plugin.json description 更新,版本 bump | speak-human 与 auto-scaffold 并列段保持;skill 计数表不动(hook 非 skill) |
-| 本机 | 脚本落 `~/.claude/hooks/`(稳定路径,不指 kit checkout),labs `settings.json` 注册(三 profile 软链共享,改一份全生效) | settings.json 已有 stella-reporter/speak-human/cc-session-register 段,只增不改;只动 hooks 段,不碰 permissions |
+| 内部工具包 | 三脚本 + 词表并入 `plugins/内部工具包/hooks/`,hooks.json **JSON 合并** | 该文件已有 PreToolUse 凭据拦截段与 SessionStart 三注入,**只增不改不覆盖**;wip 分支 + Tony 门禁 |
+| 内部工作站工具包(Claude 版) | 同上并入其 hooks.json;README 能力节 + plugin.json description 更新,版本 bump | speak-human 与 auto-scaffold 并列段保持;skill 计数表不动(hook 非 skill) |
+| 本机 | 脚本落 `~/.claude/hooks/`(稳定路径,不指 kit checkout),labs `settings.json` 注册(三 profile 软链共享,改一份全生效) | settings.json 已有 内部组件/speak-human/cc-session-register 段,只增不改;只动 hooks 段,不碰 permissions |
 
 ## 5. 测试与验收
 
@@ -128,8 +128,8 @@ plugins/workflow/hooks/
 
 ## 7. 明确不做(Out of scope)
 
-- 两套文档契约收敛、starter 治理(台账在案,单独批次,涉及龙哥共同维护面)。
-- 转录后处理二期:会话 JSONL 离线挖决策(kpi-measure 解析器地基),设计约束:按项目路由、
+- 两套文档契约收敛、starter 治理(台账在案,单独批次,涉及同事共同维护面)。
+- 转录后处理二期:会话 JSONL 离线挖决策(内部的会话记录解析组件地基),设计约束:按项目路由、
   与 inbox 去重、产出仍走 inbox 消化闸口——留待台账立项。
 - ARCHITECTURE/DEPLOYMENT/BUSINESS/MEETINGS 的专属自动化(本次仅靠门禁检查 2 的渐进数据文件预留)。
 
@@ -140,8 +140,8 @@ plugins/workflow/hooks/
 | U1 | kit 三脚本 + 词表 + hooks.json + 冒烟测试(TDD:先写测试) | sonnet/medium | opus/medium |
 | U2 | workflow-en 英文同步 | sonnet/low | opus/medium |
 | U3 | kit 规则联动 + 双语 README + 版本 bump | sonnet/low | opus/medium |
-| U4 | stellark dev-toolkit 并入 | sonnet/medium | **opus/high**(凭据拦截段共存文件) |
-| U5 | huake claude-toolkit-engineer 并入 | sonnet/medium | opus/medium |
+| U4 | 内部工具包 并入 | sonnet/medium | **opus/high**(凭据拦截段共存文件) |
+| U5 | 内部工作站工具包(Claude 版) 并入 | sonnet/medium | opus/medium |
 | U6 | 本机 ~/.claude/hooks + settings.json 注册 | sonnet/medium | **opus/high**(在用 harness 配置) |
 
 派工 prompt 一律附:本 spec 相关节 + FORBIDDEN FILES(各单元只改各自面的文件;U4/U5 对

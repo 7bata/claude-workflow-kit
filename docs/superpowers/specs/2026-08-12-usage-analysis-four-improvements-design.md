@@ -1,16 +1,16 @@
-# Senior 四点改进入 kit — Design Spec
+# 会话语料分析的四点改进入 kit — Design Spec
 
 - 日期:2026-08-12
 - 状态:已获 Tony 逐节确认(2026-08-12 会话内:载体范围、落地形态、设计骨架三轮均选"照此定")
-- 依据:senior 190 场会话语料分析(`<内部路径>/senior-usage-analysis.md` 第六节),经 Tony 拍板反向抄进 kit;交接任务书 `/tmp/send-to-handoff-claude-workflow-kit.md` 任务 A
+- 依据:某内部项目 190 场会话语料分析(`<内部路径>/某内部项目-usage-analysis.md` 第六节),经 Tony 拍板反向抄进 kit;交接任务书 `/tmp/send-to-handoff-claude-workflow-kit.md` 任务 A
 
 ## 1. 背景与目标
 
-对 senior 使用 Claude Code 的 190 场会话分析发现四条 kit 尚未覆盖、实战验证有效的纪律。本 spec 把四点植入 kit 的全部 Claude 系与 Codex 系载体,并同步本机与内网工作站面(stellark 面随 vibe/engineer 合并另行立项,本轮不动——Tony 2026-08-12 拍板)。
+对 某内部项目 使用 Claude Code 的 190 场会话分析发现四条 kit 尚未覆盖、实战验证有效的纪律。本 spec 把四点植入 kit 的全部 Claude 系与 Codex 系载体,并同步本机与内网工作站面(内部 面随 vibe/engineer 合并另行立项,本轮不动——Tony 2026-08-12 拍板)。
 
 四点内容(已拍板,不再论证):
 
-1. **链式对抗评审**:现有对抗验证是"3 票 opus 不同镜头独立投票";补链式变体——每轮评审显式继承上一轮的结论与被否决的假设,适合诊断/根因/排障类任务。实证:senior 网络诊断会话靠链式接力抓出"上一轮 22% 重传是对单个 socket 的错误算术""DERP 中继污染测量数据"这类自我纠错,平行独立票抓不到(每票从零开始)。
+1. **链式对抗评审**:现有对抗验证是"3 票 opus 不同镜头独立投票";补链式变体——每轮评审显式继承上一轮的结论与被否决的假设,适合诊断/根因/排障类任务。实证:某内部项目 网络诊断会话靠链式接力抓出"上一轮 22% 重传是对单个 socket 的错误算术""DERP 中继污染测量数据"这类自我纠错,平行独立票抓不到(每票从零开始)。
 2. **评审报 DELTA 不报摘要**:评审只报与上一版/其他票的差异,禁止"我检查了一遍没问题"式水报告。
 3. **安全措辞防误伤**:安全/加固类文档用中性工程语言描述"系统做什么"而非"防什么攻击",避免内容安全分类器整条拦截导致 spec 回炉、被迫换模型。
 4. **生产红线 / FORBIDDEN FILES 前置实现侧**:现有规则(后果覆盖难度、评审查回滚路径)是评审侧的;补实现侧——派实现 agent 时就把红线写进每个 implementer 的 prompt。
@@ -21,7 +21,7 @@
 - **双语同构**:README.zh-CN.md 与 README.md 的工作流 prompt 段结构一致,中英同点位植入。
 - **codex 面同步**,适配其口径:无 model/effort 档位旋钮、主对话亲自验收、并行靠 parallel-do。
 - **本机 `~/.claude/CLAUDE.md` 保持个性化措辞**(带日期戳校准、session-report 复盘风格),不拿 README 措辞覆盖。
-- **内网工作站仓按对应段落适配植入**,不整文件替换其 Stellark 定制模板。
+- **内网工作站仓按对应段落适配植入**,不整文件替换其 内部 定制模板。
 
 ## 3. 规范文本(canonical,中文版;英文版照此同义翻译)
 
@@ -86,7 +86,7 @@ parallel-do SKILL.md 两处:
 
 ### 3.7 本机 `~/.claude/CLAUDE.md`(个性化措辞,merge 后同步)
 
-- 「四条使用原则」第 2 条末尾追加链式接力变体:注明"2026-08-12 依 senior 190 场语料分析入表",举"上一轮 22% 重传是单 socket 错误算术"级自我纠错为实证,收敛标准"连续两轮无新发现"。
+- 「四条使用原则」第 2 条末尾追加链式接力变体:注明"2026-08-12 依 某内部项目 190 场语料分析入表",举"上一轮 22% 重传是单 socket 错误算术"级自我纠错为实证,收敛标准"连续两轮无新发现"。
 - 「Brainstorming → Ultracode 直通流程」第 2 点:实现 prompt 清单加生产红线/FORBIDDEN FILES;评审描述加"报差异不报摘要"与链式选项。
 - 新增顶层小节「## 安全加固类工作的措辞规范(2026-08-12)」,内容同 3.4,措辞按本机风格(可注明出处日期)。
 
@@ -120,7 +120,7 @@ parallel-do SKILL.md 两处:
 
 ## 6. 实施与评审档位
 
-- 分支:`wip/senior-four-improvements`,commit 即 push。
+- 分支:`wip/usage-analysis-four-improvements`,commit 即 push。
 - ultracode 编排:README zh(sonnet/medium)→ README en 同构(sonnet/medium,输入含 zh 终稿 diff)→ 两个 tmpl(sonnet/medium)→ codex 两文件(sonnet/medium);每单元 opus/medium 评审(镜头:canonical 语义完整性 + 双语一致性 + 零回归),打回重跑升 high。
 - 终审:opus/high(README 是 kit 门面、方法论 prompt 是全局规则,爆炸半径大)。
 - merge 进 main 前找 Tony 确认(门禁)。

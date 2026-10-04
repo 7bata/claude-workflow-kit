@@ -18,7 +18,7 @@ send-to 技能与此无关:它走的是 Claude Code 原生 `SendMessage`(`uds:/t
 
 | 窗口 | HAPI session | Claude session | hapi CLI pid / 日志 |
 |---|---|---|---|
-| 主窗口(askthestalks) | `e1f36ddc-…` | `08b5be7a-…` | 33470 / `2026-08-26-17-30-30-pid-33470.log` |
+| 主窗口(某个人项目) | `e1f36ddc-…` | `08b5be7a-…` | 33470 / `2026-08-26-17-30-30-pid-33470.log` |
 | 子窗口 | `9d9403d2-…` | `d8b2c509-…` | 10348 / `2026-08-26-18-05-45-pid-10348.log` |
 
 **事故 1 — 18:10:36 主窗口切 remote,触发者是子窗口的 `ping_peer`**
@@ -28,7 +28,7 @@ send-to 技能与此无关:它走的是 Claude Code 原生 `SendMessage`(`uds:/t
 主窗口  18:10:36.022  [loop] User message received with permission mode: bypassPermissions ...
 主窗口  18:10:36.025  [local]: doSwitch
 主窗口  18:10:36.025  [ClaudeLocal] Abort signal received, killing process tree (pid=33486) with SIGTERM
-主窗口  18:10:36.173  User message pushed to queue: text="来自 askthestalks 子窗口(session 9d9403d2 …" meta={sentFrom:"webapp", deliveryMode:"queue"}
+主窗口  18:10:36.173  User message pushed to queue: text="来自 〔某个人项目〕 子窗口(session 9d9403d2 …" meta={sentFrom:"webapp", deliveryMode:"queue"}
 主窗口  18:10:37.161  [ClaudeLocal] Child exited (code=143, signal=null, aborted=true)
 主窗口  18:10:37.173  [Session] Mode switched to remote
 主窗口  18:10:38.45x  SDK stream: task_notification ×2 —— 就是那两个 Workflow(wf_b9ec9b1f-3be "round5-frontend" / wf_b4cf2cdc-70c "round5-backend-money")的 "No completion record was found for background workflow … from the previous session" 通知
@@ -52,7 +52,7 @@ send-to 技能与此无关:它走的是 Claude Code 原生 `SendMessage`(`uds:/t
 
 (核验修订)来源排除:把两个会话全天 642 条消息的 meta 全扫一遍,`sentFrom=webapp` 的只有 2 条——e1f36ddc seq 505(子窗口这条 ping)和 9d9403d2 seq 41(主窗口那条 ping),其余用户消息全是 `sentFrom=cli`(你在终端敲的"继续"等)。没有网页/手机端来源。两个窗口的 transcript 里 `SendMessage`、`ListAgents` 的 tool_use 都是 0 次,Skill 调用主窗口 2 次(brainstorming、ui-sweep)、子窗口 0 次,没有 send-to。
 
-## 机制(代码路径,源码在 `~/Tony/Proj/Stellark/Projects/hapi-long`,分支 feat/merge-long-fork)
+## 机制(代码路径,源码在 `<本机仓库目录>/内部的 hapi 分支`(一个内部分支))
 
 1. 发起方:`cli/src/modules/pingPeer/pingPeer.ts` `pingPeer()` —— 换 JWT(POST /api/auth)→ `GET /api/sessions` 按前缀找目标 → 目标 `active=false` 才 `POST /api/sessions/:id/resume` 并等它上线 → 发送前再 `GET /api/sessions/:id` 复核一次(防 409 竞态)→ `POST /api/sessions/:id/messages {text}`。MCP 工具(`cli/src/claude/utils/startHappyServer.ts:294`)和命令行(`cli/src/commands/pingPeer.ts`)都调这个函数。全程只发 HTTP,不碰本进程。(核验修订)**没有"不能 ping 自己"的校验**:`list_peers` 会过滤掉调用方(`startHappyServer.ts:383`),`pingPeer()` 不会(`pingPeer.ts:480-483`),前缀写成自己的会话 id 就会把自己切 remote、杀掉自己的 claude。
 2. hub:`hub/src/web/routes/messages.ts:121` 起的路由,第 174 行打上 `sentFrom: 'webapp'`,`engine.sendMessage()` 推给目标会话的 hapi CLI(顺带记 queued/activity 标记)。对在线目标没有任何"抢占"逻辑;两次事故 hub 日志都是 `POST /api/auth → GET /api/sessions → GET /api/sessions/<id> → POST /api/sessions/<id>/messages 200`,无 `/resume`。(核验修订)对**离线但 wake-eligible** 的目标,这条路由不返回 409 而是交给唤醒编排,可能返回 202 `{ok:true, wake:'queued'}`——`pingPeer` 只认 `ok===true`,会报"已发送",消息其实只是排在队列里。
@@ -78,7 +78,7 @@ send-to 技能与此无关:它走的是 Claude Code 原生 `SendMessage`(`uds:/t
 
 ## 复现记录(2026-08-26 18:26:22–18:35:13,两个一次性会话,已清理)
 
-环境:tmux 里各起一个 `hapi --dangerously-skip-permissions`,工作目录 `/tmp/hapi-repro/X`、`/Y`;启动环境去掉了本会话继承的 `CLAUDECODE/CLAUDE_*/HAPI_SESSION_ID`,并设 `HAPI_API_URL=http://100.100.144.81:3006` 让 runner 身份校验通过(`Runner identity match: true`,runner 未重启)。Claude Code 2.1.246,hapi 0.29.0。(核验修订)同机同时还有 runner 起的别的会话在跑(18:28:52 e18ed57a、18:28:59 cwcode、18:32:56 9755e48a),与 X/Y 不同会话,不影响下面的因果。表里的子进程 pid 来自当时的 ps 快照,事后只能核对被杀的 81559/82042 两个。
+环境:tmux 里各起一个 `hapi --dangerously-skip-permissions`,工作目录 `/tmp/hapi-repro/X`、`/Y`;启动环境去掉了本会话继承的 `CLAUDECODE/CLAUDE_*/HAPI_SESSION_ID`,并设 `HAPI_API_URL=http://<内网地址>:3006` 让 runner 身份校验通过(`Runner identity match: true`,runner 未重启)。Claude Code 2.1.246,hapi 0.29.0。(核验修订)同机同时还有 runner 起的别的会话在跑(18:28:52 e18ed57a、18:28:59 另一个会话、18:32:56 9755e48a),与 X/Y 不同会话,不影响下面的因果。表里的子进程 pid 来自当时的 ps 快照,事后只能核对被杀的 81559/82042 两个。
 
 | 会话 | HAPI session | Claude session | hapi pid | 交互式 claude pid |
 |---|---|---|---|---|
@@ -145,7 +145,7 @@ send-to 技能与此无关:它走的是 Claude Code 原生 `SendMessage`(`uds:/t
 
 ## 要不要提 issue
 
-**要。** 建议先提到自己的 fork(hapi-long,gitlab.stellark.io),再视情况提到上游 tiann/hapi(上游同样有 `ping_peer`,代码里引用了 tiann/hapi#1143、#1195)。可直接粘的标题与正文(已按核验修订):
+**要。** 建议先提到自己的 fork(内部的 hapi 分支,内部 GitLab),再视情况提到上游 tiann/hapi(上游同样有 `ping_peer`,代码里引用了 tiann/hapi#1143、#1195)。可直接粘的标题与正文(已按核验修订):
 
 > **`ping_peer` / `hapi ping-peer` silently kills the target's interactive agent (and in-flight background work) when the target is in local mode; no self-target guard**
 >
@@ -157,8 +157,8 @@ send-to 技能与此无关:它走的是 Claude Code 原生 `SendMessage`(`uds:/t
 
 ## 顺带发现(与本次根因无关,记录备查)
 
-- (核验修订)每次在终端启动 `hapi`,runner 会两步来回重启:交互式 hapi 先把 launchd 管的 runner 停掉、自己起一个(apiUrl=`http://localhost:3006`、没有 workspace roots,并以此身份注册机器),约 0.8 秒后 launchd 的正牌 runner(apiUrl=`http://100.100.144.81:3006`、workspace roots=/Users/tbata/Tony/Proj)起来再把它停掉。原因是 `cli/src/runner/controlClient.ts:180` 解析 apiUrl 时 settings.json 没有 `apiUrl` 字段。设了 `HAPI_API_URL=http://100.100.144.81:3006` 就不重启。对 runner 起的会话有没有影响未验证(它们是 runner 的子进程)。
+- (核验修订)每次在终端启动 `hapi`,runner 会两步来回重启:交互式 hapi 先把 launchd 管的 runner 停掉、自己起一个(apiUrl=`http://localhost:3006`、没有 workspace roots,并以此身份注册机器),约 0.8 秒后 launchd 的正牌 runner(apiUrl=`http://<内网地址>:3006`、workspace roots=<本机仓库目录>)起来再把它停掉。原因是 `cli/src/runner/controlClient.ts:180` 解析 apiUrl 时 settings.json 没有 `apiUrl` 字段。设了 `HAPI_API_URL=http://<内网地址>:3006` 就不重启。对 runner 起的会话有没有影响未验证(它们是 runner 的子进程)。
 - (核验修订)主窗口 hapi 33470 从 17:30:32 到 18:10:36 每秒报一次 `[FILE_WATCHER] ENOENT`,盯的是 resume 选择器切换前那个瞬时会话(90bae865)的 transcript,没有随 17:30:37 切到 08b5be7a 而更新监视目标,日志被撑到 1.2 MB;不是事故成因(事故走消息队列,不走文件监视)。
 - (核验修订)每次 runner 起来都先报 `[ACP] Process error ENOENT spawn agent` 并重试;18:15:57 runner 10392 连报三次 `[WORKER ROSTER] Failed to list background agents`(`claude agents --json` 超时 SIGKILL)。
-- labs 配置的 SessionStart hook 指向不存在的 `/Users/tbata/Proj/Stellark/Projects/speak-human/hooks/inject.sh`,每个新会话都报一次非阻塞错误(记忆里已有"旧 hook 路径别修要删"的备注)。
-- 18:23:57 有另一个窗口把 hub/runner/`hapi-stellark` 二进制换到了 0.29.0——不是本次排查做的;包括主窗口在内的所有会话在那个时刻经历了一次 hub 断连重连。
+- labs 配置的 SessionStart hook 指向不存在的 `<本机仓库目录>/speak-human/hooks/inject.sh`,每个新会话都报一次非阻塞错误(记忆里已有"旧 hook 路径别修要删"的备注)。
+- 18:23:57 有另一个窗口把 hub/runner/`<内部构建>` 二进制换到了 0.29.0——不是本次排查做的;包括主窗口在内的所有会话在那个时刻经历了一次 hub 断连重连。

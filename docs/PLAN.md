@@ -1,7 +1,7 @@
 # claude-workflow-kit — 路线图
 
 > 本仓是**开源插件市场仓**,不是业务项目:没有 BUSINESS/DEPLOYMENT 这类文档,进度只用本文件 + `Progress.md` 两件套。
-> 分发形态见 README;内部版(stellark / huake)的对应关系与不开源边界另见各自仓库,**内部实名不进本仓**。
+> 分发形态见 README;内部版(内部 / 内部工作站)的对应关系与不开源边界另见各自仓库,**内部实名不进本仓**。
 
 ## 当前状态
 
@@ -39,12 +39,12 @@
 - [业务档案文档](superpowers/specs/2026-08-03-business-doc-design.md) — docs 八件套加入 BUSINESS.md 与 7 格业务追问
 - [新项目自动铺设](superpowers/specs/2026-08-11-auto-scaffold-design.md) — auto-scaffold 常驻判定规则与 evals
 - [send-to 直发标准化与身份注册](superpowers/specs/2026-08-12-send-to-socket-registry-design.md) — uds 直发升标准路径 + 会话身份注册表
-- [senior 四点纪律](superpowers/specs/2026-08-12-senior-four-improvements-design.md) — 链式对抗评审 / 报差异 / 安全措辞 / 红线前置
+- [会话语料分析 四点纪律](superpowers/specs/2026-08-12-usage-analysis-four-improvements-design.md) — 链式对抗评审 / 报差异 / 安全措辞 / 红线前置
 - [目标台账](superpowers/specs/2026-08-13-goal-ledger-design.md) — REQUIREMENTS 收件箱节 + 三对账点 + /goal 粘合
 - [ui-sweep UI 全量交互遍历](superpowers/specs/2026-08-13-ui-sweep-design.md) — agent-browser 驱动 + 通用化遍历引擎
 - [ui-sweep 孤儿功能对账](superpowers/specs/2026-08-13-ui-sweep-orphan-check-design.md) — 代码清单 vs 遍历实际到达求差集
-- [docs-capture 决策/文档采集三层 hook](superpowers/specs/2026-08-14-docs-capture-hooks-design.md) — AskUserQuestion 拍板自动记入 inbox + 信号词软提醒 + commit 门禁催消化;四面已交付(kit wip 分支 / dev-toolkit 1.3.0 wip / claude-toolkit-engineer 0.15.0 wip / 本机 settings.json,三仓待 Tony 门禁并 main)
-- [进度日志按月归档 + 评审轮次压进单元提交](superpowers/specs/2026-09-07-progress-archive-and-review-squash-design.md) — Progress.md 只留当月、上月剪到 docs/archive/;评审打回修复 --squash= 挂单元提交,并 main 前 autosquash;源自 stella 八月代码量审查诊断
+- [docs-capture 决策/文档采集三层 hook](superpowers/specs/2026-08-14-docs-capture-hooks-design.md) — AskUserQuestion 拍板自动记入 inbox + 信号词软提醒 + commit 门禁催消化;四面已交付(kit wip 分支 / 内部工具包 1.3.0 wip / 内部工作站工具包(Claude 版) 0.15.0 wip / 本机 settings.json,三仓待 Tony 门禁并 main)
+- [进度日志按月归档 + 评审轮次压进单元提交](superpowers/specs/2026-09-07-progress-archive-and-review-squash-design.md) — Progress.md 只留当月、上月剪到 docs/archive/;评审打回修复 --squash= 挂单元提交,并 main 前 autosquash;源自 内部项目管理系统 八月代码量审查诊断
 - [测试的进程清理、并发前看负载、外部进程必须写退出](superpowers/specs/2026-10-01-test-process-cleanup-and-load-design.md) — 测试启动的进程测完即关、并发前按 1 分钟负载调小并发、单元代码启动外部进程时派工 prompt 写明退出要求;ui-sweep 引擎跑完关会话
 - [发版前检查 + mechanical 固定 low 档 + 档位句补充](superpowers/specs/2026-10-02-cc288-validate-effort-frontmatter-design.md) — Claude Code 2.1.288 对照批次:README 加发版前两步只读检查;mechanical 子代理定义加 `effort: low`,裸 Agent 规则句补例外;`omitClaudeMd` 只管开局加载的说明;档位句补「按模型保存、ultracode 不等于 xhigh」
 - [裁决轮用主对话模型 + 小改动也写小 spec + 并行派活统一走 Workflow](superpowers/specs/2026-10-03-adjudicator-model-small-spec-workflow-dispatch-design.md) — 评审链最后一轮裁决改用主对话当前的模型;brainstorming 的小改动路径也写小 spec、写完直接实现不等确认;批量与并行任务一律走 Workflow,点名覆盖 superpowers 的并行派发 skill
