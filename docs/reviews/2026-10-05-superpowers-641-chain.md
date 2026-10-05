@@ -48,3 +48,11 @@ spec:`docs/superpowers/specs/2026-10-05-superpowers-641-approval-gates-and-full-
 ### 分流(主对话)
 
 只有 P2 → 本仓判通过。内部单元有 P1(它的压缩句丢了要素),修复后跑裁决轮;本仓 L1~L5 与内部的修复是同一批句子,一并交裁决轮核对。L1~L5 压进单元提交(「评审第 1 轮」,清单 `docs/superpowers/specs/2026-10-05-review-criterion-and-easy-to-miss-section-round1-fixes.json`);L6 记入 `docs/Progress.md`「待办」表。
+
+### 第 2 轮 裁决(claude-opus-5-5,high;与内部单元同一个裁决评审)
+
+执行:修复由机械执行 agent 按清单套用(提交 ae75a25,核对通过,三个插件校验通过);开跑前 CPU 占用 46%、可用内存 42%。
+
+本仓判通过。L1~L5 确认已闭合:修复提交与清单的 9 条逐词对应,没有清单外的改动;七.1、小 spec、评审判据三句在中文 README 与内部完整版、本机全局规则逐字一致,英文与中文一一对应;新补的划边界括注与来源原文对照没有说反,也没有把判据说窄到不起作用;新增文字里没有内部标识。没有新的 P0 / P1。
+
+无 P0 / P1 未闭合,评审链到此结束(单元二共 2 轮)。
