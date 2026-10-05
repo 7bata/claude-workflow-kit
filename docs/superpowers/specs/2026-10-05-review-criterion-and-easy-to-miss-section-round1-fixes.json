@@ -1,0 +1,51 @@
+{
+ "units": {
+  "kit": [
+   {
+    "file": "README.zh-CN.md",
+    "old": "评审判据:spec 没写到的行为,按使用者的合理预期判——spec 没提不等于允许出错,严重度按对使用者的影响定。",
+    "new": "评审判据:spec 没写到的行为,按使用者的合理预期判——spec 没提不等于允许出错,严重度按对使用者的影响定(说的是已经实现的行为在 spec 没点名的输入或情形下的表现,不是 spec 没要求做的功能)。"
+   },
+   {
+    "file": "README.zh-CN.md",
+    "old": "目标覆盖声明一句即可)",
+    "new": "目标覆盖声明一句即可,「容易漏的输入与失败情形」没有就一句)"
+   },
+   {
+    "file": "README.md",
+    "old": "is judged by what a reasonable user of the software would expect — the spec's silence is not permission to fail, and severity follows the effect on that user. ",
+    "new": "is judged by what a reasonable user of the software would expect — the spec's silence is not permission to fail, and severity follows the effect on that user (this is about how implemented behavior handles inputs or conditions the spec did not name, not about features the spec never asked for). "
+   },
+   {
+    "file": "README.md",
+    "old": "a one-line goal-coverage statement is enough)",
+    "new": "a one-line goal-coverage statement is enough, and so is one line for \"Easy-to-miss inputs and failure modes\" when there are none)"
+   },
+   {
+    "file": "README.md",
+    "old": "most likely first;",
+    "new": "most likely to cause trouble first;"
+   },
+   {
+    "file": "plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "每条写明使用者的合理预期；每条在负责的单元里补一个测试",
+    "new": "每条写明使用者的合理预期，最容易出事的排前面；每条在负责的单元里补一个测试"
+   },
+   {
+    "file": "plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "each stating what a reasonable user would expect; each gets one test in the unit that owns the code, attached",
+    "new": "each stating what a reasonable user would expect, most likely to cause trouble first; each gets one test in the unit that owns the code, attached"
+   },
+   {
+    "file": "plugins/workflow-codex/skills/scaffold/templates/AGENTS.md.tmpl",
+    "old": "每条写明使用者的合理预期；每条在负责的子任务里补一个测试",
+    "new": "每条写明使用者的合理预期，最容易出事的排前面；每条在负责的子任务里补一个测试"
+   },
+   {
+    "file": "plugins/workflow-codex/skills/scaffold/templates/AGENTS.md.tmpl",
+    "old": "spec 没写到的行为按使用者的合理预期判，spec 没提不等于允许出错）",
+    "new": "spec 没写到的行为按使用者的合理预期判，spec 没提不等于允许出错、严重度按对使用者的影响定）"
+   }
+  ]
+ }
+}

@@ -25,3 +25,26 @@ spec:`docs/superpowers/specs/2026-10-05-superpowers-641-approval-gates-and-full-
 ### 分流(主对话)
 
 只有 P2 → 判通过,不开裁决轮。K1~K3 压进单元提交(「评审第 1 轮」,清单 `docs/superpowers/specs/2026-10-05-superpowers-641-approval-gates-and-full-suite-round1-fixes.json`);K4~K7 记入 `docs/Progress.md`「待办」表。
+
+## 单元二
+
+本仓一个单元(README 中英、三份脚手架模板、workflow-codex 版本号),单元提交 4732431,实现模型 claude-sonnet-5-5(low;按替换清单由脚本套用,套用后核对通过,三个插件 `claude plugin validate` 通过)。
+
+### 第 1 轮 盲审(claude-opus-5-5,medium,2 个,互不可见)
+
+执行:开跑前 CPU 占用 34%、可用内存 48%;与内部单元同时审,4 个并行。
+
+没有 P0 / P1,没有结论不一致的条目。评审 A(正确性)核对了验收条款、七.1 与七.4 的要素、对两处来源的转述(没有说反、说宽或说窄)、中英文与三份模板的对应,并跑了三个插件的校验;评审 B(边界与异常数据)核对了改动正好是清单的 11 处、公开文本没有内部标识、标点风格、版本号,并照字面推演了纯文档改动、小 spec、多于五条等情形。两位顺带看了单元一的第 1 轮小修(1b5c54c),没有发现问题。
+
+| # | 严重度 | 位置 | 评审者 | 发现 | 处理 |
+|---|---|---|---|---|---|
+| L1 | P2 | Codex 模板验收那一条 | A、B | 评审判据少了「严重度按对使用者的影响定」 | 已改 |
+| L2 | P2 | 三份模板 spec 那一条 | A | 压缩句丢了「最容易出事的排前面」 | 已改 |
+| L3 | P2 | README 七.2(中英) | A | 小 spec 那句只提目标覆盖声明,没提新加的一节 | 已改 |
+| L4 | P2 | README 七.4(中英) | B | 「按合理预期判」没有划边界,评审可能把 spec 没要求做的功能也报成问题 | 已改:补一句括注 |
+| L5 | P2 | README.md 七.1 | B | most likely first 有歧义 | 已改 |
+| L6 | P2 | README 七.1(中英) | B | 条目没法用测试覆盖(纯文档改动)、或跨单元时怎么办没写 | 遗留 |
+
+### 分流(主对话)
+
+只有 P2 → 本仓判通过。内部单元有 P1(它的压缩句丢了要素),修复后跑裁决轮;本仓 L1~L5 与内部的修复是同一批句子,一并交裁决轮核对。L1~L5 压进单元提交(「评审第 1 轮」,清单 `docs/superpowers/specs/2026-10-05-review-criterion-and-easy-to-miss-section-round1-fixes.json`);L6 记入 `docs/Progress.md`「待办」表。
