@@ -1,0 +1,56 @@
+{
+ "units": {
+  "kit": [
+   {
+    "file": "README.zh-CN.md",
+    "old": "以及 HARD-GATE 里「每条路径都要先获批准才能实现」(含「Too Simple To Need Approval」一节的同一要求)。bounded 与架构路径都按上面的做法:写 spec、不等批准、直接实现;spike 路径",
+    "new": "以及 HARD-GATE 整段(含「Too Simple To Need Approval」一节的同一要求)——superpowers 6.4.1 起它按路径列出实现前要过的批准:bounded 是批准对话里的短设计,架构路径是先批准书面 spec、再审阅书面实现计划并选定执行方式;同段的三句「written-spec approval only permits invoking writing-plans」「A reply approves the stage actually presented」「do not turn one approval into permission to skip the rest of the selected path」也在覆盖之内。bounded 与架构路径都按上面的做法:写 spec、不等批准、直接实现——spec 写入就是对其后全部阶段的授权,不按阶段逐次请示,执行方式就是 Workflow 编排、不另选(用户点名别的方式时除外);spike 路径"
+   },
+   {
+    "file": "README.zh-CN.md",
+    "old": "并发前先看 CPU 占用(见七之四);单元代码要启动外部进程时(",
+    "new": "并发前先看 CPU 占用(见七之四);多个单元并行实现时,同一时间只允许一个单元跑全量或重型测试:派工 prompt 写明实现 agent 收尾只跑本单元的定向用例或 -short、不跑项目全量(这句覆盖 superpowers TDD skill 里收尾前跑项目全量测试的要求;跑到的失败不管是不是本单元造成的,都按名字写进报告),全量由主对话在各单元实现返回后按顺序逐单元跑(或派一个 agent 串行跑),结果交给评审,评审者只读结果、不再各自跑全量;单元代码要启动外部进程时("
+   },
+   {
+    "file": "README.md",
+    "old": "and the HARD-GATE's rule that every path needs approval before implementation (including the same requirement in its \"Too Simple To Need Approval\" section). Both the bounded and the architectural path follow the steps above: write the spec, don't wait for approval, implement. The spike path",
+    "new": "and the whole HARD-GATE block (including the same requirement in its \"Too Simple To Need Approval\" section) — as of superpowers 6.4.1 it lists, per path, the approvals required before implementation: for the bounded path, approval of the short in-chat design; for the architectural path, approval of the written spec, then a review of the written implementation plan and a choice of execution method. Three sentences in that block are overridden as well: \"written-spec approval only permits invoking writing-plans\", \"A reply approves the stage actually presented\", and \"do not turn one approval into permission to skip the rest of the selected path\". Both the bounded and the architectural path follow the steps above: write the spec, don't wait for approval, implement — writing the spec authorizes every stage after it, with no stage-by-stage check-ins, and the execution method is Workflow orchestration with nothing further to choose (unless the user names another method). The spike path"
+   },
+   {
+    "file": "README.md",
+    "old": "check CPU usage before going concurrent (see Section 7d); when a unit's code will launch external processes (",
+    "new": "check CPU usage before going concurrent (see Section 7d); when several units are implemented in parallel, only one unit at a time may run the full or heavy test suite: the dispatch prompt states that an implementation agent finishes by running only its own unit's targeted tests (or the short suite), not the project's full suite (this overrides the superpowers TDD skill's requirement to run the project's whole test suite before calling a change done; any failure the agent does see, whether or not its unit caused it, still goes into its report by name), and the main conversation runs the full suite unit by unit in sequence after the implementation agents return (or dispatches one agent to run them serially) and hands the results to the reviewers, who read the results and do not run the full suite themselves; when a unit's code will launch external processes ("
+   },
+   {
+    "file": "plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "——这条覆盖 brainstorming 里「不写 spec、停下等批准」的要求",
+    "new": "——这条与上一条覆盖 brainstorming 里「不写 spec、停下等批准」的要求，也覆盖它的 HARD-GATE 整段（superpowers 6.4.1 起按路径列出实现前要过的批准：批准对话里的短设计；批准书面 spec、再审阅书面实现计划并选定执行方式）及其中「A reply approves the stage actually presented」一句：spec 写入就是对其后全部阶段的授权，不按阶段逐次请示；spike 路径照 brainstorming 原样"
+   },
+   {
+    "file": "plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "并发前先看 CPU 占用（§3 第 7、8 条）；单元代码要启动外部进程（",
+    "new": "并发前先看 CPU 占用（§3 第 7、8 条）；多个单元并行时同一时间只允许一个单元跑全量或重型测试——实现 agent 收尾只跑本单元的定向用例或 -short、不跑项目全量（覆盖 superpowers TDD skill 里收尾前跑项目全量测试的要求；跑到的失败不管是不是本单元造成的都按名字报），全量由主对话在实现返回后按顺序逐单元跑、结果交给评审，评审者只读结果；单元代码要启动外部进程（"
+   },
+   {
+    "file": "plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "This overrides brainstorming's \"no spec, stop for approval\" requirement",
+    "new": "This rule and the one above override brainstorming's \"no spec, stop for approval\" requirement and its whole HARD-GATE block (as of superpowers 6.4.1 it lists, per path, the approvals required before implementation: approval of the short in-chat design; approval of the written spec, then a review of the written implementation plan and a choice of execution method), including its sentence \"A reply approves the stage actually presented\": writing the spec authorizes every stage after it, with no stage-by-stage check-ins; the spike path stays as brainstorming defines it"
+   },
+   {
+    "file": "plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "CPU usage is checked before running in parallel (§3 items 7 and 8); when the unit's code starts external processes (",
+    "new": "CPU usage is checked before running in parallel (§3 items 7 and 8); when several units run in parallel only one unit at a time may run the full or heavy test suite — an implementer agent finishes by running only its own unit's targeted tests (or the short suite), not the project's full suite (this overrides the superpowers TDD skill's requirement to run the project's whole test suite before calling a change done; any failure it does see, whether or not its unit caused it, is reported by name), and the main conversation runs the full suite unit by unit in sequence after the implementers return and hands the results to the reviewers, who only read them; when the unit's code starts external processes ("
+   },
+   {
+    "file": "plugins/workflow/.claude-plugin/plugin.json",
+    "old": "\"version\": \"0.17.0\"",
+    "new": "\"version\": \"0.18.0\""
+   },
+   {
+    "file": "plugins/workflow-en/.claude-plugin/plugin.json",
+    "old": "\"version\": \"0.17.0\"",
+    "new": "\"version\": \"0.18.0\""
+   }
+  ]
+ }
+}
