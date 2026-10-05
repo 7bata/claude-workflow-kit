@@ -52,3 +52,5 @@
 - [记录文档里的内部标识换成中性叫法](superpowers/specs/2026-10-03-docs-neutral-wording-design.md) — `docs/` 里只属于内部的名字统一换成中性叫法,README 与插件不动
 - [并发前先看 CPU 占用](superpowers/specs/2026-10-03-cpu-usage-before-concurrency-design.md) — 并行之前看实际 CPU 占用(超过 70% 减半、超过 90% 或可用内存低于 20% 串行),负载平均值只作退回
 - [裁决轮改回固定用 opus](superpowers/specs/2026-10-03-adjudication-round-back-to-opus-design.md) — 评审链的裁决轮固定 `opus` + `high`,不再跟随主对话的模型
+- [对照 superpowers 6.4.1:批准关口与并行时的全量测试](superpowers/specs/2026-10-05-superpowers-641-approval-gates-and-full-suite-design.md) — 七.6 点名 6.4.1 重写后的 HARD-GATE 整段;多个单元并行实现时全量测试由主对话按顺序跑,实现 agent 只跑定向用例
+- [评审判据加一句;spec 加一节「容易漏的输入与失败情形」](superpowers/specs/2026-10-05-review-criterion-and-easy-to-miss-section-design.md) — spec 没写到的行为按使用者的合理预期判;spec 必备内容加一节,最多五条、每条配一个测试

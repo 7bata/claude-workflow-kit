@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.17.0;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
-| workflow-codex(Codex CLI 移植版) | done | 0.16.0;spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.18.0;对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.17.0;评审判据与 spec 加一节同步(2026-10-05);spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.1;引擎跑完(含失败退出、收到信号)自动关掉自己的浏览器会话;引擎 smoke 35 例,三入口接进主流程 |
@@ -15,6 +15,8 @@
 
 | 事项 | 来源 | 优先级 |
 |---|---|---|
+| ui-sweep 中英两份文档里导出登录态的命令缺 `node`,脚本文件又没有可执行权限,照文档执行会报权限错误 | 2026-10-04 对照 superpowers 6.4.1 时查出 | 中 |
+| 对照 superpowers 6.4.1 批次的评审遗留(K4~K7、L6):七.4「各单元实现返回后按顺序跑」可读成等全部返回;顺序跑全量出现失败怎么办没写;「HARD-GATE 整段」含 Spike 那一行、句末才说 spike 照原样;模板漏「或派一个 agent 串行跑」;「容易漏」的条目没法用测试覆盖或跨单元时怎么办没写 | 2026-10-05 评审链 | 低 |
 | README 仓库结构树漏 `docs/` 与 `.agents/`;`speak-human-en` 标注「结构同 speak-human」但实际无 `evals/` | 2026-08-13 发布把关 | 低 |
 | 内部版 CI 令牌 `内部工具包-ci-bot` **2027-04-20 到期**,到期后 auto-bump 会再次全红 | 2026-08-13 修 auto-bump 时建 | 到期前 |
 | Phase 4 方向未定 | — | 待规划 |
@@ -36,6 +38,18 @@
 ## 变更日志(最新在上)
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
+
+### 2026-10-05 — 对照 superpowers 6.4.1 改四处规则(workflow/-en 0.18.0,codex 0.17.0)
+
+起因:superpowers 升到 6.4.1。2026-10-04 先做了一次只读对照(5 个 agent 对照、2 个逐条核对),Tony 定了改四处:「那就把1和2改一下,按照我们自己workflow的规则,目前我们已有的这个规则挺好的」「这两点加上吧,我觉得挺好的」。
+
+- 七.6:改写 brainstorming 批准关口的那一条点名 6.4.1 重写后的 HARD-GATE 整段(按路径列出的批准、同段三句英文原话),写明 spec 写入就是对其后全部阶段的授权。
+- 七.4:多个单元并行实现时同一时间只允许一个单元跑全量或重型测试;派工 prompt 写明实现 agent 收尾只跑本单元的定向用例或 -short,并写明这一条优先于 TDD skill 的收尾全量要求;全量由主对话在实现返回后按顺序跑、结果交给评审。
+- 七.4:评审判据——spec 没写到的行为,按使用者的合理预期判(说的是已实现的行为在 spec 没点名的输入或情形下的表现,不是 spec 没要求做的功能)。
+- 七.1:spec 必备内容加一节「容易漏的输入与失败情形」(最多五条,每条在负责的单元里补一个测试;查过没有就写明)。
+- 改动:README 中英、workflow 与 workflow-en 的脚手架模板(四条都有)、Codex 模板(后两条)。小 spec 两份:`docs/superpowers/specs/2026-10-05-superpowers-641-approval-gates-and-full-suite-design.md`、`docs/superpowers/specs/2026-10-05-review-criterion-and-easy-to-miss-section-design.md`;文字由脚本按替换清单套用(清单在同目录)。本机全局规则与内部的几处副本同步改。
+- 评审:单元一(前两条)盲审 2 个(opus medium)全是 P2,判通过,改了 3 处;单元二(后两条)盲审 2 个全是 P2,内部副本有 1 条 P1(压缩句丢了要素),修复后裁决(claude-opus-5-5,high)通过。评审链 `docs/reviews/2026-10-05-superpowers-641-chain.md`。遗留见上面「待办」表。
+- 没做:对照时列出的其余几条(评审结果加「搁置不判的事项」等)按 Tony 的决定不加;ui-sweep 文档那一处没有改(记在「待办」表)。
 
 ### 2026-10-03 — 评审链的裁决轮改回固定用 opus(workflow/-en 0.17.0)
 

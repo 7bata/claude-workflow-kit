@@ -1,0 +1,61 @@
+{
+ "units": {
+  "kit": [
+   {
+    "file": "README.zh-CN.md",
+    "old": "明确不覆盖哪几条及原因。",
+    "new": "明确不覆盖哪几条及原因。spec 还须含一节「容易漏的输入与失败情形」:最多五条 spec 隐含、但验收条款没有点名、也没有测试会覆盖到的输入或失败情形,每条写明使用者的合理预期,最容易出事的排前面;每条在负责那段代码的单元里补一个测试(派工时把分给本单元的几条一并附上,评审核对每条都有测试);查过没有就写一句「已检查,没有」。"
+   },
+   {
+    "file": "README.zh-CN.md",
+    "old": "主对话汇总修复。评审报告一律",
+    "new": "主对话汇总修复。评审判据:spec 没写到的行为,按使用者的合理预期判——spec 没提不等于允许出错,严重度按对使用者的影响定。评审报告一律"
+   },
+   {
+    "file": "README.md",
+    "old": "and which it explicitly does not, with reasons.",
+    "new": "and which it explicitly does not, with reasons. The spec must also include a section \"**Easy-to-miss inputs and failure modes**\": up to five inputs or failure conditions that the spec implies but that no acceptance criterion names and no test would exercise, each stating what a reasonable user would expect, most likely first; each gets one test in the unit that owns the code (the dispatch prompt attaches the lines assigned to that unit, and reviewers check that every line has its test). If you checked and found none, say so in one line."
+   },
+   {
+    "file": "README.md",
+    "old": "main conversation synthesizes and fixes. Review reports must always",
+    "new": "main conversation synthesizes and fixes. Review criterion: behavior the spec does not mention is judged by what a reasonable user of the software would expect — the spec's silence is not permission to fail, and severity follows the effect on that user. Review reports must always"
+   },
+   {
+    "file": "plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "YYYY-MM-DD-<主题>-design.md`\n- **spec 写入后直接用 ultracode",
+    "new": "YYYY-MM-DD-<主题>-design.md`；spec 里要有一节「容易漏的输入与失败情形」（最多五条 spec 隐含、但验收条款没点名、也没有测试会覆盖到的输入或失败情形，每条写明使用者的合理预期；每条在负责的单元里补一个测试，派工时附给该单元、评审核对；查过没有就写一句「已检查，没有」）\n- **spec 写入后直接用 ultracode"
+   },
+   {
+    "file": "plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "测试弱视同打回，重跑时测试与实现分开派两个 agent",
+    "new": "测试弱视同打回，重跑时测试与实现分开派两个 agent；spec 没写到的行为按使用者的合理预期判（spec 没提不等于允许出错，严重度按对使用者的影响定）"
+   },
+   {
+    "file": "plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "YYYY-MM-DD-<topic>-design.md`\n- **Once the spec is written",
+    "new": "YYYY-MM-DD-<topic>-design.md`; the spec includes a section \"Easy-to-miss inputs and failure modes\" (up to five inputs or failure conditions that the spec implies but that no acceptance criterion names and no test would exercise, each stating what a reasonable user would expect; each gets one test in the unit that owns the code, attached to that unit's dispatch prompt and checked by reviewers; if you checked and found none, say so in one line)\n- **Once the spec is written"
+   },
+   {
+    "file": "plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "weak tests count as a rejection, and a rejected unit's re-run splits tests and implementation across two agents",
+    "new": "weak tests count as a rejection, and a rejected unit's re-run splits tests and implementation across two agents; behavior the spec does not mention is judged by what a reasonable user would expect (the spec's silence is not permission to fail; severity follows the effect on that user)"
+   },
+   {
+    "file": "plugins/workflow-codex/skills/scaffold/templates/AGENTS.md.tmpl",
+    "old": "design spec 落 `docs/specs/YYYY-MM-DD-<主题>-design.md`",
+    "new": "design spec 落 `docs/specs/YYYY-MM-DD-<主题>-design.md`；spec 里要有一节「容易漏的输入与失败情形」（最多五条 spec 隐含、但验收条款没点名、也没有测试会覆盖到的输入或失败情形，每条写明使用者的合理预期；每条在负责的子任务里补一个测试，派活时附上、验收时核对；查过没有就写一句「已检查，没有」）"
+   },
+   {
+    "file": "plugins/workflow-codex/skills/scaffold/templates/AGENTS.md.tmpl",
+    "old": "启动外部进程的子任务还要核对退出要求有没有实现、有没有测到）",
+    "new": "启动外部进程的子任务还要核对退出要求有没有实现、有没有测到；spec 没写到的行为按使用者的合理预期判，spec 没提不等于允许出错）"
+   },
+   {
+    "file": "plugins/workflow-codex/.codex-plugin/plugin.json",
+    "old": "\"version\": \"0.16.0\"",
+    "new": "\"version\": \"0.17.0\""
+   }
+  ]
+ }
+}

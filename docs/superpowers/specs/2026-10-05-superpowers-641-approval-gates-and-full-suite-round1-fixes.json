@@ -1,0 +1,36 @@
+{
+ "units": {
+  "kit": [
+   {
+    "file": "README.zh-CN.md",
+    "old": "不跑项目全量(这句覆盖 superpowers TDD skill 里收尾前跑项目全量测试的要求;跑到的失败不管是不是本单元造成的,都按名字写进报告)",
+    "new": "不跑项目全量,并写明这一条优先于 superpowers TDD skill 里收尾前跑项目全量测试的要求(跑到的失败不管是不是本单元造成的,照样按名字写进报告)"
+   },
+   {
+    "file": "README.md",
+    "old": "not the project's full suite (this overrides the superpowers TDD skill's requirement to run the project's whole test suite before calling a change done; any failure the agent does see, whether or not its unit caused it, still goes into its report by name)",
+    "new": "not the project's full suite, and that this instruction takes precedence over the superpowers TDD skill's requirement to run the project's whole test suite before calling a change done (any failure the agent does see, whether or not its unit caused it, still goes into its report by name)"
+   },
+   {
+    "file": "plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "（superpowers 6.4.1 起按路径列出实现前要过的批准：批准对话里的短设计；批准书面 spec、再审阅书面实现计划并选定执行方式）",
+    "new": "（superpowers 6.4.1 起按路径列出实现前要过的批准：bounded 是批准对话里的短设计；架构路径是批准书面 spec、再审阅书面实现计划并选定执行方式）"
+   },
+   {
+    "file": "plugins/workflow/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "实现 agent 收尾只跑本单元的定向用例或 -short、不跑项目全量（覆盖 superpowers TDD skill 里收尾前跑项目全量测试的要求；跑到的失败不管是不是本单元造成的都按名字报），全量由主对话在实现返回后按顺序逐单元跑、结果交给评审，评审者只读结果；",
+    "new": "写明实现 agent 收尾只跑本单元的定向用例或 -short、不跑项目全量，且这一条优先于 superpowers TDD skill 里收尾前跑项目全量测试的要求（跑到的失败不管是不是本单元造成的照样按名字报），全量由主对话在实现返回后按顺序逐单元跑、结果交给评审，评审者不再各自跑全量；"
+   },
+   {
+    "file": "plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "the approvals required before implementation: approval of the short in-chat design; approval of the written spec, then",
+    "new": "the approvals required before implementation: for the bounded path, approval of the short in-chat design; for the architectural path, approval of the written spec, then"
+   },
+   {
+    "file": "plugins/workflow-en/skills/scaffold/templates/CLAUDE.md.tmpl",
+    "old": "an implementer agent finishes by running only its own unit's targeted tests (or the short suite), not the project's full suite (this overrides the superpowers TDD skill's requirement to run the project's whole test suite before calling a change done; any failure it does see, whether or not its unit caused it, is reported by name), and the main conversation runs the full suite unit by unit in sequence after the implementers return and hands the results to the reviewers, who only read them; ",
+    "new": "the prompt states that an implementer agent finishes by running only its own unit's targeted tests (or the short suite), not the project's full suite, and that this instruction takes precedence over the superpowers TDD skill's requirement to run the project's whole test suite before calling a change done (any failure it does see, whether or not its unit caused it, is still reported by name), and the main conversation runs the full suite unit by unit in sequence after the implementers return and hands the results to the reviewers, who do not run the full suite themselves; "
+   }
+  ]
+ }
+}
