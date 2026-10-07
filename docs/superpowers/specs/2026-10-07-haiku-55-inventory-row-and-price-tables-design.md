@@ -18,9 +18,9 @@ Haiku 5.5 于 2026-10-07 发布:ID `claude-haiku-5-5`,1M 上下文、128K 输出
 
 ### U1 档位表盘点行(主对话已改,待评审)
 
-九处副本:本机全局 CLAUDE.md(行 + 派工句 + 一段说明)、kit README 中英(行 + 派工句 + 一段说明)、kit workflow / workflow-en 脚手架模板(行)、内部工具包 WORKFLOW.md(同全局)、stellark-workflow 核心 SKILL.md(行压成「`haiku` 首选」,派工句只对调 'haiku' 与 'sonnet' 顺序;字数基线 6499.57,不许增加)、stellark-parallel-do SKILL.md(行)、stellark-scaffold 模板(行)。upstream-map.md 记下核心的两处压缩。kit workflow / workflow-en 版本 0.18.0 → 0.18.1。
+九处副本:本机全局 CLAUDE.md(行 + 派工句 + 一段说明)、kit README 中英(行 + 派工句 + 一段说明)、kit workflow / workflow-en 脚手架模板(行)、内部工具包 WORKFLOW.md(同全局)、stellark-workflow 核心 SKILL.md(行压成「`haiku`,败则 `sonnet`」,派工句压成 'haiku'/'sonnet';字数基线 6499.57,不许增加)、stellark-parallel-do SKILL.md(行)、stellark-scaffold 模板(行)。upstream-map.md 记下核心的两处压缩。kit workflow / workflow-en 版本 0.18.0 → 0.18.1。
 
-验收:九处的行都表达「haiku 首选、出错才换 sonnet」;核心字数 ≤ 6499.57,「不许 / 禁止 / 必须 / 一律」与 `references/` 出现次数不变;中英措辞一致;说明段写明 2.1.293 起别名才到 5.5、更早版本写完整型号。
+验收:九处的行都表达「haiku 首选、出错才换 sonnet」(核心用「败则 sonnet」的压缩写法);「便宜 20 倍」要注明只在提示 ≤100K 档成立;核心字数 ≤ 6499.57,「不许 / 禁止 / 必须 / 一律」与 `references/` 出现次数不变;中英措辞一致;说明段写明 2.1.293 起别名才到 5.5、更早版本写完整型号。
 
 ### U2 stella3 用量成本表(sonnet medium,TDD)
 
