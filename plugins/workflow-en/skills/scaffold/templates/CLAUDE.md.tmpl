@@ -104,7 +104,7 @@ The granularity of "one operation" ≈ the change covered by one atomic commit. 
 
   | Stage type | model | effort |
   |---|---|---|
-  | Locating files / listing / inventory | `'haiku'` or `'sonnet'` | `'low'` |
+  | Locating files / listing / inventory | `'haiku'` (first choice; switch to `'sonnet'` only when it fails) | `'low'` |
   | Batch mechanical work: migration, renaming, templated code changes | `'sonnet'` | `'low'` |
   | Regular implementation (TDD units) | `'sonnet'` | `'medium'` |
   | Hard implementation: algorithms, concurrency, tricky bugs | `'sonnet'` | `'high'` |
