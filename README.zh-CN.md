@@ -204,7 +204,7 @@ docs 八件套各自的职责:
 
 | Stage 类型 | model | effort |
 |---|---|---|
-| 定位文件 / 列清单 / 盘点 | `haiku` 或 `sonnet` | `low` |
+| 定位文件 / 列清单 / 盘点 | `haiku`(首选;出错才换 `sonnet`) | `low` |
 | 批量机械执行:迁移、重命名、模板化改码 | `sonnet` | `low` |
 | 常规实现(TDD 单元) | `sonnet` | `medium` |
 | 难点实现:算法、并发、棘手 bug | `sonnet` | `high` |
@@ -213,7 +213,9 @@ docs 八件套各自的职责:
 | 评审链的裁决轮(链的最后一轮;盲审无 P0/P1 且无矛盾时可不开;规则 3 单元必跑):终审、验收裁决、安全类评审 | `opus` | `high` |
 | 计划与架构设计 | 不派发,留主对话 | — |
 
-上表两条纯机械 stage(定位文件/列清单/盘点;批量迁移/重命名/模板化改码)派发时走 `agent(prompt, { agentType: 'mechanical', model: 'sonnet' 或 'haiku', effort: 'low' })`。这用的是 `workflow` 与 `workflow-en` 插件里自带的 `mechanical` agent 类型,其 frontmatter 设了 `omitClaudeMd: true` 与 `effort: low`:开局不加载 CLAUDE.md,省 token;裸 Agent 按 `subagent_type` 派它时也按 `low` 跑。`omitClaudeMd` 只管开局那次加载——它读写到的目录里有子目录 CLAUDE.md 或带 `paths:` 的 `.claude/rules` 规则时,这些文件仍会按需加载。只有这两类纯机械 stage 用 `agentType: 'mechanical'`;常规实现(`sonnet`)与所有评审照旧加载 CLAUDE.md。`mechanical` 的定义里自带五条通用要求:结论必须来自本次实际跑出的工具输出;改了能运行、构建或类型检查的东西,报告完成前跑一次真实检查(prompt 禁止执行的不跑),跑不了就明说未验证;prompt 范围内的步骤做完再报告;为检查启动的进程检查完就关、只关自己启动的;要并行跑检查先看 CPU 占用,超过 90% 就串行。
+上表两条纯机械 stage(定位文件/列清单/盘点;批量迁移/重命名/模板化改码)派发时走 `agent(prompt, { agentType: 'mechanical', model: 'haiku'(盘点类)或 'sonnet'(批量机械执行类), effort: 'low' })`。这用的是 `workflow` 与 `workflow-en` 插件里自带的 `mechanical` agent 类型,其 frontmatter 设了 `omitClaudeMd: true` 与 `effort: low`:开局不加载 CLAUDE.md,省 token;裸 Agent 按 `subagent_type` 派它时也按 `low` 跑。`omitClaudeMd` 只管开局那次加载——它读写到的目录里有子目录 CLAUDE.md 或带 `paths:` 的 `.claude/rules` 规则时,这些文件仍会按需加载。只有这两类纯机械 stage 用 `agentType: 'mechanical'`;常规实现(`sonnet`)与所有评审照旧加载 CLAUDE.md。`mechanical` 的定义里自带五条通用要求:结论必须来自本次实际跑出的工具输出;改了能运行、构建或类型检查的东西,报告完成前跑一次真实检查(prompt 禁止执行的不跑),跑不了就明说未验证;prompt 范围内的步骤做完再报告;为检查启动的进程检查完就关、只关自己启动的;要并行跑检查先看 CPU 占用,超过 90% 就串行。
+
+盘点行首选 `haiku`:Haiku 5.5(2026-10-07 发布)起 haiku 才接收 effort,比 Sonnet 5.5 便宜 20 倍;Claude Code 2.1.293 起 `haiku` 别名才解析到 5.5,更早版本要写完整型号 `claude-haiku-5-5`。「批量机械执行」行仍用 `sonnet`,等对照数据再定。
 
 ## 三、升降档四原则
 
