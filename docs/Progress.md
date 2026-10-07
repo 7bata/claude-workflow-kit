@@ -44,6 +44,7 @@
 - 同批(不在本仓):本机全局规则与内部工具包四处同步(核心文件受字数上限,压成「败则 sonnet」);内部项目管理系统(生产仓与 3.0 分支)与内部用量统计工具的模型价格表补 Opus 5.5 / Haiku 5.5 行,用量统计工具另补 Sonnet 5.5 / Fable 5.1 并撤销 Sonnet 5 的涨价行(官方 2026-10-07 取消)。
 - 评审:盲审 2 轮 + 裁决(opus high)通过;遗留 P2 见 `docs/reviews/2026-10-07-haiku55-chain.md`。spec `docs/superpowers/specs/2026-10-07-haiku-55-inventory-row-and-price-tables-design.md`。
 - 实现模型:claude-fable-5-1(主对话直接改);裁决模型:claude-opus-5-5。
+- 提交历史:本仓两条评审 squash! 提交没压进单元提交——压缩前工作区里有钩子追加的未提交改动,rebase 没跑起来就合并了;main 不改写历史,就这样留着,统计退回率时按「评审第」行数照样数得到。内部工具包那边压缩正常。
 
 > 更早的日志按月在 docs/archive/Progress-YYYY-MM.md
 
