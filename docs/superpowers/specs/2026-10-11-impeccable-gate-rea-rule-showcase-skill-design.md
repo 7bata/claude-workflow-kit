@@ -22,12 +22,13 @@
 3. **管理后台与内部工具界面**:不调用设计 skill,照现有做法按截图与反馈改;只走 B 的机械闸门。
 4. 不装 impeccable 的 hook、不开 live 模式、critique 不进评审链(它强制拆两个子代理,与盲审编排是两套);hallmark 保留不删,规则点名 impeccable,若出现两个 skill 同时触发的噪音再去掉 hallmark。
 
-### B. `detect` 机械闸门(所有前端单元,不分类型)
+### B. `detect` 机械闸门(所有前端单元,不分类型;2026-10-11 按 U0 试点定稿)
 
-1. **评审链之前**(直通流程第 2 步「每单元完成即派评审链」之前加一句):前端单元的视觉 stage 返回后、开评审链之前,**由主对话(不是实现子代理)** 对该单元改过的 UI 源码目录跑 `npx impeccable@<锁定版本> detect --json <目录>`;退出码 2 且含**一眼可见类**规则(text-overflow、text-occlusion、low-contrast、broken-image、script-error、content-hidden-at-rest)的先退回修复再开评审;**套路类**(cream-palette 等)只把发现附进评审 prompt 当只读事实,不自动退回;退出码 0 不等于通过,评审链照开。detect 跑不起来(无网络、无引擎)时在评审 prompt 里写明「detect 未跑」,不许当作通过。
-2. **截图交付预审之前**(截图交付规范「交付前先预审」那段加一句):派视觉评审子代理之前,主对话对要截图的本地地址(需要本机 Chrome)或构建出的 HTML 文件跑一次同样的 `detect --json`,输出文件与截图 HTML 放在一起存档,并作为只读事实交给视觉评审子代理;一眼可见类发现先修再截图。detect 是一次性命令,结束即退出,不留进程。
-3. **环境**:本机 `~/.claude/settings.json` 的 env 加 `IMPECCABLE_NO_TELEMETRY=1`;规则里写「锁版本」,当前锁 4.5.2;艺术站先写 `detector.ignoreRules` 豁免清单再扫(放该项目 `.impeccable/config.json`)。
-4. **硬闸门范围**以 U0 试点为准:一眼可见类规则里试点在已验收页面上误报为 0 的进硬闸门,其余降为「附进评审 prompt」。U0 结果出来前按上面六条写,出来后由主对话定稿。
+0. **两种扫法,只有渲染扫描进硬闸门**(U0 试点结论):`npx impeccable@<锁定版本> detect --json <目标>` 对**运行中的本地页面地址**扫是渲染扫描(需要本机 Chrome,单页约 10 秒,结果可信:艺术作品集站 4 页渲染扫描只报 2 条、都是真实命中);对**源码目录或构建出的静态 HTML** 扫不需要浏览器、不到 1 秒,但一眼可见类在已验收页面上误报很高(源码目录扫描 broken-image 10 条全是测试字符串、注释、运行时赋 src 的占位图;静态 HTML 的 low-contrast 多是背景推断错误、同一灯箱图在每页重复报 broken-image)。所以:**渲染扫描的结果走硬闸门,源码目录 / 静态 HTML 扫描的结果只作只读事实附进评审 prompt,不退回。**
+1. **评审链之前**(直通流程第 2 步「每单元完成即派评审链」之前加一句):前端单元实现返回后(不限有没有视觉 stage)、开评审链之前,**由主对话(不是实现子代理)** 对该单元改过的 UI 源码目录跑一次源码扫描,结果附进评审 prompt;该单元有可起的本地页面(dev server 或构建产物的 preview)时再做渲染扫描走硬闸门——起的服务记 PID / 端口,扫完即关并核对。硬闸门判法:渲染扫描退出码 2 且含 text-overflow、text-occlusion、broken-image、script-error、content-hidden-at-rest 的先退回修复再开评审;含 low-contrast 的先由主对话判断是不是有意弱化的次要文字(图注、辅助说明),不是才退回;**套路类**(cream-palette 等)只附进评审 prompt,不自动退回;退出码 0 不等于通过,评审链照开。**「detect 未跑」**:退出码不是 0 或 2(launcher 下载不到引擎是 127,目标扫不了是 1),或渲染扫描因本机没有 Chrome 跑不了,都在评审 prompt 里写明「detect 未跑」,不许当作通过。
+2. **截图交付预审之前**(截图交付规范「交付前先预审」那段加一句):截图时页面本来就在本机跑着,派视觉评审子代理之前主对话先对要截图的本地地址做一次渲染扫描(写出完整命令 `npx impeccable@<锁定版本> detect --json <地址>`,不写「同样的」),输出文件与截图 HTML 放在一起存档,并作为只读事实交给视觉评审子代理;一眼可见类按上面 B.1 的硬闸门判法先修再截图;跑不了同样记「detect 未跑」。detect 是一次性命令,结束即退出,不留进程。
+3. **环境**:本机 `~/.claude/settings.json` 的 env 加 `IMPECCABLE_NO_TELEMETRY=1`;规则里写「锁版本」,当前锁 4.5.2;艺术站刻意用的斜体衬线、米白背景、紧行距、大标题上方的小标签会触发套路类规则,先在该项目 `.impeccable/config.json` 写 `detector.ignoreRules` 豁免清单再扫(这一句公开面与模板都要写)。
+4. **待补测**(记进评审链,不进规则正文):text-overflow、text-occlusion、script-error、content-hidden-at-rest 四条在试点的目录、静态 HTML、4 个渲染页面上都没触发,没有误报数据,先按硬闸门执行;哪条出现误报就降为附进评审 prompt。
 5. 可选(本批不做,记录):档位表加一行「机械检测」(haiku + low + `dev-toolkit:mechanical`,只跑命令回传 JSON)。
 
 ### C. rea 一行规则
@@ -37,8 +38,8 @@
 
 ## 二、本机安装与试点(U0)
 
-1. 安装:`npx impeccable@4.5.2 install --providers=claude --scope=global --no-hooks`,确认写入的只有 `~/.claude/skills/impeccable/`;安装前后比对 `~/.claude/settings.json` 与 `~/.claude.json`,除 env 那一行外不得有差异;不跑 `init`、不装 hook、不开 live。
-2. 引擎:首次运行 `~/.claude/skills/impeccable/scripts/impeccable --version`(或 `doctor`)触发下载到 `~/.impeccable/bin/<版本>/`,确认 launcher 校验了 sha256;记录引擎版本。
+1. 安装:`npx impeccable@4.5.2 install --providers=claude --scope=global --no-hooks`,写入 `~/.claude/skills/impeccable/` 与 `~/.claude/agents/impeccable-*.md`(4 个子代理定义:asset-producer、documenter、finish-reviewer、manual-edit-applier;new-work 流程收尾要用 finish-reviewer,**保留**,U0 首轮移走后已放回);安装前后比对 `~/.claude/settings.json` 与 `~/.claude.json`,除 env 那一行与 Claude Code 自己的用量计数外不得有差异;不跑 `init`、不装 hook、不开 live。
+2. 引擎:安装器把引擎二进制放在 skill 目录内 `scripts/bin/<平台>/impeccable`(本机 darwin-arm64,0.1.14),launcher 优先用它、不再校验,`~/.impeccable/bin/` 不会出现;launcher 的 sha256 校验只在「现下载」路径执行(脚本第 150~179 行,拿不到旁路文件或不一致都拒绝运行)。完整性靠人核:用 `gh release download engine-v0.1.14 -R pbakaus/impeccable -p 'impeccable-darwin-arm64.sha256'`(或等价方式)取官方校验值,与本机引擎的 `shasum -a 256` 比对,数值记进评审链。
 3. env:`~/.claude/settings.json` 的 `env` 加 `IMPECCABLE_NO_TELEMETRY=1`,改前备份 `~/.claude/settings.json.bak-20261011-impeccable`。
 4. 试点:对三个本机项目各跑一次 `detect --json`——录音转写产品的前端源码目录(React,已验收上线)、艺术作品集站(Astro,已发布;源码目录与构建出的 HTML 各一次,构建输出到 `/tmp` 下的目录,不动仓库)、短视频素材采集工具的后台前端(React,管理后台样本);若 URL 扫描可行,再对艺术作品集站起一次本地 dev server 扫一次 URL,启动前记 PID / 端口,扫完即关并核对。对每条发现读源码判断真假,产出**按规则分的命中数与误报数表**,并给出一眼可见类六条规则各自能不能进硬闸门的结论。三个仓库只读,不提交、不改文件。
 5. 报告:上述全部写进 `docs/reviews/2026-10-11-impeccable-rea-showcase-chain.md` 的 U0 节(由主对话写入),数字留给 B.4 定稿。
@@ -60,14 +61,14 @@ U3 的核心 `SKILL.md` 有 token 上限(按该仓 `docs/reviews/2026-09-23-slim
 
 1. 全局 CLAUDE.md 与 README 中英:角色表前端美术行含分类标准;直通流程第 2 步含「先用 Skill 工具调用 impeccable」「主对话先跑 /impeccable init」「管理后台不调用」「detect 闸门」「detect 未跑不算通过」;门禁 / 截图交付段含「detect 结果与截图 HTML 一起存档、交给视觉评审子代理」;第八节末含 rea 段落(CLI 取证据、不默认装 MCP、`claude mcp add`、Ghidra 先问、行为捕获隔离、不做的三件事)。`grep -c` 各关键词每个面 ≥ 1。
 2. 两份模板:第 124 行附近的前端视觉 stage 句改成「先分类;展示型先调 impeccable(或 hallmark / frontend-design);管理后台不调」,门禁句含 detect;插件版本 0.19.0。
-3. 本机:`~/.claude/skills/impeccable/SKILL.md` 存在;`~/.claude/settings.json` 的 hooks 段无 impeccable 条目、env 含 `IMPECCABLE_NO_TELEMETRY`;`~/.claude.json` 无变化;备份文件存在;`~/.impeccable/bin/` 下有引擎。
+3. 本机:`~/.claude/skills/impeccable/SKILL.md` 存在;`~/.claude/agents/impeccable-*.md` 4 个文件存在;`~/.claude/settings.json` 的 hooks 段无 impeccable 条目、env 含 `IMPECCABLE_NO_TELEMETRY`;`~/.claude.json` 除用量计数外无变化;备份文件存在;引擎在 `~/.claude/skills/impeccable/scripts/bin/<平台>/impeccable`,其 sha256 与官方 engine-v0.1.14 的校验文件一致(数值记进评审链)。
 4. U0 试点表:三个项目各有按规则分的命中 / 误报数,一眼可见类六条规则各有结论;所有启动的进程已核对退出。
 5. 内部工具包:WORKFLOW.md 三条全句到位;references 三个文件到位;核心 SKILL.md 字数 ≤ 6499.57 或原样未动并附数字报告;`references/upstream-map.md` 记了本批;wip 分支已推送。
 6. 本机 github-research skill「快扫」末尾含 rea 一条,备份存在。
 
 ## 五、容易漏的输入与失败情形
 
-1. **detect 跑不起来**(无网络下载不了引擎、机器没有 Chrome 扫不了 URL):使用者合理预期是闸门「没跑」而不是「通过」——规则写明记「detect 未跑」,目录 / HTML 扫描不需要 Chrome 可作退路。U0 核对 launcher 无网时的失败方式并写进报告;U1 / U2 措辞覆盖。
+1. **detect 跑不起来**(无网络下载不了引擎、机器没有 Chrome 扫不了 URL):使用者合理预期是闸门「没跑」而不是「通过」——规则写明退出码不是 0 或 2、或渲染扫描因没有 Chrome 跑不了,都记「detect 未跑」;源码目录扫描不需要 Chrome,但它只作附进评审的事实,不能顶替渲染扫描的硬闸门。U0 核对 launcher 无网时的失败方式(已核:退出码 127)与没有 Chrome 时 URL 扫描的退出码和输出(待核);U1 / U2 / U3 措辞覆盖,评审链前与截图预审前两处都要写。
 2. **艺术站刻意用的斜体衬线、米白背景触发套路类规则**:合理预期是不被自动退回——规则把套路类定为只附评审 prompt,并要求艺术站先写豁免清单。U0 在艺术作品集站上实测套路类命中数;U1 / U2 措辞覆盖。
 3. **项目没有 PRODUCT.md 时子代理触发 `/impeccable init`**:init 会提问,子代理无人可答会卡住或编造——规则写明首次由主对话跑 init。U1 / U2 措辞覆盖;U0 确认 `impeccable context` 在没有 PRODUCT.md 的目录里的输出是提示而不是阻塞。
 4. **并发实现子代理触发 impeccable 的编辑后 hook**:预期是不触发——本批不装 hook,U0 核对 settings.json 无 hook 条目。
