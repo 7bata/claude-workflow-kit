@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.18.1;盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.19.0;展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.17.0;评审判据与 spec 加一节同步(2026-10-05);spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -36,6 +36,14 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-10-11 — impeccable 机械闸门 + 展示型前端必调设计 skill + rea 一行规则(workflow/-en 0.19.0)
+
+- 背景:用户点名 shaders / impeccable / rea 三个开源仓,要求先核实最近一个月有没有真实需求。调研(1031 份会话、2766 条原话,26 个子代理逐条判定)结论:外观类需求真实但全是排版、层级、配色、手机版返工,没有一条要特效——shaders 不做;impeccable 只有 59 条确定性检测器是独有价值;逆向只有微信本地库导出与小红书接口两个真实案例,最难的取密钥与风控 rea 不覆盖。报告 `docs/superpowers/research/2026-10-11-shaders-impeccable-rea-fit.md`。用户拍板做 impeccable 与 rea,并加「展示型前端先调设计 skill、管理后台不调」。
+- 改动:角色表前端美术行加分类标准(展示型前端 / 管理后台与内部工具界面,拿不准按展示型);七.4 展示型前端的视觉 stage 先用 Skill 工具调用 impeccable(shape / polish / critique,首次由主对话跑 init;没装的用 hallmark / frontend-design;不装 hook、不开 live、critique 不进评审链),管理后台不调;所有前端单元评审链前加 detect 闸门——只有对运行中页面的渲染扫描进硬闸门(一眼可见类先退回,low-contrast 先由主对话判断是不是有意弱化),源码扫描只附评审 prompt,退出码不是 0/2 或没有 Chrome 记「detect 未跑」不算通过,艺术站先写 ignoreRules 豁免;门禁截图预审前跑渲染扫描、结果与截图一起交视觉评审;第八节末加 rea 段(闭源 JS/Electron/APK/二进制先用 CLI 取证据、MCP 按项目 `claude mcp add`、Ghidra 先问、行为捕获隔离)。README 中英与两份模板同步。
+- 本机试点(不在本仓):impeccable 装为用户级 skill(无 hook),引擎在 skill 目录内、哈希与官方一致;三个本机项目试点 detect:源码目录扫描 broken-image 10/10 误报,渲染扫描 4+4 页只报真实命中——硬闸门范围由此定稿。本机全局规则、github-research skill、内部工具包(WORKFLOW、references、模板、核心两处入口合一,核心字数 6499.29 不变)同步。
+- 评审:盲审 2 个/单元 + 裁决(opus high)四单元全部通过;遗留 P2 见 `docs/reviews/2026-10-11-impeccable-rea-showcase-chain.md`(四条硬闸门规则试点未触发待补测;本机规则缺「渲染扫描未跑」记法)。spec `docs/superpowers/specs/2026-10-11-impeccable-gate-rea-rule-showcase-skill-design.md`。
+- 实现模型:claude-sonnet-5-5;裁决模型:claude-opus-5-5。评审 2 轮。
 
 ### 2026-10-07 — Haiku 5.5 发布:档位表盘点行改 haiku 首选(workflow/-en 0.18.1)
 
