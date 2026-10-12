@@ -57,6 +57,16 @@ impeccable 4.5.2 自己的流程已经分段:`reference/shape.md`(发现式访�
 4. **主对话跑 shape 时 impeccable 用 `serve-question` 起本地决策页让人选卡**:用户在 HAPI 手机端看不到本机页面;impeccable 自己写「有结构化提问工具就用它,否则问完停下」,规则不另写;记进评审链,等第一次实跑核对。
 5. 已检查,其余没有。
 
+## 四之二、评审第 1 轮后的修订(2026-10-11,主对话按盲审发现核实 impeccable 原文后定)
+
+A 的目标措辞改成:展示型前端(分类按角色表「前端美术」行)的方向由主对话在 brainstorming 里定、不派给子代理——① 该项目还没有 PRODUCT.md 时,不论本次是新页面、换风格、局部扩展还是打磨,主对话都先跑一次 `/impeccable init`(它会问产品问题,子代理无人可问;impeccable 对窄范围修改不阻塞、事后建议 init,但规则按无条件写,不留歧义);② **新页面或换视觉风格**(项目已有 DESIGN.md 只加一个新页面也算)再由主对话用 Skill 工具调用 `impeccable` 跑 `/impeccable shape`——shape 只到确认设计简报为止、不写记录,接着由主对话按它 new-work 流程第 1~5 节走完:第 2 节的提问与第 3~4 节的方向卡选定用提问工具转给使用者答、由使用者选定;第 5 节把 direction contract 写进 surface brief;有图像生成时再按 visualize 的那一轮把三张构图样稿交使用者批准一张(这轮不许跳过、不许替使用者选),批准的样稿路径记在 surface brief 里;③ spec 写明 surface brief 的路径(direction contract 与批准样稿的路径都以它为准),子代理不再问人;④ 没装 impeccable 的机器同样由主对话用 hallmark / frontend-design 把方向定下并写进 spec;⑤ 局部扩展(既有页面加一个区块或组件)与既有页面的打磨不走 shape 与方向选定,直接派子代理。
+
+B 的目标措辞补三处:spec 里没有方向、direction contract 或批准样稿路径的,子代理停下、在返回里报缺方向,不自己跑 shape、不编方向;局部扩展走 new-work「扩展既有页面」路径,它自带的简短确认与直接 shape 由子代理按 spec 与 DESIGN.md 做,「不派给子代理」只指 init 与新页面 / 换风格的 shape 与方向选定;审查已有页面归主对话手动用 `/impeccable critique` 作入口,不列在子代理要做的事里,「不进评审链」只写一处。删掉「拿到方向后再动手」及其英文对应句。
+
+模板(kit 两份、内部一份)的派工句与 §7 brainstorming 条压缩时要保住:没有 PRODUCT.md 时主对话先 init;新页面或换风格的方向由主对话定,方向卡与构图样稿**由使用者**选定、批准,路径写进 spec;子代理只按 spec 建造(new-work 第 6 节起)或 polish;局部扩展与打磨直接派子代理;spec 缺方向就停下报缺;没装 impeccable 用备用 skill、方向同样由主对话定。
+
+内部核心 `stellark-workflow/SKILL.md` 放开两处短句(余量够,改后仍 ≤ 6500 并记数):七.1 加「展示型前端新页面或换风格的方向在 brainstorming 由主对话定,读 references/frontend.md」;七.4 末句「展示型先调设计 skill」改成「展示型方向由主对话定、子代理只建造」。`references/frontend.md` 新节标题注明「派工节里的「见七.1」指这一节」,派工节仍与 WORKFLOW.md 七.4 逐字相同;upstream-map 把第 58 行旧记录标为已被本批取代,本批记录补 frontend.md 第 1 行的改动。
+
 ## 五、评审
 
 每单元盲审 2 个(opus + medium;镜头 A 正确性:要素齐、各面前后不矛盾、该改的锚点全改到;镜头 B 边界:第四节四条情形覆盖、三面说法一致、公开面不含内部名与本机路径),脚本按 file + line 归并并标 conflict;有 P1 修复后裁决(opus + high);有 P0 修复后续挖再裁决。本批不触及规则 3 的不可逆操作。评审链记录:`docs/reviews/2026-10-11-showcase-shape-main-chain.md`(内部工具包单元的细节记在该仓)。
