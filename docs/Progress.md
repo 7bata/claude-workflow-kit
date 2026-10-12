@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.19.0;展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.19.1;展示型前端的方向(init / shape / 方向卡 / 样稿批准)由主对话在 brainstorming 定、子代理只做建造或 polish(2026-10-11);展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.17.0;评审判据与 spec 加一节同步(2026-10-05);spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -36,6 +36,14 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-10-11 — 展示型前端:方向在主对话定、子代理只做建造(workflow/-en 0.19.1)
+
+- 背景:用户问「Workflow 现在会自动调用本机装的前端设计插件吗」「直接说把前端弄好看些、xx 风格会调吗」。核对 impeccable 4.5.2 自带流程(`reference/shape.md`、`new-work.md`、`visualize.md`):换风格或新页面要走 shape → new-work,其中提问、方向卡选定、构图样稿批准三处都要问使用者,子代理问不了;当天上午并 main 的规则只把 init 挪到了主对话。用户答「可以」照建议改。
+- 改动:七.1 加一段——展示型前端的方向由主对话在 brainstorming 里定:没有 PRODUCT.md 时不论哪种活都先跑 init;新页面或换视觉风格由主对话跑 shape,再按 new-work 第 1~5 节走完(提问与方向卡转给使用者答、选,direction contract 写进 surface brief,有图像生成时构图样稿由使用者批准一张),surface brief 路径写进 spec;没装 impeccable 的机器用备用 skill、方向同样由主对话定;局部扩展与既有页面打磨直接派子代理。七.4 派工句改成子代理「做建造」:新页面或换风格从 new-work 第 6 节起做到第 7 节,spec 缺方向就停下报缺、不自己 shape,局部扩展走「扩展既有页面」路径,打磨走 polish,要问人的地方按 spec / PRODUCT.md / DESIGN.md 判断并写进返回、不编造;critique 归主对话手动。角色表前端美术行同步。README 中英与两份模板同步。
+- 同批(不在本仓):本机全局规则(改前备份)与内部工具包(WORKFLOW.md、references/frontend.md、核心 skill 七.1 / 七.4 / 第 18 行三处短句、parallel-do、模板、upstream-map)同步。
+- 评审:盲审 2 个/单元 → 两条 P1(原规则无条件的「首次由主对话跑 init」被挂到了新页面分支下;visualize 构图样稿批准轮没分配、批准样稿路径以 surface brief 为准)修复 → 裁决(opus high)三单元通过;裁决后的 9 条新 P2 里 6 条措辞小修由主对话在收尾改掉(停下条件限定为缺 surface brief 或 direction contract、critique 由主对话做、模板 init 不限路径等),3 条记遗留(build-phase 状态交接、样稿在手机端怎么给人看、验收条款字面短语)。spec `docs/superpowers/specs/2026-10-11-showcase-shape-in-main-conversation-design.md`,评审链 `docs/reviews/2026-10-11-showcase-shape-main-chain.md`。
+- 实现模型:claude-sonnet-5-5;裁决模型:claude-opus-5-5。评审 2 轮。
 
 ### 2026-10-11 — impeccable 机械闸门 + 展示型前端必调设计 skill + rea 一行规则(workflow/-en 0.19.0)
 

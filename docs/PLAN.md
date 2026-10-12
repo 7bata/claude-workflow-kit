@@ -54,3 +54,5 @@
 - [裁决轮改回固定用 opus](superpowers/specs/2026-10-03-adjudication-round-back-to-opus-design.md) — 评审链的裁决轮固定 `opus` + `high`,不再跟随主对话的模型
 - [对照 superpowers 6.4.1:批准关口与并行时的全量测试](superpowers/specs/2026-10-05-superpowers-641-approval-gates-and-full-suite-design.md) — 七.6 点名 6.4.1 重写后的 HARD-GATE 整段;多个单元并行实现时全量测试由主对话按顺序跑,实现 agent 只跑定向用例
 - [评审判据加一句;spec 加一节「容易漏的输入与失败情形」](superpowers/specs/2026-10-05-review-criterion-and-easy-to-miss-section-design.md) — spec 没写到的行为按使用者的合理预期判;spec 必备内容加一节,最多五条、每条配一个测试
+- [impeccable 机械闸门 + 展示型前端必调设计 skill + rea 一行规则](superpowers/specs/2026-10-11-impeccable-gate-rea-rule-showcase-skill-design.md) — 展示型前端分类与设计 skill 调用;所有前端单元评审链前的 detect 闸门(只有渲染扫描进硬闸门);逆向类调研先用 rea CLI 取证据
+- [展示型前端:方向在主对话定、子代理只做建造](superpowers/specs/2026-10-11-showcase-shape-in-main-conversation-design.md) — impeccable 的 init / shape / 选方向卡要问人,改由主对话在 brainstorming 里跑并把方向写进 spec;子代理从 new-work 第 6 节建造起做,或 polish
