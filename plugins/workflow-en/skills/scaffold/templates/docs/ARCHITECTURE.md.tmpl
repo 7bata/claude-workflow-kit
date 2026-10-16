@@ -59,7 +59,7 @@ Convention: every table has `id BIGSERIAL PK`, `created_at TIMESTAMPTZ DEFAULT n
 | A panic / unhandled exception is caught | error | `panic` | `err`, `stack`, `request_id`; if the response was already written, only log the line and abort the connection |
 | A scheduled / background job with an interval > 1 minute starts | info | `job start` | `job`, `run_id`, `trigger` (timer / manual / retry / startup) |
 | A job ends | info (error on failure) | `job end` | `job`, `run_id`, `ok`, `duration_ms`, per-kind counts, `err` on failure; a partial failure is also `ok=false` |
-| A tick of high-frequency polling (interval <= 1 minute; once a minute counts) | — | log `job end` only when something was done or an error occurred; one `job heartbeat` line every 5 minutes | `job`, `ticks`, counts since the last heartbeat, `skipped`, `errors` |
+| A tick of high-frequency polling (interval <= 1 minute; once a minute counts; polling that only checks whether there is work follows this rule regardless of interval) | — | log `job end` only when something was done or an error occurred; one `job heartbeat` line every 5 minutes | `job`, `ticks`, counts since the last heartbeat, `skipped`, `errors` |
 | A job retry | warn (error on giving up) | `job retry` | `job`, `attempt`, `max_attempts`, `next_retry_in_s`; on giving up `attempts`, `giving_up=true` |
 | A call to an external service (LLM, third-party API, database migration) | info (warn / error on failure) | `<target> call` (e.g. `llm call`, `payment call`) | `target`, `ok`, `status` (HTTP status code; 0 or null if unavailable), `duration_ms`, `attempt` or `attempts`; never log the prompt, request body, response body, or tokens |
 
