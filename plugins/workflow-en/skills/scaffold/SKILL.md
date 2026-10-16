@@ -21,7 +21,8 @@ The backend stack is **fixed to Go**, with version and library choices unified u
 | Migrations | golang-migrate | Pure SQL versioned migrations (`NNNN_*.up.sql / down.sql`) |
 | Validation / serialization | `encoding/json` + go-playground/validator | Request/response schema validation |
 | Frontend (if needed) | React + TypeScript + Vite | `node:20-alpine` used only at build stage |
-| Runtime image | `alpine:3.20` | Docker multi-stage build, single static binary, `/health` health check |
+| Runtime image | `alpine:3.20` | Docker multi-stage build, single static binary, `/health` (liveness, always 200) and `/health/ready` (readiness, probed by the container health check) |
+| Logging | Standard-library structured logging (Go: the `log/slog` JSON handler; other stacks: an equivalent JSON-lines logging library) writing to stdout | Follow the log contract in section 4 of `.claude/CLAUDE.md`; the full table and acceptance checklist are in the "Log contract" section of `docs/ARCHITECTURE.md` |
 | Directory layout | `backend/cmd/server` entrypoint + `backend/internal/{config,db,repo,handlers,service,model,middleware}` | Go community convention; frontend under `frontend/src` |
 
 Keep the backend service **stateless** (all state lives in the database), leaving room for horizontal scaling across multiple replicas.
@@ -55,7 +56,7 @@ This skill's on-disk scope is 11 general-purpose files; the SQLite branch does n
 
 ## CLI / no-network-service branch (the concrete substitutions when Step 3 determines a pure CLI / batch job)
 
-The baseline table above defaults to exposing an HTTP interface (`net/http + chi` + `/health` health check + container runtime). If Step 3 determines the project is a **pure CLI / batch job** (no HTTP interface, no port listening), swap per the table below — this is not "adjust as you see fit," follow it as written:
+The baseline table above defaults to exposing an HTTP interface (`net/http + chi` + `/health` (liveness) and `/health/ready` (readiness) + container runtime). If Step 3 determines the project is a **pure CLI / batch job** (no HTTP interface, no port listening), swap per the table below — this is not "adjust as you see fit," follow it as written:
 
 | Component | CLI substitute |
 |---|---|
@@ -63,6 +64,7 @@ The baseline table above defaults to exposing an HTTP interface (`net/http + chi
 | Directory layout | `backend/cmd/<binary>` entrypoint + `backend/internal/{cli,core,db,repo,model}`; do not create `handlers/` or `middleware/` |
 | `docs/ARCHITECTURE.md` | Drop the routing/HTTP-interface row from Section 1; sync Section 6's directory-layout comment to `cmd/<binary>` + `internal/{cli,core,db,repo,model}`, with no `handlers`/`middleware` mentioned |
 | `docs/DEPLOYMENT.md` | Deployment shape: "single binary, `CGO_ENABLED=0 go build`, no container/port/health check"; do not write the `alpine` runtime image or `/health` |
+| Log contract | A pure CLI has no HTTP: write no `http request` lines and build no `/health` or `/health/ready`; `service start` carries no `addr`; `service stop`, job lines, and external-call lines are written per the contract; in the generated `docs/ARCHITECTURE.md` 5.1 acceptance checklist, strike items 2 and 6, and in `docs/DEPLOYMENT.md` "Post-release checks" strike the `http request` and `/health` items, keeping the rest; in the generated `CLAUDE.md` section 4 and `docs/ARCHITECTURE.md` 5.1 body, mark the `http request` and health-check entries "not applicable: this project has no HTTP", and inject the version via `-ldflags` or the vcs revision from build info (there is no Dockerfile) |
 
 ## Step 1: Confirm project name and directory
 
@@ -130,7 +132,7 @@ For each template: Read the template content → substitute placeholders → Wri
 | `{{DATABASE}}` | Database from Step 3 |
 | `{{INVARIANTS_BLOCK}}` | Core invariants from Step 3; if none, `<!-- TBD: this project's core invariants -->` |
 | `{{MODULES_BLOCK}}` | Module breakdown from Step 3; if none, `<!-- TBD: module breakdown -->` |
-| `{{CODE_CONVENTIONS_BLOCK}}` | Go code conventions generated from the baseline (Go 1.25, gofmt, explicit error handling with wrapping, `cmd/` + `internal/` layout, minimal dependencies); if there's a frontend, append TS conventions (strict mode, components organized by page directory) |
+| `{{CODE_CONVENTIONS_BLOCK}}` | Go code conventions generated from the baseline (Go 1.25, gofmt, explicit error handling with wrapping, `cmd/` + `internal/` layout, minimal dependencies); if there's a frontend, append TS conventions (strict mode, components organized by page directory); logging follows the contract: slog JSON, one access-log line per request, job lines, external-call lines, the `/health` body (the log-contract block is already built into section 4 of `CLAUDE.md.tmpl`, so this placeholder does not repeat it) |
 
 Template path mapping: `templates/docs/X.md.tmpl` → `docs/X.md`; `templates/gitignore.tmpl` → `.gitignore`; `templates/CLAUDE.md.tmpl` → `.claude/CLAUDE.md`; `templates/README.md.tmpl` → `README.md`. Also create an empty placeholder directory `data/.gitkeep`. (data/.gitkeep is an extra placeholder outside the checklist; total physical files = checklist count + 1 — reconcile accordingly during self-check)
 

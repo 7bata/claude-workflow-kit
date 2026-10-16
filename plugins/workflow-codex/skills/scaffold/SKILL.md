@@ -20,7 +20,8 @@ description: 在当前项目目录里铺设方法论脚手架（AGENTS.md + docs
 | 迁移 | golang-migrate | 纯 SQL 版本化迁移（`NNNN_*.up.sql / down.sql`） |
 | 校验/序列化 | `encoding/json` + go-playground/validator | 请求/响应 schema 校验 |
 | 前端（如需要） | React + TypeScript + Vite | `node:20-alpine` 仅用于构建阶段 |
-| 运行镜像 | `alpine:3.20` | Docker 多阶段构建，单静态二进制，`/health` 健康检查 |
+| 运行镜像 | `alpine:3.20` | Docker 多阶段构建，单静态二进制，`/health`（存活，恒 200）与 `/health/ready`（就绪，容器健康检查探它） |
+| 日志 | 标准库结构化日志（Go 用 `log/slog` 的 JSON handler；其它栈用等价的 JSON 行日志库）写 stdout | 按 `AGENTS.md` 第 4 节的日志契约；完整表格与验收清单在 `docs/ARCHITECTURE.md`「日志契约」一节 |
 | 目录结构 | `backend/cmd/server` 入口 + `backend/internal/{config,db,repo,handlers,service,model,middleware}` | Go 社区惯例；前端在 `frontend/src` |
 
 后端服务保持**无状态**（状态全在数据库），为多副本水平扩展留余地。
@@ -40,7 +41,7 @@ description: 在当前项目目录里铺设方法论脚手架（AGENTS.md + docs
 
 **`docs/DECISIONS.md.tmpl` 预置首条会自相矛盾，必须改**：第 9 行 What「后端 Go 1.25（net/http + chi + pgx + golang-migrate），数据库 {{DATABASE}}」里的 `pgx + golang-migrate` 若不改，`{{DATABASE}}` 填 `SQLite` 后渲染成「…pgx + golang-migrate…数据库 SQLite」，同一句自相矛盾；落盘前把这半句换成 `database/sql (modernc.org/sqlite) + golang-migrate (sqlite driver)`。再按下文「`docs/DECISIONS.md` 追加一条记录选 SQLite 的理由」写一条独立条目。
 
-**`docs/ARCHITECTURE.md.tmpl` 里第 1/3/6 节的 `pgx`/`BIGSERIAL`/`TIMESTAMPTZ`/`pgxpool` 是正文硬编码、不是占位符**（该模板与开源版原样保持字节一致，没有做数据库分支占位符化）。落盘生成 `docs/ARCHITECTURE.md` 后，选了 SQLite 就必须手工按下表改写这几处，否则文档会与实际技术栈冲突，且照着 `BIGSERIAL`/`TIMESTAMPTZ` 写 DDL 在 SQLite 里会直接建表失败：
+**`docs/ARCHITECTURE.md.tmpl` 里第 1/3/6 节的 `pgx`/`BIGSERIAL`/`TIMESTAMPTZ`/`pgxpool` 是正文硬编码、不是占位符**（该模板除 5.1 引言的 `AGENTS.md` 引用外与开源版一致，没有做数据库分支占位符化）。落盘生成 `docs/ARCHITECTURE.md` 后，选了 SQLite 就必须手工按下表改写这几处，否则文档会与实际技术栈冲突，且照着 `BIGSERIAL`/`TIMESTAMPTZ` 写 DDL 在 SQLite 里会直接建表失败：
 
 | 位置 | PostgreSQL 原文 | SQLite 改写为 |
 |---|---|---|
@@ -54,7 +55,7 @@ description: 在当前项目目录里铺设方法论脚手架（AGENTS.md + docs
 
 ## CLI / 无网络服务分支（步骤 3 判定为纯 CLI / 批处理时的具体替代）
 
-上面基线表默认对外提供 HTTP 接口（`net/http + chi` + `/health` 健康检查 + 容器运行）。步骤 3 若判定项目是**纯 CLI / 批处理**（无 HTTP 接口、不监听端口），按以下替换，不是"酌情调整"，按此执行：
+上面基线表默认对外提供 HTTP 接口（`net/http + chi` + `/health`（存活）与 `/health/ready`（就绪）+ 容器运行）。步骤 3 若判定项目是**纯 CLI / 批处理**（无 HTTP 接口、不监听端口），按以下替换，不是"酌情调整"，按此执行：
 
 | 组件 | CLI 替代 |
 |---|---|
@@ -62,6 +63,7 @@ description: 在当前项目目录里铺设方法论脚手架（AGENTS.md + docs
 | 目录结构 | `backend/cmd/<binary>` 入口 + `backend/internal/{cli,core,db,repo,model}`；不建 `handlers/`、`middleware/` |
 | `docs/ARCHITECTURE.md` | 第 1 节删掉路由/HTTP 接口行；第 6 节目录结构注释同步为 `cmd/<binary>` + `internal/{cli,core,db,repo,model}`，不出现 `handlers`/`middleware` |
 | `docs/DEPLOYMENT.md` | 部署形态写「单二进制，`CGO_ENABLED=0 go build`，无容器/端口/健康检查」；不写 `alpine` 运行镜像与 `/health` |
+| 日志契约 | 纯 CLI 没有 HTTP：不写 `http request` 行，不做 `/health`、`/health/ready`；`service start` 不带 `addr`；`service stop`、作业行、外部调用行照契约写；铺出来的 `docs/ARCHITECTURE.md` 5.1 验收清单第 2、6 条与 `docs/DEPLOYMENT.md`「上线后核对」里 `http request`、`/health` 两条划掉，其余保留；生成的 `AGENTS.md` 第 4 节与 `docs/ARCHITECTURE.md` 5.1 正文里的 `http request`、健康检查两条标成「本项目无 HTTP，不适用」，版本注入改用 `-ldflags` 或构建信息里的 vcs 修订（无 Dockerfile） |
 
 ## 步骤 1：确认项目名与目录
 
@@ -129,7 +131,7 @@ done
 | `{{DATABASE}}` | 步骤 3 数据库 |
 | `{{INVARIANTS_BLOCK}}` | 步骤 3 核心不变量；无则 `<!-- 待补：本项目核心不变量 -->` |
 | `{{MODULES_BLOCK}}` | 步骤 3 模块划分；无则 `<!-- 待补：模块划分 -->` |
-| `{{CODE_CONVENTIONS_BLOCK}}` | 按基线生成的 Go 代码约定（Go 1.25、gofmt、error 显式处理并 wrap、`cmd/` + `internal/` 布局、依赖最小化）；有前端时追加 TS 约定（strict 模式、组件按页面分目录） |
+| `{{CODE_CONVENTIONS_BLOCK}}` | 按基线生成的 Go 代码约定（Go 1.25、gofmt、error 显式处理并 wrap、`cmd/` + `internal/` 布局、依赖最小化）；有前端时追加 TS 约定（strict 模式、组件按页面分目录）；日志按契约写：slog JSON、每请求一行访问日志、作业行、外部调用行、`/health` 正文（模板里 `AGENTS.md.tmpl` 第 4 节已内置日志契约固定块，此占位符不重复写） |
 
 模板路径映射：`templates/docs/X.md.tmpl` → `docs/X.md`；`templates/gitignore.tmpl` → `.gitignore`；`templates/AGENTS.md.tmpl` → `AGENTS.md`；`templates/README.md.tmpl` → `README.md`。另建空目录占位 `data/.gitkeep` 与 `docs/specs/.gitkeep`（design spec 落盘目录，`.gitignore` 只对 `data/.gitkeep` 做白名单，`docs/specs/.gitkeep` 不受影响，可直接入 git）。(清单 11 个 + data/.gitkeep + docs/specs/.gitkeep，物理文件总数 = 清单数 + 2，自检时按此对账)
 

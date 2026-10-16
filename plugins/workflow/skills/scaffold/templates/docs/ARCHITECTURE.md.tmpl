@@ -63,7 +63,7 @@
 | 作业重试 | warn（放弃 error） | `job retry` | `job`、`attempt`、`max_attempts`、`next_retry_in_s`；放弃时 `attempts`、`giving_up=true` |
 | 调外部服务（LLM、第三方 API、数据库迁移） | info（失败 warn / error） | `<目标> call`（如 `llm call`、`payment call`） | `target`、`ok`、`status`（HTTP 状态码，拿不到写 0 或 null）、`duration_ms`、`attempt` 或 `attempts`；不记 prompt、请求体、响应正文、令牌 |
 
-**去重**：同一原因连续失败时，同一错误文本只记第一条 error，之后降 debug 或带 `repeat` 计数；恢复后重置。不许每 N 分钟原样重复同一条 error。
+**去重**：同一原因连续失败时，同一错误文本只记第一条 error，之后降 debug 或带 `repeat` 计数；恢复后重置。不许每 N 分钟原样重复同一条 error。去重只作用于同一原因反复出现的错误说明行；`http request` 与 `<目标> call` 行每次照记、级别不降。
 
 **健康检查**：`GET /health` 是存活语义，HTTP 恒 200，正文 `{ok, version, db, uptime_s}`，依赖坏了 `ok=false`；就绪语义另开 `GET /health/ready`，依赖不可用回 503，容器健康检查探它。两条路径都不记访问行。
 

@@ -43,6 +43,44 @@ Convention: every table has `id BIGSERIAL PK`, `created_at TIMESTAMPTZ DEFAULT n
 |------|------|------|
 | | | <!-- TBD: list by MVP phase --> |
 
+### 5.1 Log contract
+
+> A baseline requirement for any long-running service, on the same level as "handle errors explicitly" and "secrets come only from environment variables". Write to this from day one; do not wait until monitoring is needed and then go back to rework it. Section 4 of `CLAUDE.md` is the condensed version; this is the full version.
+
+**Shape**: one JSON object per line, written to stdout (containerized services are collected and rotated by the runtime; do not write log files); every line has `time` (RFC3339, milliseconds), `level` (`debug` / `info` / `warn` / `error`, lowercase), and `msg` (a stable short phrase with no variables embedded; variables always go in separate fields). `msg` is the interface: monitoring and troubleshooting recognize lines by it, so changing it changes the interface. One line is at most 4 KB; put stack traces in a `stack` field.
+
+**Required event lines** (`msg` is fixed; the English phrases below are not translated):
+
+| When | Level | `msg` | Fields |
+|---|---|---|---|
+| Before the process starts listening | info | `service start` | `service`, `version` (short commit hash injected at build time), `addr` |
+| Process exit (signal, listen error, startup failure) | info / error | `service stop` | `reason`; on failure also `err` |
+| Each HTTP request ends | info (error for 5xx) | `http request` | `method`, `route` (the route template, not the actual path), `path`, `status`, `duration_ms`, `request_id`; add `user_id` when logged in; health-check paths are not logged |
+| A panic / unhandled exception is caught | error | `panic` | `err`, `stack`, `request_id`; if the response was already written, only log the line and abort the connection |
+| A scheduled / background job with an interval > 1 minute starts | info | `job start` | `job`, `run_id`, `trigger` (timer / manual / retry / startup) |
+| A job ends | info (error on failure) | `job end` | `job`, `run_id`, `ok`, `duration_ms`, per-kind counts, `err` on failure; a partial failure is also `ok=false` |
+| A tick of high-frequency polling (interval <= 1 minute; once a minute counts) | — | log `job end` only when something was done or an error occurred; one `job heartbeat` line every 5 minutes | `job`, `ticks`, counts since the last heartbeat, `skipped`, `errors` |
+| A job retry | warn (error on giving up) | `job retry` | `job`, `attempt`, `max_attempts`, `next_retry_in_s`; on giving up `attempts`, `giving_up=true` |
+| A call to an external service (LLM, third-party API, database migration) | info (warn / error on failure) | `<target> call` (e.g. `llm call`, `payment call`) | `target`, `ok`, `status` (HTTP status code; 0 or null if unavailable), `duration_ms`, `attempt` or `attempts`; never log the prompt, request body, response body, or tokens |
+
+**Dedup**: when the same cause keeps failing, log the first error with a given error text only; afterwards drop to debug or carry a `repeat` count; reset once it recovers. Never repeat the identical error every N minutes. Dedup applies only to repeated error-description lines for the same cause; `http request` and `<target> call` lines are logged every time, at their normal level.
+
+**Health checks**: `GET /health` has liveness semantics, always HTTP 200, with body `{ok, version, db, uptime_s}` and `ok=false` when a dependency is broken; readiness is a separate `GET /health/ready` that returns 503 when a dependency is unavailable, and the container health check probes it. Neither path writes an access line.
+
+**Never log**: secrets, tokens, cookies, Authorization headers, passwords, raw emails and phone numbers (mask them if you must, `t***@domain`), user-authored content, LLM prompts and response bodies. Error text counts too: `fmt.Errorf("lookup user (%s)", email)`, which splices an email into the error, violates this just the same.
+
+**Version injection**: Dockerfile `ARG APP_VERSION=unknown` + `ENV APP_VERSION=$APP_VERSION`, and CI builds pass `--build-arg APP_VERSION=<short commit hash>`; at runtime the version is taken from `APP_VERSION`, then the vcs revision in the build info, then `unknown`.
+
+**Acceptance checklist** (run through it once before a new project's first release):
+
+1. After startup, everything on stdout is JSON lines.
+2. Request any endpoint: one extra `http request` line appears and `route` is a template.
+3. `service start` carries the commit.
+4. Each job, after one run, shows a `job end` (high-frequency ones show a `job heartbeat`).
+5. Make an external call fail: you see a `<target> call` line with `err` and no secrets in it.
+6. The `/health` body has all four fields, and `/health/ready` returns 503 when the dependency is cut off.
+7. Grepping the logs finds no emails, tokens, or passwords.
+
 ## 6. Directory Layout
 
 Follows Go community conventions (`cmd/` entry point + `internal/` private packages):
@@ -77,7 +115,7 @@ Follows Go community conventions (`cmd/` entry point + `internal/` private packa
 
 ## 7. Deployment
 
-- Shape: single container (port 8080, `/health` returns `ok`); frontend build output is served statically by the Go process (`embed.FS` or a static directory)
+- Shape: single container (port 8080, `/health` for liveness, `/health/ready` for readiness; body and semantics in 5.1 Log contract); frontend build output is served statically by the Go process (`embed.FS` or a static directory)
 - Build: Docker multi-stage — `node:20-alpine` builds the frontend → `golang:1.25-alpine` compiles (`CGO_ENABLED=0`, embeds the frontend dist) → `alpine:3.20` minimal runtime image
 - Horizontal scaling: Go instances are stateless and can run multiple replicas sharing the same database
 
