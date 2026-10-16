@@ -8,4 +8,10 @@ spec:`docs/superpowers/specs/2026-10-15-log-contract-in-scaffold-design.md`。
 
 ## 第 1 轮:盲审(2026-10-15)
 
-(待填)
+盲审 2 个都返回。归并后:
+
+- P1 两条(都出在三套 scaffold SKILL,中文那份已在 main):① CLI / 无网络服务分支表与日志契约矛盾——分支要求 CLI 项目「不写 /health」,而 DEPLOYMENT 上线后核对、ARCHITECTURE 5.1 验收清单、CLAUDE/AGENTS §4 固定块都无条件要求 `http request` 与 `/health`、`/health/ready`,分支表没说 CLI 项目这些行怎么办;② 基线表「运行镜像」行仍写「`/health` 健康检查」(另一处「/health 健康检查 + 容器运行」同),而契约规定容器健康检查探 `/health/ready`——照基线行写 HEALTHCHECK 会探错路径,就绪探测失效(spec §5 第 3 条的情形,出在 SKILL 基线行)。
+- P2 六条:英文模板的 `fmt.Errorf("查用户(%s)", email)` 示例没翻译;去重规则没划界(访问行、外部调用行不该被降级合并);§4 压缩块比完整表少了外部调用级别、panic 响应已写出、trigger 枚举、status 拿不到写 0/null;README 两语工作流 prompt 第七节评审句里的「§4」在那段 prompt 里指向的是第四节「批量与并行」,不是日志契约;README 中文版「六之四」排在六之一前面;README 英文 6d 用了连字符不是 em dash。
+- conflict:无。
+
+分流:有 P1、无 P0 → 修复后直接裁决。中文插件那部分已在 main,修复按独立 `fix:` 提交;英文与 Codex 的修复压进本分支单元提交。
