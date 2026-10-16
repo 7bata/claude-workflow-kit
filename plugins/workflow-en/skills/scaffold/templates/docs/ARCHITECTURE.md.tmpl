@@ -65,7 +65,7 @@ Convention: every table has `id BIGSERIAL PK`, `created_at TIMESTAMPTZ DEFAULT n
 
 **Dedup**: when the same cause keeps failing, log the first error with a given error text only; afterwards drop to debug or carry a `repeat` count; reset once it recovers. Never repeat the identical error every N minutes. Dedup applies only to repeated error-description lines for the same cause; `http request` and `<target> call` lines are logged every time, at their normal level.
 
-**Health checks**: `GET /health` has liveness semantics, always HTTP 200, with body `{ok, version, db, uptime_s}` and `ok=false` when a dependency is broken; readiness is a separate `GET /health/ready` that returns 503 when a dependency is unavailable, and the container health check probes it. Neither path writes an access line.
+**Health checks**: `GET /health` has liveness semantics, always HTTP 200, with body `{ok, version, db, uptime_s}` and `ok=false` when a dependency is broken — the container health check probes it (the process being alive means 200, so a brief database hiccup does not get the container marked unhealthy); when readiness semantics are needed (for example before switching traffic in a blue-green cutover), add a separate `GET /health/ready` that returns 503 when a dependency is unavailable, and change the pre-switch probe path in the deployment config to it. Neither path writes an access line.
 
 **Never log**: secrets, tokens, cookies, Authorization headers, passwords, raw emails and phone numbers (mask them if you must, `t***@domain`), user-authored content, LLM prompts and response bodies. Error text counts too: `fmt.Errorf("lookup user (%s)", email)`, which splices an email into the error, violates this just the same.
 
@@ -78,7 +78,7 @@ Convention: every table has `id BIGSERIAL PK`, `created_at TIMESTAMPTZ DEFAULT n
 3. `service start` carries the commit.
 4. Each job, after one run, shows a `job end` (high-frequency ones show a `job heartbeat`).
 5. Make an external call fail: you see a `<target> call` line with `err` and no secrets in it.
-6. The `/health` body has all four fields, and `/health/ready` returns 503 when the dependency is cut off.
+6. The `/health` body has all four fields, and with the database stopped it still returns 200 with `ok=false` in the body, within 2 seconds; where `/health/ready` exists, it returns 503 when a dependency is cut off.
 7. Grepping the logs finds no emails, tokens, or passwords.
 
 ## 6. Directory Layout
@@ -115,7 +115,7 @@ Follows Go community conventions (`cmd/` entry point + `internal/` private packa
 
 ## 7. Deployment
 
-- Shape: single container (port 8080, `/health` for liveness, `/health/ready` for readiness; body and semantics in 5.1 Log contract); frontend build output is served statically by the Go process (`embed.FS` or a static directory)
+- Shape: single container (port 8080, `/health` for liveness, optional `/health/ready` for readiness; body and semantics in 5.1 Log contract); frontend build output is served statically by the Go process (`embed.FS` or a static directory)
 - Build: Docker multi-stage — `node:20-alpine` builds the frontend → `golang:1.25-alpine` compiles (`CGO_ENABLED=0`, embeds the frontend dist) → `alpine:3.20` minimal runtime image
 - Horizontal scaling: Go instances are stateless and can run multiple replicas sharing the same database
 

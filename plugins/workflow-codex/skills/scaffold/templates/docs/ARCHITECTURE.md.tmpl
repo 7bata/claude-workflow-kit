@@ -65,7 +65,7 @@
 
 **去重**：同一原因连续失败时，同一错误文本只记第一条 error，之后降 debug 或带 `repeat` 计数；恢复后重置。不许每 N 分钟原样重复同一条 error。去重只作用于同一原因反复出现的错误说明行；`http request` 与 `<目标> call` 行每次照记、级别不降。
 
-**健康检查**：`GET /health` 是存活语义，HTTP 恒 200，正文 `{ok, version, db, uptime_s}`，依赖坏了 `ok=false`；就绪语义另开 `GET /health/ready`，依赖不可用回 503，容器健康检查探它。两条路径都不记访问行。
+**健康检查**：`GET /health` 是存活语义，HTTP 恒 200，正文 `{ok, version, db, uptime_s}`，依赖坏了 `ok=false`——容器健康检查探它（进程活着就 200，数据库抖一下不会把容器判坏）；需要就绪语义时（如蓝绿切流量前）另开 `GET /health/ready`，依赖不可用回 503，并把部署配置里切换前探的路径改成它。两条路径都不记访问行。
 
 **不记的东西**：密钥、令牌、cookie、Authorization 头、密码、邮箱与手机号原文（要记就打码 `t***@domain`）、用户正文、LLM 的 prompt 与响应正文。错误文本也算：`fmt.Errorf("查用户(%s)", email)` 这种把邮箱拼进错误里的写法同样违反。
 
@@ -78,7 +78,7 @@
 3. `service start` 带 commit。
 4. 每个作业跑一轮能看到 `job end`（高频的看到 `job heartbeat`）。
 5. 让一个外部调用失败，看到带 `err` 的 `<目标> call` 且不含密钥。
-6. `/health` 正文四个字段齐全，`/health/ready` 在依赖断开时 503。
+6. `/health` 正文四个字段齐全，把数据库停掉仍返回 200、正文 `ok=false`，2 秒内返回；有 `/health/ready` 的，依赖断开时 503。
 7. 日志里 grep 不到邮箱、token、密码。
 
 ## 6. 目录结构
@@ -115,7 +115,7 @@
 
 ## 7. 部署方式
 
-- 形态：单容器（端口 8080，`/health` 存活、`/health/ready` 就绪，正文与语义见 5.1 日志契约）；前端构建产物由 Go 进程静态托管（`embed.FS` 或静态目录）
+- 形态：单容器（端口 8080，`/health` 存活、可选的 `/health/ready` 就绪，正文与语义见 5.1 日志契约）；前端构建产物由 Go 进程静态托管（`embed.FS` 或静态目录）
 - 构建：Docker 多阶段 —— `node:20-alpine` 构建前端 → `golang:1.25-alpine` 编译（`CGO_ENABLED=0`，内嵌前端 dist）→ `alpine:3.20` 最小运行镜像
 - 横向扩展：Go 实例无状态，可多副本共享同一数据库
 
