@@ -15,3 +15,9 @@ spec:`docs/superpowers/specs/2026-10-15-log-contract-in-scaffold-design.md`。
 - conflict:无。
 
 分流:有 P1、无 P0 → 修复后直接裁决。中文插件那部分已在 main,修复按独立 `fix:` 提交;英文与 Codex 的修复压进本分支单元提交。
+
+## 第 2 轮:裁决(`opus` + `high`,2026-10-15)
+
+结论 PASS_WITH_NOTES:第 1 轮两条 P1、六条 P2 全部闭合;三套 §4 块(各 16 行)、ARCHITECTURE 5.1(各 38 行)、DEPLOYMENT 上线后核对逐字一致,中文与 Codex 除 CLAUDE.md / AGENTS.md 引用外逐字相同;公开措辞无内部名;两份 plugin.json 0.20.0。新 P2 四条,主对话收尾改掉:① CLI 行补交代生成的 CLAUDE.md / AGENTS.md 第 4 节与 ARCHITECTURE 5.1 正文标「本项目无 HTTP,不适用」、版本注入改 `-ldflags` 或构建信息 vcs 修订;② DEPLOYMENT 上线后核对第 1 条拆成「stdout 全 JSON」与「多一行 http request」两条(三套);③ 英文 §4 的 `status` 补「HTTP status code」;④ Codex 版 SKILL「与开源版字节一致」改成「除 5.1 引言的 AGENTS.md 引用外一致」。推翻:无。
+
+裁决模型:claude-opus-5-5;实现模型:claude-sonnet-5-5(英文与 Codex 单元;中文单元由内部监控站会话实现,模型未记)。评审 2 轮。

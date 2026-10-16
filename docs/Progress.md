@@ -37,7 +37,11 @@
 
 ## 变更日志(最新在上)
 
-### 2026-10-15 — 脚手架内置日志契约:新项目第一天起按固定的日志格式写(workflow 0.20.0,中文版)
+### 2026-10-15 — 脚手架内置日志契约:新项目第一天起按固定的日志格式写(workflow / workflow-en 0.20.0,三套模板)
+
+- 英文插件与 Codex 插件同批镜像(分支 wip/log-contract-en-codex):workflow-en 的 CLAUDE §3/§4/§7 与 Never Do、ARCHITECTURE 5.1、DEPLOYMENT post-release checks、SKILL 基线行与 CLI 行,README.md 6d 与第七节评审句,0.19.1 → 0.20.0;workflow-codex 的 AGENTS §3/§4/§7.1/禁止事项、ARCHITECTURE 5.1、DEPLOYMENT、SKILL。三套 msg 与字段名逐字一致(脚本比对)。
+- 评审 2 轮(盲审 2 个 + 裁决):第 1 轮 P1 两条——CLI / 无网络服务分支与契约矛盾(加「日志契约」行)、基线表「运行镜像」行仍写容器探 `/health`(改成 `/health` 存活、`/health/ready` 就绪);P2 六条一并修。裁决 PASS_WITH_NOTES,四条 P2 由主对话收尾改掉(CLI 行补第 4 节与 5.1 正文处理、上线后核对拆两条、英文 status 说明、Codex SKILL 说明)。中文插件的修复是独立 `fix:` 提交(那一半在评审前被误并 main,见评审链文件「来历」)。
+- 实现模型:claude-sonnet-5-5(英文与 Codex 单元);裁决模型:claude-opus-5-5。
 
 - 背景:用户要求「让以后写项目的时候避免像今天这样还得重写日志」。当天按本方法论铺出来的 8 个项目都得回头把日志改成结构化、补访问行 / 作业行 / 外部调用行 / 健康检查正文,原因只有一个:脚手架里从没写过日志该长什么样。
 - 改动(中文插件 `plugins/workflow`):`CLAUDE.md.tmpl` 第 4 节加「日志」固定块(形态、必有事件行、去重、健康检查、不记的东西、版本注入六条),第 3 节加第 9 项日志核对,第 7 节评审句加「与日志契约(§4)」,禁止事项加一条;`ARCHITECTURE.md.tmpl` 加 5.1「日志契约」(完整事件表 + 验收清单七条);`DEPLOYMENT.md.tmpl` 加「上线后核对」四条;`scaffold/SKILL.md` 基线表加日志行、`CODE_CONVENTIONS_BLOCK` 说明补一句;`README.zh-CN.md` 加「六之四、日志契约」、第七节评审句、「自定义技术栈基线」一句;`plugin.json` 0.19.1 → 0.20.0。
