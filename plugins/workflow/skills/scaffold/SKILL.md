@@ -22,6 +22,7 @@ allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 | 校验/序列化 | `encoding/json` + go-playground/validator | 请求/响应 schema 校验 |
 | 前端（如需要） | React + TypeScript + Vite | `node:20-alpine` 仅用于构建阶段 |
 | 运行镜像 | `alpine:3.20` | Docker 多阶段构建，单静态二进制，`/health` 健康检查 |
+| 日志 | 标准库结构化日志（Go 用 `log/slog` 的 JSON handler；其它栈用等价的 JSON 行日志库）写 stdout | 按 `.claude/CLAUDE.md` 第 4 节的日志契约；完整表格与验收清单在 `docs/ARCHITECTURE.md`「日志契约」一节 |
 | 目录结构 | `backend/cmd/server` 入口 + `backend/internal/{config,db,repo,handlers,service,model,middleware}` | Go 社区惯例；前端在 `frontend/src` |
 
 后端服务保持**无状态**（状态全在数据库），为多副本水平扩展留余地。
@@ -130,7 +131,7 @@ done
 | `{{DATABASE}}` | 步骤 3 数据库 |
 | `{{INVARIANTS_BLOCK}}` | 步骤 3 核心不变量；无则 `<!-- 待补：本项目核心不变量 -->` |
 | `{{MODULES_BLOCK}}` | 步骤 3 模块划分；无则 `<!-- 待补：模块划分 -->` |
-| `{{CODE_CONVENTIONS_BLOCK}}` | 按基线生成的 Go 代码约定（Go 1.25、gofmt、error 显式处理并 wrap、`cmd/` + `internal/` 布局、依赖最小化）；有前端时追加 TS 约定（strict 模式、组件按页面分目录） |
+| `{{CODE_CONVENTIONS_BLOCK}}` | 按基线生成的 Go 代码约定（Go 1.25、gofmt、error 显式处理并 wrap、`cmd/` + `internal/` 布局、依赖最小化）；有前端时追加 TS 约定（strict 模式、组件按页面分目录）；日志按契约写：slog JSON、每请求一行访问日志、作业行、外部调用行、`/health` 正文（模板里 `CLAUDE.md.tmpl` 第 4 节已内置日志契约固定块，此占位符不重复写） |
 
 模板路径映射：`templates/docs/X.md.tmpl` → `docs/X.md`；`templates/gitignore.tmpl` → `.gitignore`；`templates/CLAUDE.md.tmpl` → `.claude/CLAUDE.md`；`templates/README.md.tmpl` → `README.md`。另建空目录占位 `data/.gitkeep`。(data/.gitkeep 是清单外的占位文件,物理文件总数 = 清单数 + 1,自检时按此对账)
 

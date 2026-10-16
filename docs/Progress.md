@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.19.1;展示型前端的方向(init / shape / 方向卡 / 样稿批准)由主对话在 brainstorming 定、子代理只做建造或 polish(2026-10-11);展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.20.0;新项目脚手架内置日志契约(2026-10-15,中文版先落);展示型前端的方向(init / shape / 方向卡 / 样稿批准)由主对话在 brainstorming 定、子代理只做建造或 polish(2026-10-11);展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.17.0;评审判据与 spec 加一节同步(2026-10-05);spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -36,6 +36,14 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-10-15 — 脚手架内置日志契约:新项目第一天起按固定的日志格式写(workflow 0.20.0,中文版)
+
+- 背景:用户要求「让以后写项目的时候避免像今天这样还得重写日志」。当天按本方法论铺出来的 8 个项目都得回头把日志改成结构化、补访问行 / 作业行 / 外部调用行 / 健康检查正文,原因只有一个:脚手架里从没写过日志该长什么样。
+- 改动(中文插件 `plugins/workflow`):`CLAUDE.md.tmpl` 第 4 节加「日志」固定块(形态、必有事件行、去重、健康检查、不记的东西、版本注入六条),第 3 节加第 9 项日志核对,第 7 节评审句加「与日志契约(§4)」,禁止事项加一条;`ARCHITECTURE.md.tmpl` 加 5.1「日志契约」(完整事件表 + 验收清单七条);`DEPLOYMENT.md.tmpl` 加「上线后核对」四条;`scaffold/SKILL.md` 基线表加日志行、`CODE_CONVENTIONS_BLOCK` 说明补一句;`README.zh-CN.md` 加「六之四、日志契约」、第七节评审句、「自定义技术栈基线」一句;`plugin.json` 0.19.1 → 0.20.0。
+- 取舍:契约放进既有 ARCHITECTURE 模板的 5.1 小节而不是新开一节,避免后面章节整体改号、连带改 SKILL.md 里按章节号引用的 SQLite 改写表;ARCHITECTURE 第 7 节里原来写的 `/health 返回 ok` 随契约改成存活 / 就绪两条。
+- 未做:英文版(`workflow-en`)与 Codex 版(`workflow-codex`)由后续单元照中文版搬;存量项目不动。
+- spec `docs/superpowers/specs/2026-10-15-log-contract-in-scaffold-design.md`。
 
 ### 2026-10-11 — 展示型前端:方向在主对话定、子代理只做建造(workflow/-en 0.19.1)
 
