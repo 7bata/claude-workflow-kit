@@ -10,3 +10,15 @@
 - Database: {{DATABASE}}
 
 <!-- TBD: deployment shape (cloud / single machine), environment variable list, startup command -->
+
+## Post-release checks
+
+<!-- TBD: other checks -->
+
+- [ ] Everything on stdout is JSON lines (look at `docker logs`; no bare text)
+- [ ] Requesting any endpoint adds an `http request` line
+- [ ] The `version` on the `service start` line is this release's short commit hash (not `unknown`; the CI build passed `--build-arg APP_VERSION=<short commit hash>`)
+- [ ] The `GET /health` body has all four fields (`ok`, `version`, `db`, `uptime_s`), and `GET /health/ready` returns 200
+- [ ] At least one scheduled / background job has finished a run, with the matching `job end` in the logs (for high-frequency polling, a `job heartbeat`)
+
+The full log contract is in the "Log contract" section of `docs/ARCHITECTURE.md`.
