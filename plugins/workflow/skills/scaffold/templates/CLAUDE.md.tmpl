@@ -72,12 +72,12 @@
 - **必有的事件行**（`msg` 固定，英文短句不翻译、不改写）：
   - 进程开始监听前 `service start`（`service`、`version`、`addr`）；进程退出 `service stop`（`reason`，失败时 `err`）。
   - 每个 HTTP 请求结束 `http request`（`method`、`route` 路由模板而非实际路径、`path`、`status`、`duration_ms`、`request_id`，有登录态加 `user_id`；5xx 为 error；健康检查路径不记）。
-  - 捕获到 panic / 未处理异常 `panic`（`err`、`stack`、`request_id`）。
-  - 间隔 > 1 分钟的定时 / 后台作业：开始 `job start`（`job`、`run_id`、`trigger`），结束 `job end`（`job`、`run_id`、`ok`、`duration_ms`、各类计数，失败带 `err`；部分失败也是 `ok=false`）。
+  - 捕获到 panic / 未处理异常 `panic`（`err`、`stack`、`request_id`；响应已写出时只记行并中止连接）。
+  - 间隔 > 1 分钟的定时 / 后台作业：开始 `job start`（`job`、`run_id`、`trigger`，取值 timer / manual / retry / startup），结束 `job end`（`job`、`run_id`、`ok`、`duration_ms`、各类计数，失败带 `err`；部分失败也是 `ok=false`）。
   - 间隔 ≤ 1 分钟的高频轮询（每分钟一次的也算）：`job end` 只在有动作或出错时记，每 5 分钟一行 `job heartbeat`（`job`、`ticks`、自上次心跳以来的计数、`skipped`、`errors`）。
   - 作业重试 `job retry`（`job`、`attempt`、`max_attempts`、`next_retry_in_s`，warn；放弃时 error，带 `attempts`、`giving_up=true`）。
-  - 调外部服务（LLM、第三方 API、数据库迁移）`<目标> call`，如 `llm call`（`target`、`ok`、`status`、`duration_ms`、`attempt` 或 `attempts`；不记 prompt、请求体、响应正文、令牌）。
-- **去重**：同一原因连续失败时，同一错误文本只记第一条 error，之后降 debug 或带 `repeat` 计数；恢复后重置。不许每 N 分钟原样重复同一条 error。
+  - 调外部服务（LLM、第三方 API、数据库迁移）`<目标> call`，如 `llm call`（info，失败 warn / error；`target`、`ok`、`status`（HTTP 状态码，拿不到写 0 或 null）、`duration_ms`、`attempt` 或 `attempts`；不记 prompt、请求体、响应正文、令牌）。
+- **去重**：同一原因连续失败时，同一错误文本只记第一条 error，之后降 debug 或带 `repeat` 计数；恢复后重置。不许每 N 分钟原样重复同一条 error。去重只作用于同一原因反复出现的错误说明行；`http request` 与 `<目标> call` 行每次照记、级别不降。
 - **健康检查**：`GET /health` 是存活语义，HTTP 恒 200，正文 `{ok, version, db, uptime_s}`，依赖坏了 `ok=false`；就绪语义另开 `GET /health/ready`，依赖不可用回 503，容器健康检查探它。两条路径都不记访问行。
 - **不记的东西**：密钥、令牌、cookie、Authorization 头、密码、邮箱与手机号原文（要记就打码 `t***@domain`）、用户正文、LLM 的 prompt 与响应正文。错误文本也算：`fmt.Errorf("查用户(%s)", email)` 这种把邮箱拼进错误里的写法同样违反。
 - **版本注入**：Dockerfile `ARG APP_VERSION=unknown` + `ENV APP_VERSION=$APP_VERSION`，CI 构建传 `--build-arg APP_VERSION=<commit 短哈希>`；进程里版本取 `APP_VERSION` → 构建信息里的 vcs 修订 → `unknown`。

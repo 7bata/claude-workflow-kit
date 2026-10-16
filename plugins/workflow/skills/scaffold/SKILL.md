@@ -21,7 +21,7 @@ allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 | 迁移 | golang-migrate | 纯 SQL 版本化迁移（`NNNN_*.up.sql / down.sql`） |
 | 校验/序列化 | `encoding/json` + go-playground/validator | 请求/响应 schema 校验 |
 | 前端（如需要） | React + TypeScript + Vite | `node:20-alpine` 仅用于构建阶段 |
-| 运行镜像 | `alpine:3.20` | Docker 多阶段构建，单静态二进制，`/health` 健康检查 |
+| 运行镜像 | `alpine:3.20` | Docker 多阶段构建，单静态二进制，`/health`（存活，恒 200）与 `/health/ready`（就绪，容器健康检查探它） |
 | 日志 | 标准库结构化日志（Go 用 `log/slog` 的 JSON handler；其它栈用等价的 JSON 行日志库）写 stdout | 按 `.claude/CLAUDE.md` 第 4 节的日志契约；完整表格与验收清单在 `docs/ARCHITECTURE.md`「日志契约」一节 |
 | 目录结构 | `backend/cmd/server` 入口 + `backend/internal/{config,db,repo,handlers,service,model,middleware}` | Go 社区惯例；前端在 `frontend/src` |
 
@@ -56,7 +56,7 @@ allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 
 ## CLI / 无网络服务分支（步骤 3 判定为纯 CLI / 批处理时的具体替代）
 
-上面基线表默认对外提供 HTTP 接口（`net/http + chi` + `/health` 健康检查 + 容器运行）。步骤 3 若判定项目是**纯 CLI / 批处理**（无 HTTP 接口、不监听端口），按以下替换，不是"酌情调整"，按此执行：
+上面基线表默认对外提供 HTTP 接口（`net/http + chi` + `/health`（存活）与 `/health/ready`（就绪）+ 容器运行）。步骤 3 若判定项目是**纯 CLI / 批处理**（无 HTTP 接口、不监听端口），按以下替换，不是"酌情调整"，按此执行：
 
 | 组件 | CLI 替代 |
 |---|---|
@@ -64,6 +64,7 @@ allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 | 目录结构 | `backend/cmd/<binary>` 入口 + `backend/internal/{cli,core,db,repo,model}`；不建 `handlers/`、`middleware/` |
 | `docs/ARCHITECTURE.md` | 第 1 节删掉路由/HTTP 接口行；第 6 节目录结构注释同步为 `cmd/<binary>` + `internal/{cli,core,db,repo,model}`，不出现 `handlers`/`middleware` |
 | `docs/DEPLOYMENT.md` | 部署形态写「单二进制，`CGO_ENABLED=0 go build`，无容器/端口/健康检查」；不写 `alpine` 运行镜像与 `/health` |
+| 日志契约 | 纯 CLI 没有 HTTP：不写 `http request` 行，不做 `/health`、`/health/ready`；`service start` 不带 `addr`；`service stop`、作业行、外部调用行照契约写；铺出来的 `docs/ARCHITECTURE.md` 5.1 验收清单第 2、6 条与 `docs/DEPLOYMENT.md`「上线后核对」里 `http request`、`/health` 两条划掉，其余保留 |
 
 ## 步骤 1：确认项目名与目录
 
