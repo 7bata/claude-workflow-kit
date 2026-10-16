@@ -10,3 +10,15 @@
 - 数据库：{{DATABASE}}
 
 <!-- 待补：部署形态（云 / 单机）、环境变量清单、启动命令 -->
+
+## 上线后核对
+
+<!-- 其余核对项待补 -->
+
+- [ ] stdout 全是 JSON 行（`docker logs` 看一眼，没有裸文本）
+- [ ] 随便请求一个接口多一行 `http request`
+- [ ] `service start` 那一行的 `version` 是本次发布的 commit 短哈希（不是 `unknown`；CI 构建已传 `--build-arg APP_VERSION=<commit 短哈希>`）
+- [ ] `GET /health` 正文四个字段（`ok`、`version`、`db`、`uptime_s`）齐全，`GET /health/ready` 返回 200
+- [ ] 至少一个定时 / 后台作业跑完一轮，日志里有对应的 `job end`（高频轮询的看到 `job heartbeat`）
+
+日志契约全文见 `docs/ARCHITECTURE.md`「日志契约」一节。

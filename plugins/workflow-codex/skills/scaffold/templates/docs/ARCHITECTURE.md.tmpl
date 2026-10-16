@@ -43,6 +43,44 @@
 |------|------|------|
 | | | <!-- 待补：按 MVP 分期列出 --> |
 
+### 5.1 日志契约
+
+> 任何常驻服务的基本要求，和「错误显式处理」「密钥只来自环境变量」同级。第一天起就按这份写，不要等到要接监控才回头改。`AGENTS.md` 第 4 节是压缩版，这里是完整版。
+
+**形态**：每行一个 JSON 对象写 stdout（容器化服务由运行环境收集与轮转，不写文件）；必有 `time`（RFC3339 毫秒）、`level`（`debug` / `info` / `warn` / `error`，小写）、`msg`（稳定短句，不夹变量；变量一律放独立字段）。`msg` 就是接口：监控与排障按它认行，改它等于改接口。一行不超过 4 KB，堆栈放 `stack` 字段。
+
+**必有的事件行**（`msg` 固定，下面这些英文短句不翻译）：
+
+| 时机 | 级别 | `msg` | 字段 |
+|---|---|---|---|
+| 进程开始监听前 | info | `service start` | `service`、`version`（构建时注入的 commit 短哈希）、`addr` |
+| 进程退出（信号、监听出错、启动失败） | info / error | `service stop` | `reason`、失败时 `err` |
+| 每个 HTTP 请求结束 | info（5xx 为 error） | `http request` | `method`、`route`（路由模板，不是实际路径）、`path`、`status`、`duration_ms`、`request_id`；有登录态加 `user_id`；健康检查路径不记 |
+| 捕获到 panic / 未处理异常 | error | `panic` | `err`、`stack`、`request_id`；响应已写出时只记行并中止连接 |
+| 间隔 > 1 分钟的定时 / 后台作业开始 | info | `job start` | `job`、`run_id`、`trigger`（timer / manual / retry / startup） |
+| 作业结束 | info（失败 error） | `job end` | `job`、`run_id`、`ok`、`duration_ms`、各类计数、失败带 `err`；部分失败也是 `ok=false` |
+| 高频轮询（间隔 ≤ 1 分钟，每分钟一次的也算）的 tick | — | `job end` 只在有动作或出错时记；每 5 分钟一行 `job heartbeat` | `job`、`ticks`、自上次心跳以来的计数、`skipped`、`errors` |
+| 作业重试 | warn（放弃 error） | `job retry` | `job`、`attempt`、`max_attempts`、`next_retry_in_s`；放弃时 `attempts`、`giving_up=true` |
+| 调外部服务（LLM、第三方 API、数据库迁移） | info（失败 warn / error） | `<目标> call`（如 `llm call`、`payment call`） | `target`、`ok`、`status`（HTTP 状态码，拿不到写 0 或 null）、`duration_ms`、`attempt` 或 `attempts`；不记 prompt、请求体、响应正文、令牌 |
+
+**去重**：同一原因连续失败时，同一错误文本只记第一条 error，之后降 debug 或带 `repeat` 计数；恢复后重置。不许每 N 分钟原样重复同一条 error。去重只作用于同一原因反复出现的错误说明行；`http request` 与 `<目标> call` 行每次照记、级别不降。
+
+**健康检查**：`GET /health` 是存活语义，HTTP 恒 200，正文 `{ok, version, db, uptime_s}`，依赖坏了 `ok=false`；就绪语义另开 `GET /health/ready`，依赖不可用回 503，容器健康检查探它。两条路径都不记访问行。
+
+**不记的东西**：密钥、令牌、cookie、Authorization 头、密码、邮箱与手机号原文（要记就打码 `t***@domain`）、用户正文、LLM 的 prompt 与响应正文。错误文本也算：`fmt.Errorf("查用户(%s)", email)` 这种把邮箱拼进错误里的写法同样违反。
+
+**版本注入**：Dockerfile `ARG APP_VERSION=unknown` + `ENV APP_VERSION=$APP_VERSION`，CI 构建传 `--build-arg APP_VERSION=<commit 短哈希>`；进程里版本取 `APP_VERSION` → 构建信息里的 vcs 修订 → `unknown`。
+
+**验收清单**（每个新项目第一次上线前过一遍）：
+
+1. 启动后 stdout 全是 JSON 行。
+2. 随便请求一个接口，多一行 `http request` 且 `route` 是模板。
+3. `service start` 带 commit。
+4. 每个作业跑一轮能看到 `job end`（高频的看到 `job heartbeat`）。
+5. 让一个外部调用失败，看到带 `err` 的 `<目标> call` 且不含密钥。
+6. `/health` 正文四个字段齐全，`/health/ready` 在依赖断开时 503。
+7. 日志里 grep 不到邮箱、token、密码。
+
 ## 6. 目录结构
 
 遵循 Go 社区惯例（`cmd/` 入口 + `internal/` 私有包）：
@@ -77,7 +115,7 @@
 
 ## 7. 部署方式
 
-- 形态：单容器（端口 8080，`/health` 返回 `ok`）；前端构建产物由 Go 进程静态托管（`embed.FS` 或静态目录）
+- 形态：单容器（端口 8080，`/health` 存活、`/health/ready` 就绪，正文与语义见 5.1 日志契约）；前端构建产物由 Go 进程静态托管（`embed.FS` 或静态目录）
 - 构建：Docker 多阶段 —— `node:20-alpine` 构建前端 → `golang:1.25-alpine` 编译（`CGO_ENABLED=0`，内嵌前端 dist）→ `alpine:3.20` 最小运行镜像
 - 横向扩展：Go 实例无状态，可多副本共享同一数据库
 
