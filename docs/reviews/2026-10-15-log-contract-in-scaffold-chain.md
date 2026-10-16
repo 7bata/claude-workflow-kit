@@ -21,3 +21,9 @@ spec:`docs/superpowers/specs/2026-10-15-log-contract-in-scaffold-design.md`。
 结论 PASS_WITH_NOTES:第 1 轮两条 P1、六条 P2 全部闭合;三套 §4 块(各 16 行)、ARCHITECTURE 5.1(各 38 行)、DEPLOYMENT 上线后核对逐字一致,中文与 Codex 除 CLAUDE.md / AGENTS.md 引用外逐字相同;公开措辞无内部名;两份 plugin.json 0.20.0。新 P2 四条,主对话收尾改掉:① CLI 行补交代生成的 CLAUDE.md / AGENTS.md 第 4 节与 ARCHITECTURE 5.1 正文标「本项目无 HTTP,不适用」、版本注入改 `-ldflags` 或构建信息 vcs 修订;② DEPLOYMENT 上线后核对第 1 条拆成「stdout 全 JSON」与「多一行 http request」两条(三套);③ 英文 §4 的 `status` 补「HTTP status code」;④ Codex 版 SKILL「与开源版字节一致」改成「除 5.1 引言的 AGENTS.md 引用外一致」。推翻:无。
 
 裁决模型:claude-opus-5-5;实现模型:claude-sonnet-5-5(英文与 Codex 单元;中文单元由内部监控站会话实现,模型未记)。评审 2 轮。
+
+## 2026-10-16 追加:健康检查按契约事实源改回(分支 wip/log-contract-health-probe)
+
+起因:内部工具包同批评审报出 P0——容器健康检查探哪条路径前后相反:公开版与内部 spec 写「容器健康检查探 /health/ready」,而契约事实源(内部 ops 仓的 LOG-CONTRACT)写「/health 是容器健康检查用的存活路径,数据库抖一下也仍 200,否则会把整个站摘掉」。裁定两边都按事实源:容器健康检查探 `/health`(存活,恒 200),`/health/ready` 是可选的就绪语义(需要时另开,依赖不可用 503,开了要把部署配置里切换前探的路径改成它)。提交 63380b4(三套 §4、5.1、SKILL 基线行、spec)。
+
+盲审 1 个(`opus` + `medium`):P1 两条——5.1 验收第 6 条没核事实源的核心保证「数据库停掉时 /health 仍回 200、ok=false、2 秒内返回」;只有 SKILL 基线行写「可选」,§4 / 5.1 / 验收 / DEPLOYMENT 把 /health/ready 写成必做,互相矛盾。P2 三条——「蓝绿切流量前探它」在单容器模板里没有对应时机;spec §5 第 3 条原句作废却只追加注记;DEPLOYMENT 的 /health 一条没核断依赖仍 200。修复后与内部批次一起裁决。
