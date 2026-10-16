@@ -64,7 +64,7 @@ allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 | 目录结构 | `backend/cmd/<binary>` 入口 + `backend/internal/{cli,core,db,repo,model}`；不建 `handlers/`、`middleware/` |
 | `docs/ARCHITECTURE.md` | 第 1 节删掉路由/HTTP 接口行；第 6 节目录结构注释同步为 `cmd/<binary>` + `internal/{cli,core,db,repo,model}`，不出现 `handlers`/`middleware` |
 | `docs/DEPLOYMENT.md` | 部署形态写「单二进制，`CGO_ENABLED=0 go build`，无容器/端口/健康检查」；不写 `alpine` 运行镜像与 `/health` |
-| 日志契约 | 纯 CLI 没有 HTTP：不写 `http request` 行，不做 `/health`、`/health/ready`；`service start` 不带 `addr`；`service stop`、作业行、外部调用行照契约写；铺出来的 `docs/ARCHITECTURE.md` 5.1 验收清单第 2、6 条与 `docs/DEPLOYMENT.md`「上线后核对」里 `http request`、`/health` 两条划掉，其余保留 |
+| 日志契约 | 纯 CLI 没有 HTTP：不写 `http request` 行，不做 `/health`、`/health/ready`；`service start` 不带 `addr`；`service stop`、作业行、外部调用行照契约写；铺出来的 `docs/ARCHITECTURE.md` 5.1 验收清单第 2、6 条与 `docs/DEPLOYMENT.md`「上线后核对」里 `http request`、`/health` 两条划掉，其余保留；生成的 `CLAUDE.md` 第 4 节与 `docs/ARCHITECTURE.md` 5.1 正文里的 `http request`、健康检查两条标成「本项目无 HTTP，不适用」，版本注入改用 `-ldflags` 或构建信息里的 vcs 修订（无 Dockerfile） |
 
 ## 步骤 1：确认项目名与目录
 
