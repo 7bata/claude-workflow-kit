@@ -21,7 +21,7 @@ The backend stack is **fixed to Go**, with version and library choices unified u
 | Migrations | golang-migrate | Pure SQL versioned migrations (`NNNN_*.up.sql / down.sql`) |
 | Validation / serialization | `encoding/json` + go-playground/validator | Request/response schema validation |
 | Frontend (if needed) | React + TypeScript + Vite | `node:20-alpine` used only at build stage |
-| Runtime image | `alpine:3.20` | Docker multi-stage build, single static binary, `/health` (liveness, always 200) and `/health/ready` (readiness, probed by the container health check) |
+| Runtime image | `alpine:3.20` | Docker multi-stage build, single static binary, `/health` (liveness, always 200, probed by the container health check) and `/health/ready` (readiness, optional; if enabled, change the pre-switch probe path to it) |
 | Logging | Standard-library structured logging (Go: the `log/slog` JSON handler; other stacks: an equivalent JSON-lines logging library) writing to stdout | Follow the log contract in section 4 of `.claude/CLAUDE.md`; the full table and acceptance checklist are in the "Log contract" section of `docs/ARCHITECTURE.md` |
 | Directory layout | `backend/cmd/server` entrypoint + `backend/internal/{config,db,repo,handlers,service,model,middleware}` | Go community convention; frontend under `frontend/src` |
 
@@ -56,7 +56,7 @@ This skill's on-disk scope is 11 general-purpose files; the SQLite branch does n
 
 ## CLI / no-network-service branch (the concrete substitutions when Step 3 determines a pure CLI / batch job)
 
-The baseline table above defaults to exposing an HTTP interface (`net/http + chi` + `/health` (liveness) and `/health/ready` (readiness) + container runtime). If Step 3 determines the project is a **pure CLI / batch job** (no HTTP interface, no port listening), swap per the table below — this is not "adjust as you see fit," follow it as written:
+The baseline table above defaults to exposing an HTTP interface (`net/http + chi` + `/health` (liveness) and optional `/health/ready` (readiness) + container runtime). If Step 3 determines the project is a **pure CLI / batch job** (no HTTP interface, no port listening), swap per the table below — this is not "adjust as you see fit," follow it as written:
 
 | Component | CLI substitute |
 |---|---|

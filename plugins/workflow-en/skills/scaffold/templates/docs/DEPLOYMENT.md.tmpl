@@ -18,7 +18,7 @@
 - [ ] Everything on stdout is JSON lines (look at `docker logs`; no bare text)
 - [ ] Requesting any endpoint adds an `http request` line
 - [ ] The `version` on the `service start` line is this release's short commit hash (not `unknown`; the CI build passed `--build-arg APP_VERSION=<short commit hash>`)
-- [ ] The `GET /health` body has all four fields (`ok`, `version`, `db`, `uptime_s`), and `GET /health/ready` returns 200
+- [ ] The `GET /health` body has all four fields (`ok`, `version`, `db`, `uptime_s`), and with the database stopped it still returns 200 with `ok=false` in the body, within 2 seconds; where `GET /health/ready` exists, it returns 200 and returns 503 when a dependency is cut off, and the deploy config probes it before switching traffic
 - [ ] At least one scheduled / background job has finished a run, with the matching `job end` in the logs (for high-frequency polling, a `job heartbeat`)
 
 The full log contract is in the "Log contract" section of `docs/ARCHITECTURE.md`.
