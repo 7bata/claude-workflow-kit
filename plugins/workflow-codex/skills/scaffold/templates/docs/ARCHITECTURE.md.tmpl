@@ -59,7 +59,7 @@
 | 捕获到 panic / 未处理异常 | error | `panic` | `err`、`stack`、`request_id`；响应已写出时只记行并中止连接 |
 | 间隔 > 1 分钟的定时 / 后台作业开始 | info | `job start` | `job`、`run_id`、`trigger`（timer / manual / retry / startup） |
 | 作业结束 | info（失败 error） | `job end` | `job`、`run_id`、`ok`、`duration_ms`、各类计数、失败带 `err`；部分失败也是 `ok=false` |
-| 高频轮询（间隔 ≤ 1 分钟，每分钟一次的也算）的 tick | — | `job end` 只在有动作或出错时记；每 5 分钟一行 `job heartbeat` | `job`、`ticks`、自上次心跳以来的计数、`skipped`、`errors` |
+| 高频轮询（间隔 ≤ 1 分钟，每分钟一次的也算；只查「有没有活」的轮询不论间隔也按此规则）的 tick | — | `job end` 只在有动作或出错时记；每 5 分钟一行 `job heartbeat` | `job`、`ticks`、自上次心跳以来的计数、`skipped`、`errors` |
 | 作业重试 | warn（放弃 error） | `job retry` | `job`、`attempt`、`max_attempts`、`next_retry_in_s`；放弃时 `attempts`、`giving_up=true` |
 | 调外部服务（LLM、第三方 API、数据库迁移） | info（失败 warn / error） | `<目标> call`（如 `llm call`、`payment call`） | `target`、`ok`、`status`（HTTP 状态码，拿不到写 0 或 null）、`duration_ms`、`attempt` 或 `attempts`；不记 prompt、请求体、响应正文、令牌 |
 
