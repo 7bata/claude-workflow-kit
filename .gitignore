@@ -1,3 +1,6 @@
 .DS_Store
 __pycache__/
 *.pyc
+
+# 本地 worktree(用完即删)
+.worktrees/
