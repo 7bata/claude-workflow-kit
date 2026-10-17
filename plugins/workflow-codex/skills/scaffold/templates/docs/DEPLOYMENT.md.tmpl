@@ -20,5 +20,6 @@
 - [ ] `service start` 那一行的 `version` 是本次发布的 commit 短哈希（不是 `unknown`；CI 构建已传 `--build-arg APP_VERSION=<commit 短哈希>`）
 - [ ] `GET /health` 正文四个字段（`ok`、`version`、`db`、`uptime_s`）齐全，把数据库停掉仍返回 200、正文 `ok=false`，2 秒内返回；有 `GET /health/ready` 的返回 200、依赖断开时 503，且部署配置里切换前探的路径已改成它
 - [ ] 至少一个定时 / 后台作业跑完一轮，日志里有对应的 `job end`（高频轮询的看到 `job heartbeat`）
+- [ ] 服务会启动子进程、无界面浏览器或常驻 worker 的：容器设了 init、内存与进程数上限和重启策略（compose 的 `init: true`、`mem_limit`、`pids_limit`、`restart:`；`docker run` 的 `--init`、`--memory`、`--pids-limit`、`--restart`），定时清理在跑（日志里能搜到清理作业的 `job end` 或 `job heartbeat`）
 
 日志契约全文见 `docs/ARCHITECTURE.md`「日志契约」一节。
