@@ -4,8 +4,8 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.20.0;新项目脚手架内置日志契约(2026-10-15,中文版先落);展示型前端的方向(init / shape / 方向卡 / 样稿批准)由主对话在 brainstorming 定、子代理只做建造或 polish(2026-10-11);展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
-| workflow-codex(Codex CLI 移植版) | done | 0.17.0;评审判据与 spec 加一节同步(2026-10-05);spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.21.0;会留下无头进程的操作先定好定时清理(七之四第 3 条)、要用户在命令行输入的内容先放进剪贴板(七之五)(2026-10-16);新项目脚手架内置日志契约(2026-10-15,中文版先落);展示型前端的方向(init / shape / 方向卡 / 样稿批准)由主对话在 brainstorming 定、子代理只做建造或 polish(2026-10-11);展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow-codex(Codex CLI 移植版) | done | 0.18.0;定时清理与剪贴板两条规则同步(2026-10-16,剪贴板只管终端命令与登录命令,批量会话进程写 `codex exec`);评审判据与 spec 加一节同步(2026-10-05);spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
 | ui-sweep / -en(UI 交互走查 + 孤儿对账) | done | 0.2.1;引擎跑完(含失败退出、收到信号)自动关掉自己的浏览器会话;引擎 smoke 35 例,三入口接进主流程 |
@@ -36,6 +36,14 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-10-16 — 两条规则:会留下无头进程的操作先定好定时清理;要用户在命令行输入的内容先放进剪贴板
+
+- 行为变化:七之四加第 3 条(英文 7d item 3)——做完这一步还留在后台的无头进程(运行时起的无界面浏览器、子进程、常驻 worker、定时作业,部署时起的后台容器或守护进程,会话自己用 `nohup`、`docker run -d`、`tmux` 留下的进程),动手前先定好不依赖启动方、按时间扫的定时清理:谁来扫(时限加在真正长跑的命令上)、只认登记过的进程并在结束前核对身份、最长存活与数量上限、记日志;容器上限代替不了定时扫;配不了写明原因。新增七之五(英文 7e)——要用户自己输入的命令,主对话在给出前先放进剪贴板:先写私有临时文件(不展开 `$`、不留行尾换行)、从文件放、按字节读回;不放密钥真值,不覆盖用户正要粘贴的值;子代理不动剪贴板;放不进去说明。七.4 进程约束、评审句与 `/goal` 括注配套。
+- 改动面:两份 README;三套模板(§3 第 10 条、§7 派工与评审句、剪贴板一条)、三份 `DEPLOYMENT.md.tmpl` 上线后核对一条、两份 `mechanical.md` 一句、Codex 版 `parallel-do` 边界句与验收句;README「Codex 版与 Claude 版的口径差异」各加一条;workflow / workflow-en 0.21.0,workflow-codex 0.18.0。规则原稿在内部工具包,同日同步到合作方两个工具包与维护者本机全局规则。
+- 评审 3 轮(链 `docs/reviews/2026-10-16-sync-cleanup-clipboard-chain.md`):盲审 2 个 → 裁决 FAIL(本仓 `docs/` 新加的文档写进了内部名称,分支已推到公开远端;按中性措辞重写并从 main 重建本人的 wip 分支)→ 裁决 PASS_WITH_NOTES。`claude plugin validate --strict` 全部通过(8 个插件)。
+- 遗留:重建前推过的旧提交已不在任何分支上,但公开远端在清理前仍能按提交号打开(只含名称,没有密钥或地址),要不要请平台清理由 Tony 定。
+- 实现模型:claude-sonnet-5-5;裁决模型:claude-opus-5-5。评审 3 轮。
 
 ### 2026-10-15 — 脚手架内置日志契约:新项目第一天起按固定的日志格式写(workflow / workflow-en 0.20.0,三套模板)
 
