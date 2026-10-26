@@ -21,5 +21,6 @@
 - [ ] The `GET /health` body has all four fields (`ok`, `version`, `db`, `uptime_s`), and with the database stopped it still returns 200 with `ok=false` in the body, within 2 seconds; where `GET /health/ready` exists, it returns 200 and returns 503 when a dependency is cut off, and the deploy config probes it before switching traffic
 - [ ] At least one scheduled / background job has finished a run, with the matching `job end` in the logs (for high-frequency polling, a `job heartbeat`)
 - [ ] If the service starts child processes, headless browsers, or long-lived workers: the container has init, memory and process-count limits, and a restart policy (compose `init: true`, `mem_limit`, `pids_limit`, `restart:`; `docker run` `--init`, `--memory`, `--pids-limit`, `--restart`), and the scheduled cleanup is running (the logs show the cleanup job's `job end` or `job heartbeat`)
+- [ ] Every API key the project uses is a CI variable (written from the password manager by the sync command, not in an env file); each key has a row in the ops registry whose note is the password-manager item name
 
 The full log contract is in the "Log contract" section of `docs/ARCHITECTURE.md`.
