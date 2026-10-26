@@ -1,6 +1,6 @@
 # 评审链:项目 API key:CI 变量 + 团队密码管理器(公开 kit)
 
-spec:`docs/superpowers/specs/2026-10-26-api-keys-ci-password-manager-design.md`。单元提交 3a3a2eb(autosquash 前 b6e6903,两轮修复 fb79572、767d887 已压进;实现模型 claude-sonnet-5-5;本会话由远程会话工具接管,写文件的单元用 Agent 工具派工,评审用 Workflow 只读跑)。
+spec:`docs/superpowers/specs/2026-10-26-api-keys-ci-password-manager-design.md`。单元提交 6acbb1e(autosquash 前 b6e6903,两轮修复 fb79572、767d887 已压进,收尾补「裁决模型」行后重放;并 main fd4b8ae;实现模型 claude-sonnet-5-5;本会话由远程会话工具接管,写文件的单元用 Agent 工具派工,评审用 Workflow 只读跑)。
 
 编排:轻量档(规则文本)——盲审 1 个 `opus` + `medium`;有 P0 / P1 修复后 1 轮 `opus` + `high` 裁决,上限 2 轮。开跑时 CPU 占用约 39%,可用内存 36%。
 
