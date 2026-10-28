@@ -52,3 +52,21 @@ spec:`docs/superpowers/specs/2026-10-27-noncode-deliverable-project-type-design.
 分流:有 P1 → 修复(spec 第 12 节,三个 `--squash`,`mechanical` 子代理 + `model: sonnet`)→ 主对话先 autosquash 并在重放单元提交时改写说明、`--force-with-lease` 重推 → 第 4 轮裁决看最终历史(链上限 4 轮,最后一轮)。
 
 修复(spec 第 12 节;三个 squash 提交 5604c09 / e626da5 / 821c2ca,`mechanical` 子代理 + `model: sonnet`,实现模型 claude-sonnet-5-5):三面步骤 5 非代码首次提交只 add 落盘清单、add 前列大文件与既有文件;大文件命令改扫全仓(SKILL、模板、两份 README 共 14 处,旧命令只剩 spec 的历史引文);补撤销句、tag 推送句、版本日志改提交前加行且提交列填 tag 名;spec 第 7、9 节补句;三组模板 cmp 相同。随后主对话 autosquash、重放单元提交时改写说明(去内部概念词、加「裁决模型」行)、`--force-with-lease` 重推。
+
+## 第 4 轮:裁决(2026-10-27,`opus` + `high`,实际模型 claude-opus-5-5;镜头 安全;看 autosquash 后的最终历史 109062a / 1e71017 / 60882b6 + b63f286;Workflow wf_d4c503f5-d23)
+
+结论 **FAIL**。闭合:第 2 / 3 轮 P1(全部提交说明含压进单元正文的「评审第 N 轮」行按内部实名与内部概念词 grep 0;远端与 HEAD 同为 b63f286);第 3 轮 5 条 P2(新 find 命令在 14 个文件、旧命令只剩 spec;撤销句、tag push 句、提交前加行句三面在;spec 第 7、9 节补句);三组模板 cmp。无推翻。**未闭合**:第 3 轮 P1 只闭合一半——`git add … docs 材料/.gitkeep` 按目录整体 add,目录里原有的 `docs/`、`.claude/` 内容会一起进首次提交;`git status --porcelain` 默认把未跟踪目录折叠成一行,既有文件清单看不到(临时目录实测 docs/学员名单.xlsx 进了暂存区、清单里没有)。
+
+- **P1**(安全)三面 SKILL 步骤 5 非代码 add 句:改成逐个文件 add(`.claude/CLAUDE.md AGENTS.md README.md .gitignore docs/PLAN.md docs/Progress.md docs/REQUIREMENTS.md docs/DECISIONS.md 材料/.gitkeep`,codex 去掉第一项,en 用 materials/),列清单改 `git status --porcelain --untracked-files=all`。
+- P2 REQUIREMENTS 模板目标台账「原话(尽量照录)」会把对话里的个人信息照录进仓 → 引言补「密码、令牌、个人信息改写成占位再登记」。
+- P2 误提交句只讲大文件与个人信息,密码、令牌误提交要先作废换新(改写历史收不回已被拉取的值)→ 各处补半句。
+- P2 文档提交 b63f286 的说明写「标 done」但那行还是 doing → 收尾第二个文档提交标 done 并注明,不改写已推历史。
+- P2 spec 第 2、3 节是首版定稿、没注明以修订节为准 → 第 2 节下加一行。
+- P2 README 六之五 / 6e 第 4 条没提首次提交只 add 落盘清单 → 补句。
+- P2 英文面单元提交正文的评审行前缀是「review round N:」不是「评审第 N 轮」→ 这是本仓英文面既有约定(统计用 `grep -ci '^review round'`),不改。
+
+分流:有 P1 → 修复(spec 第 13 节,三个 `--squash` 到 autosquash 后的单元提交,`mechanical` 子代理 + `model: sonnet`)。**链已满 4 轮上限**:这条 P1 是命令写法的机械修正(逐个文件 add + `--untracked-files=all`),核对手段是确定性的——grep 三面命令文字 + 主对话在临时目录实测(预放 docs/名单.xlsx 与 .claude/x.json,照规则 add 后暂存区不含它们、`--untracked-files=all` 清单能列出它们),所以不开第 5 轮,由主对话核对闭合并把实测结果记在下面。
+
+修复(spec 第 13 节;三个 squash 提交 157a1fd / 8287f0a / 44beda0,`mechanical` 子代理 + `model: sonnet`,实现模型 claude-sonnet-5-5):三面 add 句改逐个文件、列清单加 `--untracked-files=all`;台账引言补占位句;误提交句补「密码、令牌先作废换新」;spec 第 2 节加「以修订节为准」;README 六之五 / 6e 第 4 条补句;三组模板 cmp 相同。
+
+### 主对话核对闭合(2026-10-27,超出 4 轮上限不开第 5 轮,原因见上):grep 三面 SKILL——逐个文件 add 句各 1、`--untracked-files=all` 各 1、旧的整目录 add 0;临时目录实测——预放 docs/名单.xlsx 与 .claude/settings.local.json 再铺 9 个落盘文件,照规则 add 后暂存区 9 个文件、既有文件 0 个,`--untracked-files=all` 清单两处既有文件都列出(默认 porcelain 折叠成目录、0 处),中文文件名默认按八进制转义显示,顺手把三面命令改成 `git -c core.quotePath=false status --porcelain --untracked-files=all`(主对话直接改,三个 squash 提交)。第 4 轮 P1 闭合;第 4 轮 P2 五条已改,「review round N」前缀一条按本仓英文面既有约定不改。无 P0 / P1 未闭合,评审链到此结束(共 4 轮 + 主对话核对;超出默认上限的原因:最后一条 P1 是命令写法的机械修正,核对手段确定性)。裁决模型:claude-opus-5-5;实现模型:claude-sonnet-5-5(三个单元与各修复轮同一模型;最后一处 quotePath 由主对话 claude-fable-5-1 直接改,单元正文可见)。
