@@ -410,7 +410,7 @@ claude-workflow-kit/
     ├── workflow-codex/                # OpenAI Codex CLI port (five skills, no Claude Code plugin manifest)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/
-    │       ├── scaffold/             # AGENTS.md + the eight-doc set (no CLAUDE.md.tmpl)
+    │       ├── scaffold/             # AGENTS.md + the eight-doc set (no CLAUDE.md.tmpl); templates/noncode/ 7 non-code deliverable templates
     │       ├── whats-next/
     │       ├── sop-generate/
     │       ├── parallel-do/          # Codex-only: fan a step out to parallel Codex subagents

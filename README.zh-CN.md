@@ -411,7 +411,7 @@ claude-workflow-kit/
     ├── workflow-codex/               # OpenAI Codex CLI 移植版(五个 skill,无 Claude Code 插件清单)
     │   ├── .codex-plugin/plugin.json
     │   └── skills/
-    │       ├── scaffold/            # 铺 AGENTS.md + 八件套(无 CLAUDE.md.tmpl)
+    │       ├── scaffold/            # 铺 AGENTS.md + 八件套(无 CLAUDE.md.tmpl);templates/noncode/ 非代码产出 7 个模板
     │       ├── whats-next/
     │       ├── sop-generate/
     │       ├── parallel-do/         # Codex 专属:把一步拆给多个 Codex subagent 并行执行

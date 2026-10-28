@@ -57,3 +57,4 @@
 - [impeccable 机械闸门 + 展示型前端必调设计 skill + rea 一行规则](superpowers/specs/2026-10-11-impeccable-gate-rea-rule-showcase-skill-design.md) — 展示型前端分类与设计 skill 调用;所有前端单元评审链前的 detect 闸门(只有渲染扫描进硬闸门);逆向类调研先用 rea CLI 取证据
 - [展示型前端:方向在主对话定、子代理只做建造](superpowers/specs/2026-10-11-showcase-shape-in-main-conversation-design.md) — impeccable 的 init / shape / 选方向卡要问人,改由主对话在 brainstorming 里跑并把方向写进 spec;子代理从 new-work 第 6 节建造起做,或 polish
 - [新项目从第一天起按日志契约写(脚手架 + 评审链)](superpowers/specs/2026-10-15-log-contract-in-scaffold-design.md) — 三套脚手架模板的 CLAUDE/AGENTS §4 日志契约块、ARCHITECTURE 契约全表、DEPLOYMENT 上线核对、SKILL 基线行,README 两语与评审句
+- [开新项目加「非代码产出」类型](superpowers/specs/2026-10-27-noncode-deliverable-project-type-design.md) — 培训、PPT、讲义、报告当仓库管:项目类型二选一、/scaffold 非代码产出分支与模板、每版一次提交、大文件放团队网盘留链接;三个面同批
