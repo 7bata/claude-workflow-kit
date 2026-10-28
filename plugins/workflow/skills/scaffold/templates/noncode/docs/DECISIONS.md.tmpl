@@ -1,0 +1,13 @@
+# Decision Log — {{PROJECT_NAME}}
+
+> 关键取舍（内容范围、受众定位、版式、拆分方式、方案反转）在提交时追加结构化记录，最新在上。
+> 条目格式：`## 日期 - 类型(域): 标题` + **What / Why / Changes**，可选 **Known limitation / Out of scope / Deferred**。
+> 与 `REQUIREMENTS.md`「已确认决策」的编号互相回指。
+
+## {{DATE}} - decision(repo): 材料按代码仓管理，每版一次提交
+
+**What**: 本项目是非代码产出，材料放 `材料/`，每出一版提交一次；超过 20 MB 的文件放网盘、仓里只留链接。
+
+**Why**: 逐版留档、可回看每版改了什么；大文件进 git 会让仓膨胀，靠规则与 `find` 检查看见它们，不靠忽略文件悄悄跳过。
+
+**Changes**: /scaffold 非代码产出分支初始化落盘。

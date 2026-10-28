@@ -1,0 +1,29 @@
+# {{PROJECT_NAME}} — Development Rules
+
+{{ONE_LINER}}
+
+This project is a **non-code deliverable** (training, slides, handouts, reports, proposal documents): the output is files, not a program. The root of this git repo is `{{PROJECT_NAME}}/`, and the materials are kept on record version by version, the way code is.
+
+**Audience**: {{AUDIENCE}}
+
+**Directory conventions**:
+- `materials/` — the deliverables themselves, in subdirectories per unit (lecture / chapter / issue); within each unit of a training project, split further by destination into `for-students/`, `for-instructors/`, and `source/`; other kinds of deliverable use subdirectories per output, spelled out in the README. The repo keeps only the latest version of each file — history lives in git history, with no `v2.3 archive/`-style directories and no zips committed to the repo
+- `docs/` — the four-doc set: `PLAN.md` (unit roadmap and per-version plan), `Progress.md` (the **version log**), `REQUIREMENTS.md` (audience, deliverables list, goal ledger), `DECISIONS.md` (trade-off records)
+- `README.md` — one-line project description, audience, directory guide, and the "Large files" table (File | Version | Link | Date)
+
+## 1. Hard Rules in the Repo
+
+1. **One commit per version**: write the commit message as `<type>: <unit or file> vN — what changed`, with type docs / chore / fix. Never batch several versions into one commit; before committing, add a row "Version | Date | What changed | Commit" to the version log in `docs/Progress.md` (newest first; fill the "Commit" column with the tag name of that version, e.g. `v3`; for a version without a tag, leave it blank and fill in the short sha with the next commit), and commit it together with the materials
+2. **Large files stay out of git**: any single file over 20 MB (video, audio recordings, large PDFs, image bundles) goes in a team file share or object storage; register the file name, version, link, and date in the README "Large files" table, and keep only the link in the repo. Before committing, run `find . -path ./.git -prune -o -type f -size +20M -print` to catch any strays. If a large file or personal information was committed by mistake: when it has not been pushed yet, run `git rm --cached <file>` and then `git commit --amend`; once pushed, the history has to be rewritten and every collaborator notified; passwords and tokens committed by mistake must be revoked and replaced first, because rewriting history cannot recall values already pulled, so check before committing
+3. **No sensitive information**: passwords, tokens, and personal information about students and clients (name plus contact details, ID numbers, transcript text) stay out of the repo; examples use fictional data, marked "fictional"
+4. **Push as you go**: after every commit, immediately `git push` the current branch (with `-u` if there is no upstream); tag any version meant for other people with a git tag (`v1`, `v2`, …); after tagging, run `git push origin vN` (`git push` does not push tags by default); if the repo has no remote yet, create one first, and a failed push before it exists does not count as a failed commit
+5. **Scope of the methodology**: this project has no code, tests, or deployment, so Workflow, the review chain, TDD, and the log contract do not apply; using AI to edit the materials is done in this repo as usual, and the result is committed per rule 1
+
+## 2. Docs
+
+- Requirements (audience, deliverables list, goal ledger): `docs/REQUIREMENTS.md`
+- Roadmap: `docs/PLAN.md`
+- Version log: `docs/Progress.md`
+- Decision log: `docs/DECISIONS.md`
+
+Any requirement, expectation, or complaint raised in conversation, even a single sentence, is logged the same round in the "Goal Ledger" of `docs/REQUIREMENTS.md`.
