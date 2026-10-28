@@ -7,7 +7,7 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架 + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）；docs-capture 三层 hook 自动把问答框拍板存入 DECISIONS.inbox、按信号词提醒决策/需求未落档、commit 前门禁催消化;方法论含目标台账(需求当轮落账防蒸发)、链式对抗评审与评审报差异、安全加固措辞规范、生产红线前置、调研内部先行;组件索引收尾登记与定期校对"
+      "description": "中文版:指挥/执行/评审三层多代理工作流 —— /scaffold 文档脚手架(代码项目 / 非代码产出两类) + /whats-next 进度导航 + /sop-generate 业务操作手册生成，新会话自动铺设新项目脚手架（auto-scaffold）；docs-capture 三层 hook 自动把问答框拍板存入 DECISIONS.inbox、按信号词提醒决策/需求未落档、commit 前门禁催消化;方法论含目标台账(需求当轮落账防蒸发)、链式对抗评审与评审报差异、安全加固措辞规范、生产红线前置、调研内部先行;组件索引收尾登记与定期校对"
     },
     {
       "name": "workflow-en",

@@ -247,12 +247,13 @@ Workflow 工具单次运行的并发 agent 数上限默认约为 `min(16, 核数
 
 1. **Intake**:让用户讲项目想法,或指给一个文件(如会议纪要);纪要原文归档进 `docs/MEETINGS.md` 第一节,其中的业务事实另提炼进 `docs/BUSINESS.md`。信息不够就针对性追问。除判断技术栈/DB 外,**按 7 格模型追问业务上下文**(用于填实 `docs/BUSINESS.md`;信息不足的格留占位、不逼问、不卡流程):① 目标与现状手工流程(没系统之前谁、怎么做、痛点在哪);② 输入:交易数据(有无真实样本文件);③ 输入:参考/配置数据(对照表、规则表、允许值);④ 加工流程(输入怎么变成输出);⑤ 输出(产出什么、给谁,有无期望样例);⑥ 业务铁律与异常(绝不能错的规则、意外情况怎么办);⑦ 人工介入与反馈(谁复核、能改什么、要不要被系统记住)。
 2. **决策并确认**(每项给出判断理由,用户拍板后才落盘):
+   - **项目类型**:**代码项目**(默认,下面各项照常)/ **非代码产出**(培训、PPT、讲义、报告、方案文档这类没有代码的交付物)。先单独问这一问;intake 明显是培训 / 讲义 / PPT / 报告的,推荐非代码产出并说明理由。选了非代码产出,下面各项不问、汇报写「不适用」,改走六之五的「非代码产出分支」。
    - **技术栈:固定基线,不做重复选型**。示例基线:Go(标准库 `net/http` + chi,无重框架)+ pgx 手写 repository(不用 ORM)+ golang-migrate 纯 SQL 迁移;前端如需要则 React + TypeScript + Vite;Docker 多阶段构建出单静态二进制,带 `/health`(存活)与 `/health/ready`(就绪);后端无状态,状态全在数据库。(把这张表换成你自己的基线也行——关键是"基线固定、逐项目不再选型";想换栈就改基线表,不做单次临时偏离。)
    - **数据库**:默认 PostgreSQL;仅小型低并发/单机一体机用 SQLite。判断依据:并发量、部署形态、数据规模。
    - **是否需要 Web 前端**。
    - **核心不变量**:本项目"绝不破坏"的架构约束,0~N 条,想不出留占位。
    - **模块划分**:顶层模块名 + 一句话职责,想不清留占位。
-3. **落盘 11 个文件**(先逐个检查是否已存在,已存在的列出来问用户跳过/备份/合并,**绝不静默覆盖**):
+3. **落盘 11 个文件**(非代码产出类型改用六之五的清单;先逐个检查是否已存在,已存在的列出来问用户跳过/备份/合并,**绝不静默覆盖**):
    - `.claude/CLAUDE.md`(项目硬规则)、`.gitignore`、`README.md`
    - **docs 八件套**:
      - `PLAN.md` — 总体路线、各 Phase 状态(标题带 ✅ = 完成)、Spec 索引
@@ -299,6 +300,15 @@ Workflow 工具单次运行的并发 agent 数上限默认约为 `min(16, 核数
 ### 六之四、日志契约(第一天起就按这个写)
 
 脚手架不只铺文档,也把「日志该长什么样」写成硬规则,和「错误显式处理」「密钥只来自环境变量」同级。原因:按本方法论铺出来的 8 个项目,曾在同一天里回头重写日志(改成结构化、补访问行 / 作业行 / 外部调用行 / 健康检查正文)——脚手架里从来没写过日志该长什么样,各项目临时写、各写各的,要接监控时才发现机器读不了。契约内容:每行一个 JSON 对象写 stdout,固定的 `msg`(`service start`、`http request`、`job end`、`job heartbeat` 等)与字段名,错误去重,`/health`(存活)与 `/health/ready`(就绪)分开,不记密钥与个人信息,版本由构建参数 `APP_VERSION` 注入。压缩版放 `.claude/CLAUDE.md` 第 4 节,完整表格与上线前验收清单放 `docs/ARCHITECTURE.md`「日志契约」一节,`docs/DEPLOYMENT.md` 的「上线后核对」有四条对应检查。评审怎么查:第七节的评审句要求评审 agent 对照日志契约核对改到请求 / 作业 / 外部调用 / 健康检查的代码,模板的「修改后质量检查」与「禁止事项」同步写了。
+
+### 六之五、非代码产出项目(培训、PPT、讲义、报告)
+
+培训、PPT、讲义、报告、方案文档这类没有代码的产出,也当仓库管,逐版留档。步骤 2 选了「非代码产出」类型,`/scaffold` 走「非代码产出分支」:Intake 改问产出是什么、给谁、分几个单元、谁交付、首版截止日(信息不够留占位,不逼问);技术栈、数据库、前端、不变量、模块划分都不问,汇报写「不适用」;落盘 8 个文件加 `材料/.gitkeep`(`.claude/CLAUDE.md`、`AGENTS.md`(与 CLAUDE.md 同文,给 Codex 读,改规则时两份一起改)、`README.md`、`.gitignore`、`docs/` 下 PLAN / Progress / REQUIREMENTS / DECISIONS 四件套);**不生成** Dockerfile、CI 配置、`.env.example`、ARCHITECTURE / DEPLOYMENT / BUSINESS / MEETINGS,也不建 `data/`。
+
+1. **目录约定**:`材料/` 放交付物本体,按单元(讲 / 章 / 期)分子目录,培训类单元内再分 `发给学员/`、`讲师用/`、`源文件/`(其他类型按产出物分子目录,README 写清);仓里只留每个文件的最新版,历史版本靠 git 历史,不另存 `v2.3 存档/` 这类目录,也不进 zip。`docs/` 四件套:`PLAN.md`(单元路线与每版计划)、`Progress.md`(**版本日志**:每出一版加一行「版本 | 日期 | 改了什么 | 提交」,最新在上,项目进展据此一眼看清)、`REQUIREMENTS.md`(受众、交付物清单、目标台账)、`DECISIONS.md`(取舍记录)。`README.md` 写项目一句话、受众、目录说明与「网盘链接」表(文件名 | 版本 | 链接 | 日期)。
+2. **仓内硬规则**(写进 CLAUDE.md / AGENTS.md,两份同文):每出一版就提交一次,提交说明写「<类型>: <单元或文件> vN——改了什么」(类型用 docs / chore / fix),不许把几版攒成一次提交,提交前 `docs/Progress.md` 版本日志先加一行、与材料一起提交(「提交」列填该版 tag 名,不打 tag 的先留空、提交后补短 sha 随下一次提交带上);单个文件超过 20 MB(视频、录音、大 PDF、大图包)不进 git,放团队网盘或对象存储,在 README「网盘链接」表登记文件名、版本、链接、日期,仓里只留链接,提交前跑 `find . -path ./.git -prune -o -type f -size +20M -print` 看有没有漏网的(误把大文件或个人信息提交了:还没 push 的用 `git rm --cached <文件>` 再 `git commit --amend`;已 push 的要改写历史并通知所有协作者;误提交的密码、令牌先作废换新,改写历史收不回已被拉取的值,所以提交前先查);不写密码、令牌、学员与客户的个人信息(姓名加联系方式、证件号、成绩单原文)进仓,示例用虚构数据并标明「虚构」;分支即推,每次 commit 后立即 push,要给别人看的版本标 git tag(`v1`、`v2`……),打 tag 后 `git push origin vN`(`git push` 默认不推 tag);仓库还没有远端时先建远端,建好前 push 失败不算提交失败;本项目没有代码、测试与部署,Workflow、评审链、TDD、日志契约不适用,要用 AI 改材料照常在本仓里做,改完按上面提交。
+3. **auto-scaffold**:静默铺设时不问类型——需求句明显是培训 / 讲义 / PPT / 报告这类没有代码的产出,按非代码产出分支铺;拿不准按代码项目,宁可多铺几份代码项目的文档,不可把代码项目铺成材料仓。
+4. **收尾汇报**:首次提交只 add 落盘清单,目录里既有文件先列给用户看(做法见 `/scaffold` 非代码产出分支);汇报加一行「类型:非代码产出(材料 / docs 四件套;不生成 CI 与部署)」;首次提交说明用「chore: 初始化非代码产出项目骨架(材料 / docs 四件套)」。
 
 ## 七、主流程:Brainstorming → Spec → Ultracode 直通
 
@@ -386,7 +396,7 @@ claude-workflow-kit/
     │   ├── hooks/                   # auto-scaffold 常驻规则(hooks.json + inject.sh + auto-scaffold.md)+ docs-capture(capture-decisions.sh、signal-reminder.sh、commit-gate.sh、signals-decision.txt、signals-requirement.txt、signals-veto.txt、docs-capture-smoke-test.sh)+ worktree-sweep(worktree-sweep.sh、worktree-sweep-smoke-test.sh)
     │   ├── evals/                   # auto-scaffold 判定 evals:cases.jsonl + run_evals.py + rubric.md + .gitignore(out/、__pycache__/)
     │   └── skills/
-    │       ├── scaffold/            # /scaffold:SKILL.md(含 Auto 模式节)+ templates/(11 个模板)
+    │       ├── scaffold/            # /scaffold:SKILL.md(含 Auto 模式节)+ templates/(11 个模板 + noncode/ 8 个非代码产出模板)
     │       │   ├── SKILL.md
     │       │   └── templates/
     │       │       ├── CLAUDE.md.tmpl  README.md.tmpl  gitignore.tmpl
