@@ -12,7 +12,7 @@
     {
       "name": "workflow-en",
       "source": "./plugins/workflow-en",
-      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions; docs-capture — three hook layers auto-log AskUserQuestion decisions to DECISIONS.inbox, nudge on decision/requirement signal words, and gate commits until the inbox is triaged; the methodology now includes a goal ledger (log requirements the same round so they never evaporate), chained adversarial review + delta-only review reports, neutral wording for hardening work, production red lines pushed to the implementer prompt, and internal-first research; component-index registration at wrap-up plus periodic re-audit"
+      "description": "English version: Conductor/Executor/Reviewer multi-agent workflow — /scaffold doc scaffolding (code or non-code deliverable projects) + /whats-next progress navigation + /sop-generate business SOP generation, auto-scaffold new projects on new sessions; docs-capture — three hook layers auto-log AskUserQuestion decisions to DECISIONS.inbox, nudge on decision/requirement signal words, and gate commits until the inbox is triaged; the methodology now includes a goal ledger (log requirements the same round so they never evaporate), chained adversarial review + delta-only review reports, neutral wording for hardening work, production red lines pushed to the implementer prompt, and internal-first research; component-index registration at wrap-up plus periodic re-audit"
     },
     {
       "name": "speak-human",

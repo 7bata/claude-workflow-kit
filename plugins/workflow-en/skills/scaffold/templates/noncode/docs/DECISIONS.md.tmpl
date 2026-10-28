@@ -1,0 +1,13 @@
+# Decision Log — {{PROJECT_NAME}}
+
+> Key trade-offs (content scope, audience positioning, layout, how the material is split, plan reversals) are appended as structured records at commit time, newest first.
+> Entry format: `## Date - type(scope): title` + **What / Why / Changes**, with optional **Known limitation / Out of scope / Deferred**.
+> Numbering cross-references the "Confirmed Decisions" in `REQUIREMENTS.md` in both directions.
+
+## {{DATE}} - decision(repo): Manage the materials like a code repo, one commit per version
+
+**What**: This project is a non-code deliverable; the materials live in `materials/` and are committed once per version released; files over 20 MB go in a team file share, with only the link kept in the repo.
+
+**Why**: Every version stays on record and what changed in each can be looked back on; large files in git would bloat the repo, so rules and the `find` check make them visible instead of an ignore file quietly skipping them.
+
+**Changes**: Written to disk by the /scaffold non-code deliverable branch during initialization.

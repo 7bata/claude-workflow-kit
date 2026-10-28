@@ -1,0 +1,27 @@
+# {{PROJECT_NAME}}
+
+{{ONE_LINER}}
+
+## Audience
+
+{{AUDIENCE}}
+
+## Directory Guide
+
+- `materials/` — the deliverables themselves, in subdirectories per unit; within each unit of a training project, `for-students/`, `for-instructors/`, and `source/` (other kinds of deliverable use subdirectories per output, <!-- TBD: this project's subdirectory convention -->). Only the latest version of each file is kept; for history, see git history
+- `docs/PLAN.md` — unit roadmap and per-version plan
+- `docs/Progress.md` — version log (one row per version released: Version | Date | What changed | Commit)
+- `docs/REQUIREMENTS.md` — audience, deliverables list, goal ledger
+- `docs/DECISIONS.md` — trade-off records
+
+## Rules
+
+- One commit per version; write the commit message as `<type>: <unit or file> vN — what changed`; before committing, add a row to the version log in `docs/Progress.md` and commit it together with the materials
+- A single file over 20 MB (video, audio recordings, large PDFs, image bundles) stays out of git: put it in a team file share or object storage, register it in the table below, and keep only the link in the repo; before committing, run `find . -path ./.git -prune -o -type f -size +20M -print` to check. If a large file or personal information was committed by mistake: when it has not been pushed yet, run `git rm --cached <file>` and then `git commit --amend`; once pushed, the history has to be rewritten and every collaborator notified; passwords and tokens committed by mistake must be revoked and replaced first, because rewriting history cannot recall values already pulled, so check before committing
+- No passwords, tokens, or personal information about students and clients; examples use fictional data marked "fictional"
+
+## Large files
+
+| File | Version | Link | Date |
+|---|---|---|---|
+| <!-- TBD: register large files here once they are in the file share --> | | | |

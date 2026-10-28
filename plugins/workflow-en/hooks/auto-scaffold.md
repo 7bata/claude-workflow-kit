@@ -37,7 +37,10 @@ proactively backfill scaffolding for it.
      auto-create the project, working in place instead" and continue
      normally;
 3. Lay down scaffolding per the scaffold skill's "Auto mode" (tech stack
-   follows the fixed baseline, no questions asked; fill in whatever can be
+   follows the fixed baseline, no questions asked; if the request clearly
+   describes a non-code deliverable (training, handouts, slides, a report),
+   use its “Non-code deliverable branch”; when unsure, treat it as a code
+   project; fill in whatever can be
    filled from the user's request sentence, leave the rest as template
    placeholders; includes `git init` + the initial commit);
 4. Report in one line: "Created project <name> at <path>, this request
