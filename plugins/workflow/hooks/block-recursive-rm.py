@@ -1052,12 +1052,12 @@ _TEXT_FIND = re.compile(r"(?<![\w.-])g?find(?![\w.-])")
 _TEXT_DELETE = re.compile(r"(?<![\w-])-delete(?![\w-])")
 _TEXT_REC = re.compile(r"(?<![\w-])-[A-Za-z]*[rR][A-Za-z]*(?![\w-])|(?<![\w-])--r[a-z]*(?![\w-])")
 _TEXT_MARK = re.compile(r"[$`~]")
-_TEXT_TOKEN = re.compile(r"""[^\s'"`;&|()<>=]+""")
+_TEXT_WORD = re.compile(r"""[^\s'"`;&|()<>=]+""")
 
 
 def _text_protected(command):
     spelled = get_spellings(get_homes())["rm"][0]
-    for m in _TEXT_TOKEN.finditer(command):
+    for m in _TEXT_WORD.finditer(command):
         t = m.group(0)
         if t.startswith("/"):
             if _key_levels(_lv(norm_plain(t))) in spelled:
