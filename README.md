@@ -180,6 +180,38 @@ Responsibilities of each file in the eight-doc set:
 
 Log lines are part of the baseline too: the log contract in section 4 of the `CLAUDE.md` template (JSON lines on stdout, fixed `msg` strings and field names) must be swapped for an equivalent implementation when you change stacks; the `msg` strings and field names stay the same.
 
+## Recursive delete target guard
+
+Both `workflow` and `workflow-en` ship a PreToolUse hook (`hooks/block-recursive-rm.py`, run through the watchdog `hooks/run-guard.sh`) for the Bash tool. It is always on and has no switch.
+
+**What it blocks.** A recursive delete (`rm -r` / `-R` / `--recursive` in any calling form or wrapper, `find ... -delete`, `find ... -exec rm`) whose target cannot be determined before the command runs, or that lands on a home or system directory. The same check is applied to the text inside `sh -c`, `eval`, command substitutions, heredocs, `ssh host '...'` and similar. Six rules, reported on a `rule=<name>` line:
+
+| Rule | Blocks |
+|---|---|
+| `expansion` | a target that contains a variable or command substitution whose value is not known at that point (each Bash tool call starts a new shell, so a variable set in an earlier call is empty now) |
+| `tilde` | a target that starts with `~` |
+| `protected-path` | the home directory, a system directory, or a parent of either |
+| `protected-glob` | a glob that can match a protected directory (for example `/Users/*`) |
+| `unknown-cwd` | a relative target when the working directory cannot be determined |
+| `unparsable` | a command the checker cannot parse well enough to judge |
+
+**When it blocks.** The tool call is refused with exit code 2 and a multi-line reason: the matched target, the matched condition, a `rule=<name>` line, and three ways to fix it. The `workflow-en` plugin writes the reason in English (its hooks.json command sets `RM_GUARD_LANG=en`), `workflow` in Chinese. If the hook runs longer than 5 seconds the watchdog also blocks (set `SENSITIVE_GUARD_TIMEOUT`, in seconds, to change the limit).
+
+**How to fix a blocked command.** (1) Write the full literal path and run `ls -ld <path>` first to confirm it is the one to delete. (2) Create, use and delete a temporary directory in the same command: `d=$(mktemp -d) && ... && rm -rf "$d"`. (3) To delete a whole directory under the home directory or a system directory, ask the user to run it in their own terminal. Deletes with a clear, literal, non-protected target are not affected.
+
+**Requirements.** `python3` 3.9 or newer on PATH (standard library only). If `python3` is missing, the hook fails with a non-blocking error (Claude Code treats exit codes other than 0 and 2 as errors that do not block the call), so the guard is silently inactive until python3 is installed.
+
+**What it does not touch.** Commands you type yourself in a terminal are not seen by the hook. Each rejection appends one line to `~/.claude/hooks/rm-guard.log`.
+
+**Tests.** Run from the repository root, with at most 4 parallel subprocesses (the cases only feed command strings to the hook; nothing is executed). The first command tests the Chinese plugin, the second the English-mode cases against the `workflow-en` hook directory:
+
+```
+python3 plugins/workflow/hooks/tests/rm-guard-cases.py --jobs 4
+RM_GUARD_HOOKS_DIR="$PWD/plugins/workflow-en/hooks" python3 plugins/workflow/hooks/tests/rm-guard-cases.py --jobs 4 --only special5
+```
+
+Each run ends with a `SUMMARY total pass fail skip` line. The test files live only under `plugins/workflow/hooks/tests/`; `RM_GUARD_HOOKS_DIR` points them at the other plugin's hook directory. `rm-guard-replay.py` replays your own session history against the hook and lists the commands it would have blocked.
+
 ## Workflow prompt
 
 > Copy the entire block below into `~/.claude/CLAUDE.md`. With this plugin installed, Section 6 is carried out by `/scaffold` and Section 9 by `/whats-next` — these two sections remain as the methodology write-up behind those commands. Without the plugin, you can still follow the description manually.
@@ -392,7 +424,7 @@ claude-workflow-kit/
 └── plugins/
     ├── workflow/                     # Chinese-output plugin
     │   ├── .claude-plugin/plugin.json
-    │   ├── hooks/                    # auto-scaffold standing rule (hooks.json + inject.sh + auto-scaffold.md) + docs-capture (capture-decisions.sh, signal-reminder.sh, commit-gate.sh, signals-decision.txt, signals-requirement.txt, signals-veto.txt, docs-capture-smoke-test.sh) + worktree-sweep (worktree-sweep.sh, worktree-sweep-smoke-test.sh)
+    │   ├── hooks/                    # auto-scaffold standing rule (hooks.json + inject.sh + auto-scaffold.md) + docs-capture (capture-decisions.sh, signal-reminder.sh, commit-gate.sh, signals-decision.txt, signals-requirement.txt, signals-veto.txt, docs-capture-smoke-test.sh) + worktree-sweep (worktree-sweep.sh, worktree-sweep-smoke-test.sh) + recursive-delete target guard (block-recursive-rm.py, run-guard.sh; tests/ holds rm-guard-cases.py and rm-guard-replay.py)
     │   ├── evals/                    # auto-scaffold trigger evals: cases.jsonl + run_evals.py + rubric.md + .gitignore (out/, __pycache__/)
     │   └── skills/
     │       ├── scaffold/             # /scaffold: SKILL.md (with Auto mode section) + templates/ (11 templates + noncode/ 8 non-code deliverable templates)

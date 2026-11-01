@@ -49,6 +49,16 @@
             "statusMessage": "Checking pre-commit docs digestion status..."
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "RM_GUARD_LANG=en sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run-guard.sh\" block-recursive-rm.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [
