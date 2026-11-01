@@ -181,6 +181,38 @@ docs 八件套各自的职责:
 
 日志行也是基线的一部分:`CLAUDE.md` 模板第 4 节的日志契约(JSON 行写 stdout、固定的 `msg` 与字段)换栈时要跟着换成等价写法,`msg` 字符串与字段名不变。
 
+## 递归删除目标校验
+
+`workflow` 与 `workflow-en` 两个插件都带一个作用于 Bash 工具的 PreToolUse 钩子(`hooks/block-recursive-rm.py`,经看门狗 `hooks/run-guard.sh` 运行)。常驻,没有开关。
+
+**拦什么。** 递归删除(任何调用形式或包装命令里的 `rm -r` / `-R` / `--recursive`、`find ... -delete`、`find ... -exec rm`)中,命令执行前无法确定目标的,或目标落在家目录、系统目录上的。`sh -c`、`eval`、命令替换、heredoc、`ssh host '...'` 等里面的文本按同样规则检查。共六条规则,拒绝时在 `rule=<名字>` 一行里给出:
+
+| 规则 | 拦的情形 |
+|---|---|
+| `expansion` | 目标含有此刻取不到确定值的变量或命令替换(每次 Bash 工具调用都是新的 shell,前一次调用里设的变量现在是空的) |
+| `tilde` | 目标以 `~` 开头 |
+| `protected-path` | 家目录、系统目录,或它们的上层目录 |
+| `protected-glob` | 可能匹配到受保护目录的通配符(例如 `/Users/*`) |
+| `unknown-cwd` | 相对路径目标,而工作目录无法确定 |
+| `unparsable` | 解析不了、无法判定的命令 |
+
+**拦下时的表现。** 工具调用被拒绝,退出码 2,附多行原因:命中的目标、命中的条件、一行 `rule=<名字>`,以及三条改法。`workflow` 插件用中文;`workflow-en` 插件的 hooks.json 命令设了 `RM_GUARD_LANG=en`,用英文。钩子运行超过 5 秒时看门狗同样拒绝(可用环境变量 `SENSITIVE_GUARD_TIMEOUT` 调整,单位秒)。
+
+**被拦了怎么改。** (1) 写出完整的字面路径,先 `ls -ld <路径>` 确认是要删的;(2) 临时目录在同一条命令里建、用、删:`d=$(mktemp -d) && ... && rm -rf "$d"`;(3) 确实要删家目录下的整个目录或系统目录,请使用者在自己的终端里运行。目标明确、不在受保护位置的删除不受影响。
+
+**运行要求。** PATH 里要有 `python3` 3.9 及以上(只用标准库)。没有 `python3` 时钩子报错但不拦截(Claude Code 把 0 与 2 以外的退出码当作不拦截的错误),也就是在装上 python3 之前这道校验不起作用。
+
+**不影响什么。** 你自己在终端里敲的命令钩子看不到。每次拒绝在 `~/.claude/hooks/rm-guard.log` 追加一行。
+
+**测试。** 在仓库根目录跑,并发不超过 4(用例只把命令字符串喂给钩子,不执行任何命令)。第一条测中文插件,第二条用 `workflow-en` 的 hooks 目录测英文模式的用例:
+
+```
+python3 plugins/workflow/hooks/tests/rm-guard-cases.py --jobs 4
+RM_GUARD_HOOKS_DIR="$PWD/plugins/workflow-en/hooks" python3 plugins/workflow/hooks/tests/rm-guard-cases.py --jobs 4 --only special5
+```
+
+每次运行末尾有一行 `SUMMARY 总数 通过 失败 跳过`。测试文件只放在 `plugins/workflow/hooks/tests/`;用环境变量 `RM_GUARD_HOOKS_DIR` 指向另一个插件的 hooks 目录即可测它。`rm-guard-replay.py` 把你自己的会话记录回放给钩子,列出会被拦的命令。
+
 ## 工作流 prompt
 
 > 复制下面整段到 `~/.claude/CLAUDE.md`。装了本插件后,第六节由 `/scaffold`、第九节由 `/whats-next` 代为执行,这两节保留作为命令背后的方法论说明;没装插件也可以照描述手动执行。
@@ -393,7 +425,7 @@ claude-workflow-kit/
 └── plugins/
     ├── workflow/                    # 中文输出插件
     │   ├── .claude-plugin/plugin.json
-    │   ├── hooks/                   # auto-scaffold 常驻规则(hooks.json + inject.sh + auto-scaffold.md)+ docs-capture(capture-decisions.sh、signal-reminder.sh、commit-gate.sh、signals-decision.txt、signals-requirement.txt、signals-veto.txt、docs-capture-smoke-test.sh)+ worktree-sweep(worktree-sweep.sh、worktree-sweep-smoke-test.sh)
+    │   ├── hooks/                   # auto-scaffold 常驻规则(hooks.json + inject.sh + auto-scaffold.md)+ docs-capture(capture-decisions.sh、signal-reminder.sh、commit-gate.sh、signals-decision.txt、signals-requirement.txt、signals-veto.txt、docs-capture-smoke-test.sh)+ worktree-sweep(worktree-sweep.sh、worktree-sweep-smoke-test.sh)+ 递归删除目标校验(block-recursive-rm.py、run-guard.sh;tests/ 放 rm-guard-cases.py 与 rm-guard-replay.py)
     │   ├── evals/                   # auto-scaffold 判定 evals:cases.jsonl + run_evals.py + rubric.md + .gitignore(out/、__pycache__/)
     │   └── skills/
     │       ├── scaffold/            # /scaffold:SKILL.md(含 Auto 模式节)+ templates/(11 个模板 + noncode/ 8 个非代码产出模板)
