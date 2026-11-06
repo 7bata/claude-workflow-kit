@@ -288,6 +288,12 @@ Three more to hold:
   to put it bluntly" or their kin — when one appears, go back and fix the
   previous sentence instead of adding a second one.
 
+Page copy (including on-screen captions and corner labels in demo videos)
+holds one more hard rule: Avoid unnecessary secondary labels and
+descriptions. Let the layout do the explaining. Whatever the headings,
+content, grouping and whitespace already make clear gets no extra line of
+explanation underneath.
+
 Two passes before you ship:
 
 1. **Delete pass**: the second sentence of elaboration, mechanism
@@ -322,11 +328,16 @@ from the clarity test.
   → User: "What does that even mean? Be concise *and* clear — people should
   get it instantly." — this is the system's mechanism (drawing a line); the
   reader can't say what they'll get, and "yearly fortune" is still jargon.
+- Bad (labels everywhere): every section heading on a page carries a line of
+  explanation underneath — "Here are your recent orders", "Click a card to
+  see details". The reader reads one more line and learns nothing the
+  heading and content didn't already say.
 - Good: for the first, delete the fine print entirely and leave the preview
   block with just the headline it already had ("Cast a hexagram, get a one-line plain
   reading") — the reader loses only mechanism; for the second, rewrite as
   the reader's result — "Which years go smoothly, which get hard — your
-  whole life in one chart."
+  whole life in one chart."; for the third, keep only each section's heading
+  and content, and let type size, grouping and whitespace set them apart.
 
 ### S5 Plain words only
 
