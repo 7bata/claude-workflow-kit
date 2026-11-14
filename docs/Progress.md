@@ -4,7 +4,7 @@
 
 | 模块 | 状态 | 备注 |
 |---|---|---|
-| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.24.0;2026-11-01 加递归删除目标校验 hook(含英文提示开关);2026-10-27 加「非代码产出」项目类型(README 六之五 / 6e、/scaffold 非代码产出分支与 8 个模板、auto-scaffold 静默判定);2026-10-26 加的「项目 API key:CI 变量 + 团队密码管理器」小节与模板改动已撤回(维护者定该规则仅限内部工具,不进公开 kit),内容同 0.21.0;会留下无头进程的操作先定好定时清理(七之四第 3 条)、要用户在命令行输入的内容先放进剪贴板(七之五)(2026-10-16);新项目脚手架内置日志契约(2026-10-15,中文版先落);展示型前端的方向(init / shape / 方向卡 / 样稿批准)由主对话在 brainstorming 定、子代理只做建造或 polish(2026-10-11);展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
+| workflow / workflow-en(方法论 prompt + scaffold/whats-next/sop-generate) | done | 0.25.0;2026-11-13 档位表「难点实现」改 `opus` + `high`,另加两条升 `opus` 护栏;2026-11-01 加递归删除目标校验 hook(含英文提示开关);2026-10-27 加「非代码产出」项目类型(README 六之五 / 6e、/scaffold 非代码产出分支与 8 个模板、auto-scaffold 静默判定);2026-10-26 加的「项目 API key:CI 变量 + 团队密码管理器」小节与模板改动已撤回(维护者定该规则仅限内部工具,不进公开 kit),内容同 0.21.0;会留下无头进程的操作先定好定时清理(七之四第 3 条)、要用户在命令行输入的内容先放进剪贴板(七之五)(2026-10-16);新项目脚手架内置日志契约(2026-10-15,中文版先落);展示型前端的方向(init / shape / 方向卡 / 样稿批准)由主对话在 brainstorming 定、子代理只做建造或 polish(2026-10-11);展示型前端必调设计 skill、detect 闸门、rea 规则(2026-10-11);盘点行改 haiku 首选(2026-10-07);对照 superpowers 6.4.1 改四处(2026-10-05):七.6 点名新版 HARD-GATE 整段、并行实现时全量测试由主对话按顺序跑、评审判据「spec 没写到的行为按使用者的合理预期判」、spec 加一节「容易漏的输入与失败情形」;评审链裁决轮固定 `opus` + `high`(2026-10-03 同日由「用主对话当前的模型」改回)、并发前先看 CPU 占用、小改动也写小 spec 且写完直接实现、批量与并行任务一律走 Workflow;mechanical 子代理定义固定 `effort: low`(裸 Agent 派它也按 low 跑)、README 加「维护者:发版前检查」两步;测试启动的进程测完即关、并发前看负载、单元代码启动外部进程时派工 prompt 写明退出要求;omitClaudeMd 机械 agent(agents/mechanical.md)、并发上限 env 文档;进度日志按月归档、评审轮次压进单元提交;需求先复述再动手、worktree 用完即删 + worktree-sweep hook;含目标台账、四点评审纪律、调研内部先行、组件索引三入口、docs-capture 三层 hook(kit/github 面)、main 门禁只拦前端可见改动、截图交付前视觉预审 |
 | workflow-codex(Codex CLI 移植版) | done | 0.20.0;2026-10-27 加「非代码产出」项目类型(7 个模板,无 CLAUDE.md);2026-10-26 加的 API key 模板改动已撤回,内容同 0.18.0;定时清理与剪贴板两条规则同步(2026-10-16,剪贴板只管终端命令与登录命令,批量会话进程写 `codex exec`);评审判据与 spec 加一节同步(2026-10-05);spec 写入后直接实现、小改动也写小 spec 的措辞同步;测试进程清理、并发前先看 CPU 占用、外部进程退出要求同步;无 hook 机制,auto-scaffold 靠手动 opt-in;omitClaudeMd 判为 Claude 专有、并发对应 `[agents] max_threads` |
 | speak-human / -en(提问与表达纪律 + evals) | done | 0.7.0 / 0.6.0;S1~S6(含 S6 更新日志式汇报);evals 43 条合成案例 |
 | send-to / -en(跨会话消息 + 身份注册 hook) | done | 0.4.1;uds 直发为标准路径,四级阶梯 |
@@ -36,6 +36,12 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-11-13 — 档位表:难点实现改 opus + high,加两条升 opus 护栏(workflow / workflow-en 0.25.0)
+
+- 内容:档位表「难点实现:算法、并发、棘手 bug」由 `sonnet` + `high` 改为 `opus` + `high`。原则 1 加一句:同一单元连续打回两次,再重跑时模型也升 `opus`。原则 3 加一个例外:触及生产、凭据、删改数据、对外发版的单元,实现也从 `opus` 起步(档位仍照档位表与原则 1)。裁决轮不变(`opus` + `high`)。改了 README 中英与两份 scaffold 模板;workflow-codex 没有档位表,不涉及。
+- 发版前检查(Claude Code 2.1.325):`claude plugin validate --strict` 末行 `ALL PASSED (8 plugins)`;常驻 token:workflow ~465、workflow-en ~442、speak-human ~181、speak-human-en ~174、send-to ~189、send-to-en ~166、ui-sweep ~159、ui-sweep-en ~164。
+- 回滚:revert 该合并提交并升补丁版本(0.25.1);只改文档与模板,不涉及数据。
 
 ### 2026-11-01 — 递归删除目标校验钩子(workflow / workflow-en 0.24.0)
 
