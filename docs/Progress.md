@@ -15,7 +15,6 @@
 
 | 事项 | 来源 | 优先级 |
 |---|---|---|
-| ui-sweep 中英两份文档里导出登录态的命令缺 `node`,脚本文件又没有可执行权限,照文档执行会报权限错误 | 2026-10-04 对照 superpowers 6.4.1 时查出 | 中 |
 | 对照 superpowers 6.4.1 批次的评审遗留(K4~K7、L6):七.4「各单元实现返回后按顺序跑」可读成等全部返回;顺序跑全量出现失败怎么办没写;「HARD-GATE 整段」含 Spike 那一行、句末才说 spike 照原样;模板漏「或派一个 agent 串行跑」;「容易漏」的条目没法用测试覆盖或跨单元时怎么办没写 | 2026-10-05 评审链 | 低 |
 | README 仓库结构树漏 `docs/` 与 `.agents/`;`speak-human-en` 标注「结构同 speak-human」但实际无 `evals/` | 2026-08-13 发布把关 | 低 |
 | 内部版 CI 令牌 `内部工具包-ci-bot` **2027-04-20 到期**,到期后 auto-bump 会再次全红 | 2026-08-13 修 auto-bump 时建 | 到期前 |
@@ -36,6 +35,10 @@
 | docs-capture 英文词表召回窄(approve/ship/stick with 未覆盖,U2 评审记录),按宁漏勿错接受,待实际使用数据再扩 | 2026-08-14 U2 评审 | 低 |
 
 ## 变更日志(最新在上)
+
+### 2026-11-23 — ui-sweep 说明里导出登录态的命令补上 node(ui-sweep / ui-sweep-en)
+
+脚本文件没有可执行权限,照说明直接执行会报权限错误;命令前补上 `node`,中英两份写法一致。只改说明文档,脚本与行为不变。`claude plugin validate --strict` 通过;常驻 token:ui-sweep 约 159,ui-sweep-en 约 164。
 
 ### 2026-11-13 — 档位表:难点实现改 opus + high,加两条升 opus 护栏(workflow / workflow-en 0.25.0)
 
